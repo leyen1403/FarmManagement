@@ -1,0 +1,100 @@
+﻿@model FarmManagement.Application.DTOs.Locations.LocationTypeDto
+
+@{
+    ViewData["Title"] = "Thêm loại vị trí";
+    ViewData["Breadcrumb"] = "Thêm loại vị trí";
+}
+
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="LocationTypes" asp-action="Index">Loại vị trí</a>
+            </li>
+            <li class="breadcrumb-item active">Thêm mới</li>
+        </ol>
+    </nav>
+    <h1 class="page-title">Thêm loại vị trí</h1>
+    <p class="page-subtitle">Tạo loại vị trí mới trong hệ thống</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-tags me-2"></i>Thông tin loại vị trí
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label">
+                                <i class="bi bi-hash me-1"></i>Mã loại <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Code" class="form-control" placeholder="VD: FARM, WAREHOUSE..." />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                            <div class="form-text">Mã định danh duy nhất, nên viết hoa</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label">
+                                <i class="bi bi-tag me-1"></i>Tên loại <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control" placeholder="VD: Khu vực canh tác" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Lưu
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card bg-info bg-opacity-10 border-info">
+            <div class="card-header border-info">
+                <h5 class="card-title mb-0 text-info">
+                    <i class="bi bi-lightbulb me-2"></i>Gợi ý
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Một số loại vị trí phổ biến:</p>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check text-info me-2"></i>Khu vực canh tác
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-info me-2"></i>Nhà kho
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-info me-2"></i>Chuồng trại
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-info me-2"></i>Ao nuôi
+                    </li>
+                    <li>
+                        <i class="bi bi-check text-info me-2"></i>Khu vực chế biến
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

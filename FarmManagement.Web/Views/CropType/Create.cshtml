@@ -1,0 +1,109 @@
+﻿@model FarmManagement.Application.DTOs.Crops.CreateCropTypeDto
+
+@{
+    ViewData["Title"] = "Thêm loại cây trồng";
+    ViewData["Breadcrumb"] = "Thêm loại cây trồng";
+}
+
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="CropType" asp-action="Index">Loại cây trồng</a>
+            </li>
+            <li class="breadcrumb-item active">Thêm mới</li>
+        </ol>
+    </nav>
+    <h1 class="page-title">Thêm loại cây trồng</h1>
+    <p class="page-subtitle">Tạo loại cây trồng mới trong hệ thống</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-flower1 me-2"></i>Thông tin loại cây
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label">
+                                <i class="bi bi-hash me-1"></i>Mã loại cây
+                            </label>
+                            <input asp-for="Code" class="form-control" placeholder="VD: RICE, CORN..." />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                            <div class="form-text">Để trống hệ thống sẽ tự tạo</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label">
+                                <i class="bi bi-tag me-1"></i>Tên loại cây <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control" placeholder="VD: Lúa nước" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">
+                                <i class="bi bi-text-paragraph me-1"></i>Mô tả
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Mô tả chi tiết về loại cây trồng này..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Lưu
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card bg-success bg-opacity-10 border-success">
+            <div class="card-header border-success">
+                <h5 class="card-title mb-0 text-success">
+                    <i class="bi bi-lightbulb me-2"></i>Gợi ý
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-3">Một số loại cây trồng phổ biến:</p>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success me-2"></i>Lúa nước / Lúa cạn
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success me-2"></i>Ngô / Bắp
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success me-2"></i>Rau xanh các loại
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check text-success me-2"></i>Cây ăn quả
+                    </li>
+                    <li>
+                        <i class="bi bi-check text-success me-2"></i>Cây công nghiệp
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

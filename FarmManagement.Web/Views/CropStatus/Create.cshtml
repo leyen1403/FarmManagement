@@ -1,0 +1,105 @@
+﻿@model FarmManagement.Application.DTOs.Crops.CreateCropStatusDto
+
+@{
+    ViewData["Title"] = "Thêm trạng thái cây trồng";
+    ViewData["Breadcrumb"] = "Thêm trạng thái cây trồng";
+}
+
+<div class="page-header mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-controller="CropStatus" asp-action="Index">Trạng thái cây trồng</a>
+            </li>
+            <li class="breadcrumb-item active">Thêm mới</li>
+        </ol>
+    </nav>
+    <h1 class="page-title">Thêm trạng thái cây trồng</h1>
+    <p class="page-subtitle">Tạo trạng thái mới cho cây trồng trong hệ thống</p>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Thông tin trạng thái
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label">
+                                <i class="bi bi-hash me-1"></i>Mã trạng thái <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Code" class="form-control" placeholder="VD: GROWING" />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                            <div class="form-text">Mã định danh duy nhất, nên viết hoa</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label">
+                                <i class="bi bi-tag me-1"></i>Tên trạng thái <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control" placeholder="VD: Đang phát triển" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">
+                                <i class="bi bi-text-paragraph me-1"></i>Mô tả
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="3"
+                                      placeholder="Mô tả chi tiết về trạng thái này..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Lưu
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-lightbulb me-2"></i>Hướng dẫn
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <strong>Mã trạng thái</strong> nên ngắn gọn, dễ nhớ
+                    </li>
+                    <li class="mb-3">
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <strong>Tên</strong> mô tả rõ ràng trạng thái
+                    </li>
+                    <li>
+                        <i class="bi bi-check-circle text-success me-2"></i>
+                        <strong>Mô tả</strong> giúp người dùng hiểu rõ hơn
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

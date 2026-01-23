@@ -1,0 +1,159 @@
+﻿@using FarmManagement.Application.DTOs.Common
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Breadcrumb"] = "Dashboard";
+
+    var locationCount = ViewBag.LocationCount ?? 0;
+    var cropTypeCount = ViewBag.CropTypeCount ?? 0;
+    var cropStatusCount = ViewBag.CropStatusCount ?? 0;
+    var activityCountToday = ViewBag.ActivityCountToday ?? 0;
+    var recentActivities = ViewBag.RecentActivities as List<ActivityLogDto> ?? new List<ActivityLogDto>();
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle mb-0">Tổng quan hệ thống quản lý nông trại</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-download me-1"></i> Xuất báo cáo
+        </button>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@locationCount</div>
+                    <div class="stats-card-label">Vị trí</div>
+                </div>
+                <div class="stats-card-icon primary">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@cropTypeCount</div>
+                    <div class="stats-card-label">Loại cây trồng</div>
+                </div>
+                <div class="stats-card-icon success">
+                    <i class="bi bi-flower1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@cropStatusCount</div>
+                    <div class="stats-card-label">Trạng thái cây trồng</div>
+                </div>
+                <div class="stats-card-icon warning">
+                    <i class="bi bi-heart-pulse"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@activityCountToday</div>
+                    <div class="stats-card-label">Hoạt động hôm nay</div>
+                </div>
+                <div class="stats-card-icon danger">
+                    <i class="bi bi-activity"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions & Recent Activity -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="bi bi-lightning-charge me-2"></i>Thao tác nhanh
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a asp-controller="Location" asp-action="Create" class="btn btn-outline-primary w-100 py-3">
+                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
+                            Thêm vị trí
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="CropType" asp-action="Create" class="btn btn-outline-success w-100 py-3">
+                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
+                            Thêm loại cây trồng
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="LocationTypes" asp-action="Create" class="btn btn-outline-info w-100 py-3">
+                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
+                            Thêm loại vị trí
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Crop" asp-action="Create" class="btn btn-outline-warning w-100 py-3">
+                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
+                            Thêm cây trồng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title">
+                    <i class="bi bi-clock-history me-2"></i>Hoạt động gần đây
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (recentActivities.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var activity in recentActivities)
+                        {
+                            <li class="list-group-item d-flex align-items-center py-3">
+                                <div class="bg-@activity.ActionColorClass bg-opacity-10 text-@activity.ActionColorClass rounded p-2 me-3">
+                                    <i class="bi @activity.ActionIcon"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-medium">@activity.Description</div>
+                                    <small class="text-muted">@activity.RelativeTime</small>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                        <p class="mt-2 mb-0">Chưa có hoạt động nào</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

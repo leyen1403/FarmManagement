@@ -1,0 +1,186 @@
+﻿@using FarmManagement.Application.DTOs.Locations
+@model IEnumerable<LocationDto>
+
+@{
+    ViewData["Title"] = "Quản lý vị trí";
+    ViewData["Breadcrumb"] = "Vị trí";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Quản lý vị trí</h1>
+        <p class="page-subtitle mb-0">Quản lý các vị trí, khu vực trong nông trại</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Thêm vị trí
+        </a>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="table-container">
+    <div class="table-toolbar">
+        <div class="table-search">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm vị trí...">
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-secondary">Tổng: @Model.Count()</span>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table data-table mb-0" id="dataTable">
+                <thead>
+                    <tr>
+                        <th width="60">#</th>
+                        <th>Tên vị trí</th>
+                        <th>Loại</th>
+                        <th>Trạng thái</th>
+                        <th>Địa chỉ</th>
+                        <th>Diện tích</th>
+                        <th>Ngày tạo</th>
+                        <th width="140">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-muted">@item.Id</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">@item.Name</div>
+                                        @if (!string.IsNullOrEmpty(item.Description))
+                                        {
+                                            <small class="text-muted">@item.Description</small>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-tag me-1"></i>@(item.LocationTypeName ?? "-")
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success bg-opacity-10 text-success">
+                                    @(item.LocationStatusName ?? "-")
+                                </span>
+                            </td>
+                            <td class="text-muted">@(item.Address ?? "-")</td>
+                            <td>
+                                @if (item.Area.HasValue)
+                                {
+                                    <span>@item.Area.Value.ToString("N0") m²</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td class="text-muted">
+                                @item.CreatedDate?.ToString("dd/MM/yyyy")
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-action="Edit" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-primary" title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            title="Xóa"
+                                            onclick="confirmDelete(@item.Id, '@item.Name')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+            <div class="empty-state-title">Chưa có vị trí nào</div>
+            <p class="text-muted">Bắt đầu bằng cách thêm vị trí đầu tiên</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> Thêm vị trí
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa vị trí <strong id="deleteItemName"></strong>?</p>
+                <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <a id="deleteLink" href="#" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i>Xóa
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+         // Search functionality
+          document.getElementById('searchInput').addEventListener('keyup', function() {
+         const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#dataTable tbody tr');
+              rows.forEach(row => {
+                  const text = row.textContent.toLowerCase();
+              row.style.display = text.includes(filter) ? '' : 'none';
+              });
+          });
+
+        // Delete confirmation
+          function confirmDelete(id, name) {
+              document.getElementById('deleteItemName').textContent = name;
+          document.getElementById('deleteLink').href = '@Url.Action("Delete")/' + id;
+              new bootstrap.Modal(document.getElementById('deleteModal')).show();
+          }
+    </script>
+}
