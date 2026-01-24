@@ -648,7 +648,6 @@
 
 @* ==================== MODALS ==================== *@
 
-@* (Các Modal giữ nguyên logic, chỉ căn chỉnh thụt lề chuẩn 4 spaces) *@
 @* Modal: Thêm thu hoạch *@
 <div class="modal fade" id="addHarvestModal" tabindex="-1">
     <div class="modal-dialog">
@@ -697,7 +696,512 @@
     </div>
 </div>
 
-@* (Tương tự cho các Modal Edit/Delete Harvest, Cost, CareLog, Price, CostType, CareType...) *@
+@* Modal: Sửa thu hoạch *@
+<div class="modal fade" id="editHarvestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateHarvest" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editHarvestId" name="Id" />
+                <input type="hidden" name="CropId" value="@Model.Id" />
+                <div class="modal-header bg-primary-subtle">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa thu hoạch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày thu hoạch <span class="text-danger">*</span></label>
+                            <input type="date" id="editHarvestDate" name="HarvestDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số lượng <span class="text-danger">*</span></label>
+                            <input type="number" id="editHarvestQuantity" name="Quantity" class="form-control" required min="0.01" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn vị</label>
+                            <input type="text" id="editHarvestUnit" name="Unit" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn giá (VNĐ)</label>
+                            <input type="number" id="editHarvestUnitPrice" name="UnitPrice" class="form-control" min="0" step="1000">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Người mua</label>
+                            <input type="text" id="editHarvestBuyer" name="Buyer" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea id="editHarvestNote" name="Note" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Xóa thu hoạch *@
+<div class="modal fade" id="deleteHarvestModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form asp-action="DeleteHarvest" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="deleteHarvestId" name="Id" />
+                <input type="hidden" name="cropId" value="@Model.Id" />
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Bạn có chắc chắn muốn xóa thu hoạch này?</h5>
+                    <p id="deleteHarvestDate" class="text-muted mb-0"></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Thêm chi phí *@
+<div class="modal fade" id="addCostModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateCost" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CropId" value="@Model.Id" />
+                <div class="modal-header bg-danger-subtle">
+                    <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i>Thêm chi phí</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày <span class="text-danger">*</span></label>
+                            <input type="date" name="CostDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Loại chi phí <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select name="CostTypeId" class="form-select" required>
+                                    <option value="">-- Chọn --</option>
+                                    @foreach (var ct in costTypes)
+                                    {
+                                        <option value="@ct.Id">@ct.Name</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" title="Thêm loại" data-bs-toggle="modal" data-bs-target="#quickCreateCostTypeModal">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số lượng <span class="text-danger">*</span></label>
+                            <input type="number" name="Quantity" class="form-control" required min="0.01" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn vị</label>
+                            <input type="text" name="Unit" class="form-control" value="@(Model.Unit ?? "")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn giá</label>
+                            <input type="number" name="UnitPrice" class="form-control" min="0" step="1000">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="Note" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Sửa chi phí *@
+<div class="modal fade" id="editCostModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateCost" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editCostId" name="Id" />
+                <input type="hidden" name="CropId" value="@Model.Id" />
+                <div class="modal-header bg-primary-subtle">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa chi phí</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày <span class="text-danger">*</span></label>
+                            <input type="date" id="editCostDate" name="CostDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Loại chi phí <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select id="editCostTypeId" name="CostTypeId" class="form-select" required>
+                                    <option value="">-- Chọn --</option>
+                                    @foreach (var ct in costTypes)
+                                    {
+                                        <option value="@ct.Id">@ct.Name</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" title="Thêm loại" data-bs-toggle="modal" data-bs-target="#quickCreateCostTypeModal">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số lượng <span class="text-danger">*</span></label>
+                            <input type="number" id="editCostQuantity" name="Quantity" class="form-control" required min="0.01" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn vị</label>
+                            <input type="text" id="editCostUnit" name="Unit" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn giá</label>
+                            <input type="number" id="editCostUnitPrice" name="UnitPrice" class="form-control" min="0" step="1000">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea id="editCostNote" name="Note" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Xóa chi phí *@
+<div class="modal fade" id="deleteCostModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form asp-action="DeleteCost" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="deleteCostId" name="Id" />
+                <input type="hidden" name="cropId" value="@Model.Id" />
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Bạn có chắc chắn muốn xóa chi phí này?</h5>
+                    <p id="deleteCostName" class="text-muted mb-0"></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Thêm chăm sóc *@
+<div class="modal fade" id="addCareLogModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateCareLog" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CropId" value="@Model.Id" />
+                <div class="modal-header bg-warning-subtle">
+                    <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>Thêm chăm sóc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày <span class="text-danger">*</span></label>
+                            <input type="date" name="CareDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Loại chăm sóc <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select name="CropCareTypeId" class="form-select" required>
+                                    <option value="">-- Chọn --</option>
+                                    @foreach (var ct in careTypes)
+                                    {
+                                        <option value="@ct.Id">@ct.Name</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" title="Thêm loại" data-bs-toggle="modal" data-bs-target="#quickCreateCareTypeModal">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="Description" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Chi phí</label>
+                            <input type="number" name="Cost" class="form-control" min="0" step="1000" value="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Sửa chăm sóc *@
+<div class="modal fade" id="editCareLogModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateCareLog" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editCareLogId" name="Id" />
+                <input type="hidden" name="CropId" value="@Model.Id" />
+                <div class="modal-header bg-primary-subtle">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa chăm sóc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày <span class="text-danger">*</span></label>
+                            <input type="date" id="editCareLogDate" name="CareDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Loại chăm sóc <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select id="editCareLogTypeId" name="CropCareTypeId" class="form-select" required>
+                                    <option value="">-- Chọn --</option>
+                                    @foreach (var ct in careTypes)
+                                    {
+                                        <option value="@ct.Id">@ct.Name</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" title="Thêm loại" data-bs-toggle="modal" data-bs-target="#quickCreateCareTypeModal">
+                                    <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea id="editCareLogDescription" name="Description" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Chi phí</label>
+                            <input type="number" id="editCareLogCost" name="Cost" class="form-control" min="0" step="1000" value="0">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Xóa chăm sóc *@
+<div class="modal fade" id="deleteCareLogModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form asp-action="DeleteCareLog" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="deleteCareLogId" name="Id" />
+                <input type="hidden" name="cropId" value="@Model.Id" />
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Bạn có chắc chắn muốn xóa nhật ký chăm sóc này?</h5>
+                    <p id="deleteCareLogName" class="text-muted mb-0"></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Thêm giá *@
+<div class="modal fade" id="addPriceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreatePrice" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="CropId" value="@Model.Id" />
+                <div class="modal-header bg-primary-subtle">
+                    <h5 class="modal-title"><i class="bi bi-currency-dollar me-2"></i>Thêm giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Giá (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" name="Price" class="form-control" required min="0" step="1000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn vị <span class="text-danger">*</span></label>
+                            <input type="text" name="Unit" class="form-control" required value="@(Model.Unit ?? "kg")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày áp dụng <span class="text-danger">*</span></label>
+                            <input type="date" name="EffectiveDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày hết hạn</label>
+                            <input type="date" name="ExpiryDate" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="Note" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Sửa giá *@
+<div class="modal fade" id="editPriceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdatePrice" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editPriceId" name="Id" />
+                <input type="hidden" name="CropId" value="@Model.Id" />
+                <div class="modal-header bg-primary-subtle">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Giá (VNĐ) <span class="text-danger">*</span></label>
+                            <input type="number" id="editPrice" name="Price" class="form-control" required min="0" step="1000">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn vị <span class="text-danger">*</span></label>
+                            <input type="text" id="editUnit" name="Unit" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày áp dụng <span class="text-danger">*</span></label>
+                            <input type="date" id="editEffectiveDate" name="EffectiveDate" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày hết hạn</label>
+                            <input type="date" id="editExpiryDate" name="ExpiryDate" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea id="editNote" name="Note" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div class="col-12 form-check">
+                            <input type="checkbox" id="editIsActive" name="IsActive" class="form-check-input">
+                            <label class="form-check-label" for="editIsActive">Hoạt động</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal: Xóa giá *@
+<div class="modal fade" id="deletePriceModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <form asp-action="DeletePrice" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="deletePriceId" name="Id" />
+                <input type="hidden" name="cropId" value="@Model.Id" />
+                <div class="modal-body text-center py-4">
+                    <h5 class="mb-3">Bạn có chắc chắn muốn xóa giá này?</h5>
+                    <p id="deletePriceValue" class="text-muted mb-0"></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Quick-create modals for CostType and CareType *@
+<div class="modal fade" id="quickCreateCostTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="quickCreateCostTypeForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="cropId" value="@Model.Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm loại chi phí</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã</label>
+                        <input type="text" id="newCostTypeCode" name="Code" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên</label>
+                        <input type="text" id="newCostTypeName" name="Name" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="quickCreateCareTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="quickCreateCareTypeForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="cropId" value="@Model.Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm loại chăm sóc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã</label>
+                        <input type="text" id="newCareTypeCode" name="Code" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên</label>
+                        <input type="text" id="newCareTypeName" name="Name" class="form-control" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <style>
     .care-icon {
@@ -755,78 +1259,150 @@
 @section Scripts {
     <script src="~/js/modules/form-helper.js"></script>
     <script>
+        // Quick-create AJAX handlers
         document.addEventListener('DOMContentLoaded', function () {
-            FarmApp.UI.initTooltips();
+        var quickCostForm = document.getElementById('quickCreateCostTypeForm');
+        if (quickCostForm) {
+        quickCostForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var code = document.getElementById('newCostTypeCode').value.trim();
+        var name = document.getElementById('newCostTypeName').value.trim();
+        if (!code || !name) return;
+
+        console.log('Creating cost type', { code, name });
+        var token = document.querySelector('#quickCreateCostTypeForm input[name="__RequestVerificationToken"]')?.value;
+        var resp = await fetch('@Url.Action("CreateCostTypeAjax", "Crop")', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token || '' },
+        body: JSON.stringify({ Code: code, Name: name })
+        });
+        var data = await resp.json();
+        if (data.success) {
+        // add option to all cost type selects
+        var selects = document.querySelectorAll('select[name="CostTypeId"]');
+        selects.forEach(function (s) {
+        var opt = document.createElement('option');
+        opt.value = data.id ||0;
+        opt.text = name;
+        s.appendChild(opt);
+        s.value = data.id || '';
+        });
+        var modal = bootstrap.Modal.getInstance(document.getElementById('quickCreateCostTypeModal'));
+        modal.hide();
+        quickCostForm.reset();
+        } else {
+        alert(data.message || 'Lỗi');
+        }
+        });
+        }
+
+        var quickCareForm = document.getElementById('quickCreateCareTypeForm');
+        if (quickCareForm) {
+        quickCareForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        var code = document.getElementById('newCareTypeCode').value.trim();
+        var name = document.getElementById('newCareTypeName').value.trim();
+        if (!code || !name) return;
+
+        console.log('Creating care type', { code, name });
+        var token2 = document.querySelector('#quickCreateCareTypeForm input[name="__RequestVerificationToken"]')?.value;
+        var resp = await fetch('@Url.Action("CreateCropCareTypeAjax", "Crop")', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token2 || '' },
+        body: JSON.stringify({ Code: code, Name: name })
+        });
+        var data = await resp.json();
+        if (data.success) {
+        var selects = document.querySelectorAll('select[name="CropCareTypeId"]');
+        selects.forEach(function (s) {
+        var opt = document.createElement('option');
+        opt.value = data.id ||0;
+        opt.text = name;
+        s.appendChild(opt);
+        s.value = data.id || '';
+        });
+        var modal = bootstrap.Modal.getInstance(document.getElementById('quickCreateCareTypeModal'));
+        modal.hide();
+        quickCareForm.reset();
+        } else {
+        alert(data.message || 'Lỗi');
+        }
+        });
+        }
         });
 
-        // Edit Harvest
-        function editHarvest(id, date, quantity, unit, unitPrice, buyer, note) {
-            document.getElementById('editHarvestId').value = id;
-            document.getElementById('editHarvestDate').value = date;
-            document.getElementById('editHarvestQuantity').value = quantity;
-            document.getElementById('editHarvestUnit').value = unit;
-            document.getElementById('editHarvestUnitPrice').value = unitPrice;
-            document.getElementById('editHarvestBuyer').value = buyer;
-            document.getElementById('editHarvestNote').value = note;
-            new bootstrap.Modal(document.getElementById('editHarvestModal')).show();
-        }
+         document.addEventListener('DOMContentLoaded', function () {
+         FarmApp.UI.initTooltips();
+         });
 
-        function confirmDeleteHarvest(id, date) {
-            document.getElementById('deleteHarvestId').value = id;
-            document.getElementById('deleteHarvestDate').textContent = date;
-            new bootstrap.Modal(document.getElementById('deleteHarvestModal')).show();
-        }
+                // Edit Harvest
+                function editHarvest(id, date, quantity, unit, unitPrice, buyer, note) {
+                    document.getElementById('editHarvestId').value = id;
+                    document.getElementById('editHarvestDate').value = date;
+                    document.getElementById('editHarvestQuantity').value = quantity;
+                    document.getElementById('editHarvestUnit').value = unit;
+                    document.getElementById('editHarvestUnitPrice').value = unitPrice;
+                    document.getElementById('editHarvestBuyer').value = buyer;
+                    document.getElementById('editHarvestNote').value = note;
+                    new bootstrap.Modal(document.getElementById('editHarvestModal')).show();
+                }
 
-        // Edit Cost
-        function editCost(id, costTypeId, date, quantity, unit, unitPrice, note) {
-            document.getElementById('editCostId').value = id;
-            document.getElementById('editCostTypeId').value = costTypeId;
-            document.getElementById('editCostDate').value = date;
-            document.getElementById('editCostQuantity').value = quantity;
-            document.getElementById('editCostUnit').value = unit;
-            document.getElementById('editCostUnitPrice').value = unitPrice;
-            document.getElementById('editCostNote').value = note;
-            new bootstrap.Modal(document.getElementById('editCostModal')).show();
-        }
+                function confirmDeleteHarvest(id, date) {
+                    document.getElementById('deleteHarvestId').value = id;
+                    document.getElementById('deleteHarvestDate').textContent = date;
+                    new bootstrap.Modal(document.getElementById('deleteHarvestModal')).show();
+                }
 
-        function confirmDeleteCost(id, name) {
-            document.getElementById('deleteCostId').value = id;
-            document.getElementById('deleteCostName').textContent = name;
-            new bootstrap.Modal(document.getElementById('deleteCostModal')).show();
-        }
+                // Edit Cost
+                function editCost(id, costTypeId, date, quantity, unit, unitPrice, note) {
+                    document.getElementById('editCostId').value = id;
+                    document.getElementById('editCostTypeId').value = costTypeId;
+                    document.getElementById('editCostDate').value = date;
+                    document.getElementById('editCostQuantity').value = quantity;
+                    document.getElementById('editCostUnit').value = unit;
+                    document.getElementById('editCostUnitPrice').value = unitPrice;
+                    document.getElementById('editCostNote').value = note;
+                    new bootstrap.Modal(document.getElementById('editCostModal')).show();
+                }
 
-        // Edit Care Log
-        function editCareLog(id, careTypeId, date, description, cost) {
-            document.getElementById('editCareLogId').value = id;
-            document.getElementById('editCareLogTypeId').value = careTypeId;
-            document.getElementById('editCareLogDate').value = date;
-            document.getElementById('editCareLogDescription').value = description;
-            document.getElementById('editCareLogCost').value = cost;
-            new bootstrap.Modal(document.getElementById('editCareLogModal')).show();
-        }
+                function confirmDeleteCost(id, name) {
+                    document.getElementById('deleteCostId').value = id;
+                    document.getElementById('deleteCostName').textContent = name;
+                    new bootstrap.Modal(document.getElementById('deleteCostModal')).show();
+                }
 
-        function confirmDeleteCareLog(id, name) {
-            document.getElementById('deleteCareLogId').value = id;
-            document.getElementById('deleteCareLogName').textContent = name;
-            new bootstrap.Modal(document.getElementById('deleteCareLogModal')).show();
-        }
+                // Edit Care Log
+                function editCareLog(id, careTypeId, date, description, cost) {
+                    document.getElementById('editCareLogId').value = id;
+                    document.getElementById('editCareLogTypeId').value = careTypeId;
+                    document.getElementById('editCareLogDate').value = date;
+                    document.getElementById('editCareLogDescription').value = description;
+                    document.getElementById('editCareLogCost').value = cost;
+                    new bootstrap.Modal(document.getElementById('editCareLogModal')).show();
+                }
 
-        // Edit Price
-        function editPrice(id, price, unit, effectiveDate, expiryDate, note, isActive) {
-            document.getElementById('editPriceId').value = id;
-            document.getElementById('editPrice').value = price;
-            document.getElementById('editUnit').value = unit;
-            document.getElementById('editEffectiveDate').value = effectiveDate;
-            document.getElementById('editExpiryDate').value = expiryDate || '';
-            document.getElementById('editNote').value = note || '';
-            document.getElementById('editIsActive').checked = isActive;
-            new bootstrap.Modal(document.getElementById('editPriceModal')).show();
-        }
+                function confirmDeleteCareLog(id, name) {
+                    document.getElementById('deleteCareLogId').value = id;
+                    document.getElementById('deleteCareLogName').textContent = name;
+                    new bootstrap.Modal(document.getElementById('deleteCareLogModal')).show();
+                }
 
-        function confirmDeletePrice(id, price) {
-            document.getElementById('deletePriceId').value = id;
-            document.getElementById('deletePriceValue').textContent = price.toLocaleString('vi-VN');
-            new bootstrap.Modal(document.getElementById('deletePriceModal')).show();
-        }
+                // Edit Price
+                function editPrice(id, price, unit, effectiveDate, expiryDate, note, isActive) {
+                    document.getElementById('editPriceId').value = id;
+                    document.getElementById('editPrice').value = price;
+                    document.getElementById('editUnit').value = unit;
+                    document.getElementById('editEffectiveDate').value = effectiveDate;
+                    document.getElementById('editExpiryDate').value = expiryDate || '';
+                    document.getElementById('editNote').value = note || '';
+                    document.getElementById('editIsActive').checked = isActive;
+                    new bootstrap.Modal(document.getElementById('editPriceModal')).show();
+                }
+
+                function confirmDeletePrice(id, price) {
+                    document.getElementById('deletePriceId').value = id;
+                    document.getElementById('deletePriceValue').textContent = price.toLocaleString('vi-VN');
+                    new bootstrap.Modal(document.getElementById('deletePriceModal')).show();
+                }
     </script>
 }

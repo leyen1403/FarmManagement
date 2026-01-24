@@ -1025,3 +1025,7 @@ body {
     color: var(--secondary-color);
     font-size: 0.875rem;
 }
+
+.nav-tabs .nav-link{
+    margin-bottom: 7px;
+}

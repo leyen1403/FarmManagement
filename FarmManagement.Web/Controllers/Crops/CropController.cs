@@ -435,6 +435,53 @@ public class CropController : Controller
 
     #endregion
 
+    #region Ajax quick-create endpoints
+
+    [HttpPost]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> CreateCostTypeAjax([FromBody] CreateCostTypeDto dto)
+    {
+        if (dto == null)
+            return Json(new { success = false, message = "Invalid data" });
+
+        try
+        {
+            await _costTypeService.CreateAsync(dto);
+            // fetch created item by code
+            var all = await _costTypeService.GetAllAsync(true);
+            var created = all.FirstOrDefault(x => x.Code == dto.Code || x.Name == dto.Name);
+            var id = created?.Id ??0;
+            return Json(new { success = true, id, name = dto.Name });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
+    [HttpPost]
+    [IgnoreAntiforgeryToken]
+    public async Task<IActionResult> CreateCropCareTypeAjax([FromBody] CreateCropCareTypeDto dto)
+    {
+        if (dto == null)
+            return Json(new { success = false, message = "Invalid data" });
+
+        try
+        {
+            await _cropCareTypeService.CreateAsync(dto);
+            var all = await _cropCareTypeService.GetAllAsync(true);
+            var created = all.FirstOrDefault(x => x.Code == dto.Code || x.Name == dto.Name);
+            var id = created?.Id ??0;
+            return Json(new { success = true, id, name = dto.Name });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
+    }
+
+    #endregion
+
     private async Task LoadDropdownsAsync()
     {
         ViewBag.CropTypes = await _cropTypeService.GetAllAsync(false);

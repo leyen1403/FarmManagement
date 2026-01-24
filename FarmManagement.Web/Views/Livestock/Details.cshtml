@@ -293,7 +293,7 @@ Label = "Doanh thu bán",
   <td class="text-muted">@log.Note</td>
      <td>
           <div class="btn-group btn-group-sm">
-     <button type="button" class="btn btn-outline-primary"
+     <button type="button" class="btn btn-outline-primary btn-sm"
     onclick="openEditCareLogModal(@log.Id, @log.LivestockCareTypeId, '@log.CareDate.ToString("yyyy-MM-dd")', @log.Quantity, '@(log.Unit ?? "")', @log.Cost, '@(log.Note?.Replace("'", "\\'") ?? "")')">
      <i class="bi bi-pencil"></i>
    </button>
@@ -301,13 +301,14 @@ Label = "Doanh thu bán",
            @Html.AntiForgeryToken()
    <input type="hidden" name="id" value="@log.Id" />
            <input type="hidden" name="livestockId" value="@Model.Id" />
-        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Xóa nhật ký này?')">
-               <i class="bi bi-trash"></i>
-  </button>
-               </form>
-               </div>
-    </td>
-              </tr>
+
+ <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
+ <i class="bi bi-trash"></i>
+ </button>
+ </form>
+ </div>
+ </td>
+ </tr>
     }
                </tbody>
        <tfoot class="table-light">
@@ -360,7 +361,7 @@ Label = "Doanh thu bán",
             <td>@log.VetName</td>
               <td>
   <div class="btn-group btn-group-sm">
-            <button type="button" class="btn btn-outline-primary"
+            <button type="button" class="btn btn-outline-primary btn-sm"
         onclick="openEditHealthLogModal(@log.Id, @log.HealthStatusId, '@log.CheckDate.ToString("yyyy-MM-dd")', '@(log.Symptom?.Replace("'", "\\'") ?? "")', '@(log.Treatment?.Replace("'", "\\'") ?? "")', @log.MedicineCost, '@(log.VetName?.Replace("'", "\\'") ?? "")')">
         <i class="bi bi-pencil"></i>
           </button>
@@ -368,7 +369,7 @@ Label = "Doanh thu bán",
                  @Html.AntiForgeryToken()
               <input type="hidden" name="id" value="@log.Id" />
        <input type="hidden" name="livestockId" value="@Model.Id" />
-      <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Xóa nhật ký này?')">
+      <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
        <i class="bi bi-trash"></i>
          </button>
   </form>
@@ -429,23 +430,23 @@ Label = "Doanh thu bán",
         <td>@sale.Buyer</td>
             <td>
                  <div class="btn-group btn-group-sm">
-           <button type="button" class="btn btn-outline-info" title="Xem chi tiết" onclick="viewSaleDetails(@sale.Id)">
+           <button type="button" class="btn btn-outline-info btn-sm" title="Xem chi tiết" onclick="viewSaleDetails(@sale.Id)">
      <i class="bi bi-eye"></i>
      </button>
-      <button type="button" class="btn btn-outline-primary" title="Sửa"
-             onclick="openEditSaleModal(@sale.Id, '@sale.SaleDate.ToString("yyyy-MM-dd")', '@(sale.Buyer?.Replace("'", "\\'") ?? "")', '@(sale.BuyerPhone?.Replace("'", "\\'") ?? "")', '@(sale.Note?.Replace("'", "\\'") ?? "")')">
+      <button type="button" class="btn btn-outline-primary btn-sm" title="Sửa"
+             onclick="openEditSaleModal(@sale.Id, '@sale.SaleDate.ToString("yyyy-MM-dd")', '@(sale.Buyer?.Replace("'","\\'") ?? "")', '@(sale.BuyerPhone?.Replace("'","\\'") ?? "")', '@(sale.Note?.Replace("'","\\'") ?? "")')">
      <i class="bi bi-pencil"></i>
    </button>
     <form asp-action="DeleteSale" method="post" class="d-inline">
              @Html.AntiForgeryToken()
            <input type="hidden" name="id" value="@sale.Id" />
       <input type="hidden" name="livestockId" value="@Model.Id" />
-    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Xóa đơn hàng này?')">
-    <i class="bi bi-trash"></i>
-            </button>
-  </form>
+ <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa đơn hàng này?')">
+ <i class="bi bi-trash"></i>
+ </button>
+ </form>
  </div>
-          </td>
+ </td>
  </tr>
     @* Expandable detail row *@
     <tr class="sale-detail-row d-none" id="sale-detail-@sale.Id">
@@ -567,7 +568,7 @@ Label = "Doanh thu bán",
     <td class="text-muted">@price.Note</td>
      <td>
                <div class="btn-group btn-group-sm">
-        <button type="button" class="btn btn-outline-primary"
+        <button type="button" class="btn btn-outline-primary btn-sm"
     onclick="openEditPriceModal(@price.Id, @((int)price.Gender), @price.UnitPrice, '@price.EffectiveFrom.ToString("yyyy-MM-dd")', '@(price.EffectiveTo?.ToString("yyyy-MM-dd") ?? "")', @price.IsActive.ToString().ToLower(), '@(price.Note?.Replace("'", "\\'") ?? "")')">
              <i class="bi bi-pencil"></i>
       </button>
@@ -575,7 +576,7 @@ Label = "Doanh thu bán",
         @Html.AntiForgeryToken()
   <input type="hidden" name="id" value="@price.Id" />
   <input type="hidden" name="livestockId" value="@Model.Id" />
-    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Xóa giá này?')">
+ <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa giá này?')">
  <i class="bi bi-trash"></i>
  </button>
                </form>

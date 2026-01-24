@@ -42,7 +42,9 @@ public class LocationTypesController : Controller
         {
             Id = entity.Id,
             Code = entity.Code,
-            Name = entity.Name
+            Name = entity.Name,
+            CreatedDate = entity.CreatedDate,
+            UpdatedDate = entity.UpdatedDate
         };
         return View(result);
     }

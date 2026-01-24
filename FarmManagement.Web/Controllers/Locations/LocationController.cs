@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using FarmManagement.Application.DTOs.Locations;
 using Microsoft.AspNetCore.Mvc;
 using FarmManagement.Web.Exceptions;
@@ -18,7 +20,38 @@ public class LocationController : Controller
         _statusApi = statusApi;
     }
 
-    public async Task<IActionResult> Index() => View(await _api.GetAllAsync());
+    // Support optional filters from query string: searchTerm, typeId, statusId
+    public async Task<IActionResult> Index(string? searchTerm, int? typeId, int? statusId)
+    {
+        var items = await _api.GetAllAsync();
+
+        // Apply in-memory filtering
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim();
+            items = items.Where(x =>
+                    (!string.IsNullOrEmpty(x.Name) && x.Name.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(x.Address) && x.Address.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(x.Description) && x.Description.Contains(term, StringComparison.OrdinalIgnoreCase))
+                ).ToList();
+        }
+
+        if (typeId.HasValue && typeId.Value > 0)
+        {
+            items = items.Where(x => x.LocationTypeId == typeId.Value).ToList();
+        }
+
+        if (statusId.HasValue && statusId.Value > 0)
+        {
+            items = items.Where(x => x.LocationStatusId == statusId.Value).ToList();
+        }
+
+        // Load dropdowns for the filter form
+        ViewBag.Types = await _typeApi.GetAllAsync();
+        ViewBag.Statuses = await _statusApi.GetAllAsync();
+
+        return View(items);
+    }
 
     public async Task<IActionResult> Create()
     {
