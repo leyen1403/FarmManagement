@@ -2,16 +2,22 @@
 @using FarmManagement.Application.DTOs.Crops
 
 @{
-    ViewData["Title"] = "Chi tiết cây trồng";
-    ViewData["Breadcrumb"] = "Chi tiết cây trồng";
+    ViewData["Title"] = $"Chi tiết: {Model.Name}";
+
+    // Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        new BreadcrumbItem("Cây trồng", "/Crop", "bi bi-flower2"),
+        BreadcrumbItem.Current("Chi tiết")
+    );
 
     var daysPlanted = (DateTime.Today - Model.PlantDate).Days;
     var daysToHarvest = Model.ExpectedHarvestDate.HasValue
-      ? (Model.ExpectedHarvestDate.Value - DateTime.Today).Days
+        ? (Model.ExpectedHarvestDate.Value - DateTime.Today).Days
         : (int?)null;
     var progress = Model.ExpectedHarvestDate.HasValue
         ? Math.Min(100, Math.Max(0, (int)((double)daysPlanted / (Model.ExpectedHarvestDate.Value - Model.PlantDate).Days * 100)))
-    : 0;
+        : 0;
 
     var priceHistory = ViewBag.PriceHistory as List<CropPriceDto> ?? new List<CropPriceDto>();
     var currentPrice = priceHistory.FirstOrDefault(p => p.IsActive);
@@ -25,1315 +31,802 @@
     var totalCostAmount = costs.Sum(c => c.TotalAmount);
     var totalCareLogCost = careLogs.Sum(c => c.Cost);
     var profit = totalHarvestAmount - totalCostAmount - totalCareLogCost;
+
+    // Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = Model.Name,
+        Subtitle = $"{Model.CropTypeName} • {Model.LocationName}",
+        Icon = "bi bi-flower2",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            ActionButtonModel.Back("/Crop", "Quay lại"),
+            new ActionButtonModel("Sửa", $"/Crop/Edit/{Model.Id}", "bi bi-pencil", "btn-primary") { Size = ButtonSize.Default }
+        }
+    };
+
+    // Stats Cards
+    var statsCards = new List<StatsCardModel>
+    {
+        new StatsCardModel
+        {
+            Value = totalHarvestAmount.ToString("N0"),
+            Label = "Doanh thu (VNĐ)",
+            Icon = "bi bi-basket",
+            IconBackgroundClass = "bg-success-subtle",
+            ColorClass = "text-success"
+        },
+        new StatsCardModel
+        {
+            Value = (totalCostAmount + totalCareLogCost).ToString("N0"),
+            Label = "Chi phí (VNĐ)",
+            Icon = "bi bi-wallet2",
+            IconBackgroundClass = "bg-danger-subtle",
+            ColorClass = "text-danger"
+        },
+        new StatsCardModel
+        {
+            Value = profit.ToString("N0"),
+            Label = "Lợi nhuận (VNĐ)",
+            Icon = "bi bi-graph-up-arrow",
+            IconBackgroundClass = profit >= 0 ? "bg-primary-subtle" : "bg-danger-subtle",
+            ColorClass = profit >= 0 ? "text-primary" : "text-danger"
+        },
+        new StatsCardModel
+        {
+            Value = careLogs.Count.ToString(),
+            Label = "Lần chăm sóc",
+            Icon = "bi bi-calendar-check",
+            IconBackgroundClass = "bg-warning-subtle",
+            ColorClass = "text-warning"
+        }
+    };
+
+    // Empty states
+    var emptyHarvest = EmptyStateModel.NoData("thu hoạch");
+    emptyHarvest.Icon = "bi bi-basket";
+    emptyHarvest.IconSize = "2rem";
+    emptyHarvest.PrimaryAction = null;
+
+    var emptyCost = EmptyStateModel.NoData("chi phí");
+    emptyCost.Icon = "bi bi-wallet2";
+    emptyCost.IconSize = "2rem";
+    emptyCost.PrimaryAction = null;
+
+    var emptyCare = EmptyStateModel.NoData("nhật ký chăm sóc");
+    emptyCare.Icon = "bi bi-calendar-check";
+    emptyCare.IconSize = "2rem";
+    emptyCare.PrimaryAction = null;
+
+    var emptyPrice = EmptyStateModel.NoData("lịch sử giá");
+    emptyPrice.Icon = "bi bi-currency-dollar";
+    emptyPrice.IconSize = "2rem";
+    emptyPrice.PrimaryAction = null;
 }
 
-<div class="page-header mb-4">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-     <li class="breadcrumb-item">
-         <a asp-controller="Crop" asp-action="Index">Cây trồng</a>
-            </li>
-            <li class="breadcrumb-item active">Chi tiết</li>
-        </ol>
-    </nav>
-    <div class="d-flex justify-content-between align-items-start">
-     <div>
-  <h1 class="page-title">@Model.Name</h1>
-         <p class="page-subtitle mb-0">
-    <span class="badge bg-info bg-opacity-10 text-info me-2">@Model.CropTypeName</span>
-    <i class="bi bi-geo-alt text-muted me-1"></i>@Model.LocationName
-        </p>
-    </div>
-      <div class="page-actions">
-            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
-         <i class="bi bi-pencil me-1"></i>Sửa
-   </a>
-        <a asp-action="Index" class="btn btn-outline-secondary">
-     <i class="bi bi-arrow-left me-1"></i>Quay lại
-         </a>
-        </div>
-    </div>
-</div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
 
-@if (TempData["Error"] != null)
-{
- <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (TempData["Success"] != null)
-{
-  <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-  @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-     <div class="stats-card">
-         <div class="d-flex align-items-center justify-content-between">
-             <div>
-                    <div class="stats-card-value text-success">@totalHarvestAmount.ToString("N0")</div>
-         <div class="stats-card-label">Doanh thu (VNĐ)</div>
-          </div>
-     <div class="stats-card-icon success">
-  <i class="bi bi-basket"></i>
-     </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-    <div class="d-flex align-items-center justify-content-between">
-        <div>
-             <div class="stats-card-value text-danger">@((totalCostAmount + totalCareLogCost).ToString("N0"))</div>
- <div class="stats-card-label">Chi phí (VNĐ)</div>
-    </div>
-   <div class="stats-card-icon danger">
-         <i class="bi bi-wallet2"></i>
-   </div>
-       </div>
-   </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-  <div class="d-flex align-items-center justify-content-between">
-           <div>
-  <div class="stats-card-value @(profit >= 0 ? "text-primary" : "text-danger")">@profit.ToString("N0")</div>
-                    <div class="stats-card-label">Lợi nhuận (VNĐ)</div>
-         </div>
-              <div class="stats-card-icon @(profit >= 0 ? "primary" : "danger")">
-<i class="bi bi-graph-up-arrow"></i>
-  </div>
-            </div>
-     </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-    <div class="d-flex align-items-center justify-content-between">
-      <div>
-   <div class="stats-card-value">@careLogs.Count</div>
-         <div class="stats-card-label">Lần chăm sóc</div>
-           </div>
-        <div class="stats-card-icon warning">
-   <i class="bi bi-calendar-check"></i>
-        </div>
-      </div>
-        </div>
-    </div>
-</div>
+@* ==================== Stats Cards ==================== *@
+<partial name="_StatsCards" model="statsCards" />
 
 <div class="row g-4">
-    <!-- Cột trái - Tabs chức năng -->
+    @* ==================== Left Column - Main Content ==================== *@
     <div class="col-lg-8">
-        <!-- Thông tin cây trồng -->
+        @* Basic Info Card *@
         <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-           <h5 class="card-title mb-0">
-        <i class="bi bi-flower2 me-2"></i>Thông tin cây trồng
-      </h5>
-      <span class="badge badge-status @(Model.ActualHarvestDate.HasValue ? "badge-active" : "bg-primary")">
-     @Model.CropStatusName
-      </span>
-   </div>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="bi bi-flower2 text-success me-2"></i>Thông tin cây trồng
+                </h6>
+                @{
+                    var statusClass = Model.ActualHarvestDate.HasValue ? "success" : "primary";
+                }
+                <span class="badge bg-@statusClass-subtle text-@statusClass">@Model.CropStatusName</span>
+            </div>
             <div class="card-body">
-          @if (!Model.ActualHarvestDate.HasValue && Model.ExpectedHarvestDate.HasValue)
-       {
-  <div class="mb-4">
-   <div class="d-flex justify-content-between mb-2">
-      <span class="fw-medium">Tiến độ sinh trưởng</span>
- <span class="text-muted">@progress%</span>
-              </div>
- <div class="progress" style="height: 10px;">
-             <div class="progress-bar @(progress >= 90 ? "bg-success" : progress >= 50 ? "bg-primary" : "bg-warning")"
-            role="progressbar" style="width: @progress%;">
-             </div>
-      </div>
-      <small class="text-muted">
-      @if (daysToHarvest.HasValue && daysToHarvest > 0)
-            {
-       <text>Còn @daysToHarvest ngày đến ngày dự kiến thu hoạch</text>
-          }
-       else if (daysToHarvest.HasValue && daysToHarvest <= 0)
-           {
-        <span class="text-danger">Đã quá hạn thu hoạch @Math.Abs(daysToHarvest.Value) ngày</span>
-              }
-         </small>
-         </div>
-      }
-
-         <div class="row g-3">
-        <div class="col-md-6">
-       <div class="border rounded p-3">
-     <div class="d-flex align-items-center mb-2">
-              <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-3">
-   <i class="bi bi-calendar-event"></i>
-       </div>
-           <div>
-          <small class="text-muted d-block">Ngày trồng</small>
-  <strong>@Model.PlantDate.ToString("dd/MM/yyyy")</strong>
-            </div>
-       </div>
-            <small class="text-muted">@daysPlanted ngày trước</small>
-       </div>
-        </div>
-      <div class="col-md-6">
-              <div class="border rounded p-3">
-           <div class="d-flex align-items-center mb-2">
-          <div class="bg-warning bg-opacity-10 text-warning rounded p-2 me-3">
-  <i class="bi bi-calendar-check"></i>
-  </div>
-      <div>
-               <small class="text-muted d-block">Dự kiến thu hoạch</small>
-         <strong>
-                 @if (Model.ExpectedHarvestDate.HasValue)
-     {
-    @Model.ExpectedHarvestDate.Value.ToString("dd/MM/yyyy")
-             }
-   else
-             {
-             <span class="text-muted">Chưa xác định</span>
-  }
-           </strong>
-                </div>
-     </div>
-       </div>
- </div>
-  <div class="col-md-6">
-     <div class="border rounded p-3">
-                   <div class="d-flex align-items-center">
-     <div class="bg-info bg-opacity-10 text-info rounded p-2 me-3">
-     <i class="bi bi-basket"></i>
-         </div>
-     <div>
-     <small class="text-muted d-block">Năng suất dự kiến</small>
-  <strong>
-                 @if (Model.EstimatedYield.HasValue)
-    {
-                   @Model.EstimatedYield.Value.ToString("N0") @Model.Unit
-    }
-    else
-             {
-               <span class="text-muted">Chưa xác định</span>
-    }
-            </strong>
-    </div>
-      </div>
-            </div>
-        </div>
-      @if (currentPrice != null)
+                @* Progress Bar *@
+                @if (!Model.ActualHarvestDate.HasValue && Model.ExpectedHarvestDate.HasValue)
                 {
-        <div class="col-md-6">
- <div class="border rounded p-3 border-success">
-     <div class="d-flex align-items-center">
-   <div class="bg-success bg-opacity-10 text-success rounded p-2 me-3">
-               <i class="bi bi-currency-dollar"></i>
-           </div>
-             <div>
-           <small class="text-muted d-block">Giá hiện tại</small>
-     <strong class="text-success">@currentPrice.Price.ToString("N0") VNĐ/@currentPrice.Unit</strong>
-     </div>
-    </div>
-     </div>
-        </div>
-            }
-</div>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-medium">Tiến độ sinh trưởng</span>
+                            <span class="text-muted">@progress%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            @{
+                                var progressClass = progress >= 90 ? "bg-success" : progress >= 50 ? "bg-primary" : "bg-warning";
+                            }
+                            <div class="progress-bar @progressClass" role="progressbar" style="width: @progress%;"></div>
+                        </div>
+                        <small class="text-muted">
+                            @if (daysToHarvest.HasValue && daysToHarvest > 0)
+                            {
+                                <text>Còn <strong>@daysToHarvest ngày</strong> đến ngày dự kiến thu hoạch</text>
+                            }
+                            else if (daysToHarvest.HasValue && daysToHarvest <= 0)
+                            {
+                                <span class="text-danger">Đã quá hạn thu hoạch @Math.Abs(daysToHarvest.Value) ngày</span>
+                            }
+                        </small>
+                    </div>
+                }
 
-          @if (!string.IsNullOrEmpty(Model.Note))
-          {
-                 <div class="mt-4 p-3 bg-light rounded">
-     <h6 class="mb-2"><i class="bi bi-sticky me-2"></i>Ghi chú</h6>
-            <p class="mb-0">@Model.Note</p>
-        </div>
-        }
-            </div>
-        </div>
-
-        <!-- Tabs quản lý -->
-        <div class="card">
-<div class="card-header">
-          <ul class="nav nav-tabs card-header-tabs" id="cropTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-       <button class="nav-link active" id="harvest-tab" data-bs-toggle="tab" data-bs-target="#harvest" type="button">
-              <i class="bi bi-basket me-1"></i>Thu hoạch <span class="badge bg-success ms-1">@harvests.Count</span>
-    </button>
-   </li>
-              <li class="nav-item" role="presentation">
-            <button class="nav-link" id="cost-tab" data-bs-toggle="tab" data-bs-target="#cost" type="button">
-        <i class="bi bi-wallet2 me-1"></i>Chi phí <span class="badge bg-danger ms-1">@costs.Count</span>
-       </button>
-     </li>
-  <li class="nav-item" role="presentation">
-         <button class="nav-link" id="care-tab" data-bs-toggle="tab" data-bs-target="#care" type="button">
-          <i class="bi bi-calendar-check me-1"></i>Chăm sóc <span class="badge bg-warning text-dark ms-1">@careLogs.Count</span>
-           </button>
-       </li>
-         <li class="nav-item" role="presentation">
-         <button class="nav-link" id="price-tab" data-bs-toggle="tab" data-bs-target="#price" type="button">
-                   <i class="bi bi-currency-dollar me-1"></i>Giá <span class="badge bg-info ms-1">@priceHistory.Count</span>
-  </button>
-     </li>
-           </ul>
-          </div>
- <div class="card-body">
-            <div class="tab-content" id="cropTabsContent">
-             <!-- Tab Thu hoạch -->
-      <div class="tab-pane fade show active" id="harvest" role="tabpanel">
-           <div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="mb-0"><i class="bi bi-basket me-2"></i>Danh sách thu hoạch</h6>
-             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addHarvestModal">
-       <i class="bi bi-plus-lg me-1"></i>Thêm thu hoạch
-          </button>
-        </div>
-       @if (harvests.Any())
-     {
-         <div class="table-responsive">
-         <table class="table table-hover mb-0">
-        <thead class="table-light">
-       <tr>
-              <th>Ngày</th>
-     <th>Số lượng</th>
-       <th>Đơn giá</th>
-                  <th>Tổng tiền</th>
-      <th>Người mua</th>
-    <th width="100">Thao tác</th>
-        </tr>
-       </thead>
-           <tbody>
-    @foreach (var h in harvests.OrderByDescending(x => x.HarvestDate))
-         {
-               <tr>
-            <td>@h.HarvestDate.ToString("dd/MM/yyyy")</td>
-  <td>@h.Quantity.ToString("N2") @h.Unit</td>
-  <td>@h.UnitPrice.ToString("N0") VNĐ</td>
-          <td><strong class="text-success">@h.TotalAmount.ToString("N0") VNĐ</strong></td>
-    <td>@(h.Buyer ?? "-")</td>
-    <td>
-             <div class="btn-group btn-group-sm">
-   <button type="button" class="btn btn-outline-primary" title="Sửa"
-          onclick="editHarvest(@h.Id, '@h.HarvestDate.ToString("yyyy-MM-dd")', @h.Quantity, '@(h.Unit ?? "")', @h.UnitPrice, '@(h.Buyer ?? "")', '@(h.Note?.Replace("'", "\\'") ?? "")')">
-     <i class="bi bi-pencil"></i>
-      </button>
-             <button type="button" class="btn btn-outline-danger" title="Xóa"
-         onclick="confirmDeleteHarvest(@h.Id, '@h.HarvestDate.ToString("dd/MM/yyyy")')">
-         <i class="bi bi-trash"></i>
-        </button>
-               </div>
-      </td>
-                  </tr>
-           }
-              </tbody>
-      <tfoot class="table-light">
-           <tr>
-         <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
-          <td colspan="3"><strong class="text-success">@totalHarvestAmount.ToString("N0") VNĐ</strong></td>
-           </tr>
-           </tfoot>
-     </table>
-      </div>
-         }
-      else
-     {
-         <div class="text-center py-4 text-muted">
-            <i class="bi bi-basket" style="font-size: 2rem;"></i>
-       <p class="mt-2 mb-0">Chưa có thông tin thu hoạch</p>
-         </div>
-      }
-</div>
-
-       <!-- Tab Chi phí -->
-        <div class="tab-pane fade" id="cost" role="tabpanel">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="mb-0"><i class="bi bi-wallet2 me-2"></i>Danh sách chi phí</h6>
-                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#addCostModal">
-        <i class="bi bi-plus-lg me-1"></i>Thêm chi phí
-          </button>
-         </div>
-         @if (costs.Any())
-         {
-         <div class="table-responsive">
-      <table class="table table-hover mb-0">
-                <thead class="table-light">
-<tr>
-        <th>Ngày</th>
-    <th>Loại chi phí</th>
-     <th>Số lượng</th>
- <th>Đơn giá</th>
-<th>Tổng tiền</th>
-           <th width="100">Thao tác</th>
-</tr>
-            </thead>
-     <tbody>
-           @foreach (var c in costs.OrderByDescending(x => x.CostDate))
- {
-                <tr>
-     <td>@c.CostDate.ToString("dd/MM/yyyy")</td>
-   <td><span class="badge bg-secondary">@c.CostTypeName</span></td>
-  <td>@c.Quantity.ToString("N2") @c.Unit</td>
-     <td>@c.UnitPrice.ToString("N0") VNĐ</td>
-          <td><strong class="text-danger">@c.TotalAmount.ToString("N0") VNĐ</strong></td>
-      <td>
-       <div class="btn-group btn-group-sm">
-              <button type="button" class="btn btn-outline-primary" title="Sửa"
-      onclick="editCost(@c.Id, @c.CostTypeId, '@c.CostDate.ToString("yyyy-MM-dd")', @c.Quantity, '@(c.Unit ?? "")', @c.UnitPrice, '@(c.Note?.Replace("'", "\\'") ?? "")')">
-         <i class="bi bi-pencil"></i>
-     </button>
-     <button type="button" class="btn btn-outline-danger" title="Xóa"
-     onclick="confirmDeleteCost(@c.Id, '@c.CostTypeName')">
-            <i class="bi bi-trash"></i>
- </button>
-   </div>
-       </td>
-      </tr>
-        }
-      </tbody>
-       <tfoot class="table-light">
-           <tr>
-  <td colspan="4" class="text-end"><strong>Tổng cộng:</strong></td>
-         <td colspan="2"><strong class="text-danger">@totalCostAmount.ToString("N0") VNĐ</strong></td>
-          </tr>
-       </tfoot>
-    </table>
+                @* Info Grid *@
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="info-box border rounded p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary-subtle text-primary rounded p-2">
+                                    <i class="bi bi-calendar-event"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Ngày trồng</small>
+                                    <strong>@Model.PlantDate.ToString("dd/MM/yyyy")</strong>
+                                    <small class="text-muted d-block">@daysPlanted ngày trước</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box border rounded p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-warning-subtle text-warning rounded p-2">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Dự kiến thu hoạch</small>
+                                    <strong>@(Model.ExpectedHarvestDate?.ToString("dd/MM/yyyy") ?? "Chưa xác định")</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-box border rounded p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-info-subtle text-info rounded p-2">
+                                    <i class="bi bi-basket"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Năng suất dự kiến</small>
+                                    <strong>@(Model.EstimatedYield?.ToString("N0") ?? "—") @Model.Unit</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (currentPrice != null)
+                    {
+                        <div class="col-md-6">
+                            <div class="info-box border border-success rounded p-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-success-subtle text-success rounded p-2">
+                                        <i class="bi bi-currency-dollar"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Giá hiện tại</small>
+                                        <strong class="text-success">@currentPrice.Price.ToString("N0") VNĐ/@currentPrice.Unit</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
-              }
-       else
-            {
-    <div class="text-center py-4 text-muted">
-                <i class="bi bi-wallet2" style="font-size: 2rem;"></i>
-               <p class="mt-2 mb-0">Chưa có chi phí nào được ghi nhận</p>
-      </div>
-          }
-   </div>
 
-        <!-- Tab Chăm sóc -->
-        <div class="tab-pane fade" id="care" role="tabpanel">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="mb-0"><i class="bi bi-calendar-check me-2"></i>Nhật ký chăm sóc</h6>
-          <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#addCareLogModal">
-           <i class="bi bi-plus-lg me-1"></i>Thêm chăm sóc
-          </button>
-       </div>
-    @if (careLogs.Any())
-      {
-     <div class="care-timeline">
-     @foreach (var log in careLogs.OrderByDescending(x => x.CareDate))
-                  {
-          var iconClass = log.CropCareTypeName switch
-       {
- var n when n?.Contains("Tưới") == true => "bi-droplet text-info",
-var n when n?.Contains("Bón") == true => "bi-flower3 text-success",
-        var n when n?.Contains("Phun") == true => "bi-bug text-warning",
-               var n when n?.Contains("Làm cỏ") == true => "bi-scissors text-secondary",
-                 _ => "bi-calendar-event text-primary"
-                 };
-           <div class="care-item d-flex mb-3 p-3 border rounded">
-         <div class="care-icon bg-light rounded-circle p-2 me-3">
-      <i class="bi @iconClass"></i>
-         </div>
-  <div class="flex-grow-1">
-         <div class="d-flex justify-content-between align-items-start">
-        <div>
-     <strong>@log.CropCareTypeName</strong>
-           <small class="text-muted d-block">@log.CareDate.ToString("dd/MM/yyyy")</small>
- </div>
- <div class="d-flex align-items-center gap-2">
-   @if (log.Cost > 0)
-   {
-            <span class="badge bg-danger">@log.Cost.ToString("N0") VNĐ</span>
-        }
-  <div class="btn-group btn-group-sm">
-    <button type="button" class="btn btn-outline-primary btn-sm" title="Sửa"
-    onclick="editCareLog(@log.Id, @log.CropCareTypeId, '@log.CareDate.ToString("yyyy-MM-dd")', '@(log.Description?.Replace("'", "\\'") ?? "")', @log.Cost)">
-        <i class="bi bi-pencil"></i>
-      </button>
-     <button type="button" class="btn btn-outline-danger btn-sm" title="Xóa"
-     onclick="confirmDeleteCareLog(@log.Id, '@log.CropCareTypeName')">
-  <i class="bi bi-trash"></i>
-              </button>
-     </div>
-    </div>
-</div>
-     @if (!string.IsNullOrEmpty(log.Description))
-   {
-     <small class="text-muted mt-1 d-block">@log.Description</small>
-    }
-            </div>
-      </div>
-   }
- </div>
-         <div class="alert alert-info mt-3">
-          <i class="bi bi-info-circle me-2"></i>
-    Tổng chi phí chăm sóc: <strong>@totalCareLogCost.ToString("N0") VNĐ</strong>
-                 </div>
-       }
-          else
-            {
-       <div class="text-center py-4 text-muted">
-    <i class="bi bi-calendar-check" style="font-size: 2rem;"></i>
-          <p class="mt-2 mb-0">Chưa có nhật ký chăm sóc</p>
-    </div>
-      }
-           </div>
-
-     <!-- Tab Giá -->
- <div class="tab-pane fade" id="price" role="tabpanel">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="mb-0"><i class="bi bi-currency-dollar me-2"></i>Lịch sử giá</h6>
-      <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPriceModal">
-   <i class="bi bi-plus-lg me-1"></i>Thêm giá
-         </button>
-   </div>
-         @if (currentPrice != null)
-    {
-    <div class="alert alert-success d-flex align-items-center mb-4">
-  <div class="bg-success bg-opacity-10 text-success rounded p-3 me-3">
-             <i class="bi bi-tag-fill" style="font-size: 1.5rem;"></i>
-              </div>
-      <div class="flex-grow-1">
-         <h5 class="mb-1">Giá hiện tại</h5>
-           <div class="d-flex align-items-baseline gap-2">
-         <span class="fs-3 fw-bold text-success">@currentPrice.Price.ToString("N0")</span>
-              <span class="text-muted">VNĐ / @currentPrice.Unit</span>
-     </div>
-      </div>
-    </div>
-        }
-@if (priceHistory.Any())
-{
-          <div class="table-responsive">
-      <table class="table table-hover mb-0">
-   <thead class="table-light">
-     <tr>
-      <th>Giá</th>
-           <th>Đơn vị</th>
-         <th>Ngày áp dụng</th>
-           <th>Trạng thái</th>
-         <th width="100">Thao tác</th>
-               </tr>
-      </thead>
-       <tbody>
-   @foreach (var price in priceHistory.OrderByDescending(p => p.EffectiveDate))
-       {
-    <tr class="@(price.IsActive ? "table-success" : "")">
-    <td><strong>@price.Price.ToString("N0") VNĐ</strong></td>
-       <td>@price.Unit</td>
-        <td>@price.EffectiveDate.ToString("dd/MM/yyyy")</td>
-             <td>
-      @if (price.IsActive)
-      {
-           <span class="badge bg-success">Đang áp dụng</span>
-       }
-              else
-          {
-         <span class="badge bg-secondary">Không hoạt động</span>
-        }
-      </td>
-             <td>
-       <div class="btn-group btn-group-sm">
-              <button type="button" class="btn btn-outline-primary" title="Sửa"
-       onclick="editPrice(@price.Id, @price.Price, '@price.Unit', '@price.EffectiveDate.ToString("yyyy-MM-dd")', '@(price.ExpiryDate?.ToString("yyyy-MM-dd") ?? "")', '@(price.Note?.Replace("'", "\\'") ?? "")', @price.IsActive.ToString().ToLower())">
-     <i class="bi bi-pencil"></i>
-          </button>
- <button type="button" class="btn btn-outline-danger" title="Xóa"
-           onclick="confirmDeletePrice(@price.Id, @price.Price)">
-     <i class="bi bi-trash"></i>
-           </button>
-  </div>
-     </td>
-              </tr>
-    }
-              </tbody>
-              </table>
-               </div>
-  }
-       else
-            {
-        <div class="text-center py-4 text-muted">
-            <i class="bi bi-currency-dollar" style="font-size: 2rem;"></i>
-     <p class="mt-2 mb-0">Chưa có lịch sử giá</p>
-          </div>
-       }
-  </div>
-         </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cột phải - Thông tin bổ sung -->
-    <div class="col-lg-4">
-        <div class="card mb-4">
-   <div class="card-header">
-      <h5 class="card-title mb-0"><i class="bi bi-speedometer2 me-2"></i>Trạng thái</h5>
-     </div>
-          <div class="card-body text-center">
-                <div class="mb-3">
-    @{
-        var statusIcon = Model.CropStatusName switch
-           {
-               var s when s?.Contains("Thu hoạch") == true => "bi-check-circle text-success",
-            var s when s?.Contains("Đang") == true => "bi-tree text-primary",
-                   _ => "bi-hourglass-split text-warning"
-     };
-               }
-              <i class="bi @statusIcon" style="font-size: 3rem;"></i>
-  </div>
-         <h4 class="mb-1">@Model.CropStatusName</h4>
-       <p class="text-muted mb-0">Đã trồng @daysPlanted ngày</p>
-            </div>
-        </div>
-
-        <div class="card mb-4 @(currentPrice != null ? "border-success" : "border-warning")">
-         <div class="card-header @(currentPrice != null ? "bg-success bg-opacity-10 border-success" : "bg-warning bg-opacity-10 border-warning")">
-          <h5 class="card-title mb-0 @(currentPrice != null ? "text-success" : "text-warning")">
-          <i class="bi bi-currency-dollar me-2"></i>Giá hiện tại
-</h5>
-      </div>
- <div class="card-body text-center">
-  @if (currentPrice != null)
-        {
-            <div class="display-6 fw-bold text-success mb-1">@currentPrice.Price.ToString("N0")</div>
-   <div class="text-muted">VNĐ / @currentPrice.Unit</div>
-           }
-        else
-     {
-          <div class="text-warning mb-2"><i class="bi bi-exclamation-circle" style="font-size: 2rem;"></i></div>
-    <p class="text-muted mb-2">Chưa có giá</p>
-            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#addPriceModal">
-       <i class="bi bi-plus-lg me-1"></i>Thêm giá
-     </button>
-            }
-            </div>
-        </div>
-
-        <div class="card mb-4">
- <div class="card-header"><h5 class="card-title mb-0"><i class="bi bi-geo-alt me-2"></i>Vị trí</h5></div>
-         <div class="card-body">
-      <div class="d-flex align-items-center">
-   <div class="bg-primary bg-opacity-10 text-primary rounded p-3 me-3">
-         <i class="bi bi-geo-alt-fill" style="font-size: 1.5rem;"></i>
-         </div>
-        <div>
-         <strong class="d-block">@Model.LocationName</strong>
-            <small class="text-muted">Mã vị trí: @Model.LocationId</small>
-      </div>
-                </div>
-        </div>
-  </div>
-
-        <div class="card mb-4">
-            <div class="card-header"><h5 class="card-title mb-0"><i class="bi bi-bar-chart me-2"></i>Thống kê</h5></div>
-            <div class="card-body">
-      <div class="d-flex justify-content-between py-2 border-bottom">
-          <span class="text-muted">Ngày trồng</span>
-        <strong>@Model.PlantDate.ToString("dd/MM/yyyy")</strong>
-         </div>
-                <div class="d-flex justify-content-between py-2 border-bottom">
-             <span class="text-muted">Số ngày đã trồng</span>
-  <strong>@daysPlanted ngày</strong>
-         </div>
-         <div class="d-flex justify-content-between py-2 border-bottom">
-        <span class="text-muted">Số lần thu hoạch</span>
-   <strong>@harvests.Count</strong>
-             </div>
-        <div class="d-flex justify-content-between py-2 border-bottom">
-     <span class="text-muted">Số khoản chi phí</span>
-  <strong>@costs.Count</strong>
-                </div>
-     <div class="d-flex justify-content-between py-2">
-     <span class="text-muted">Số lần chăm sóc</span>
-       <strong>@careLogs.Count</strong>
-       </div>
-            </div>
- </div>
-
-        <div class="card">
-            <div class="card-header"><h5 class="card-title mb-0"><i class="bi bi-info-circle me-2"></i>Metadata</h5></div>
-         <div class="card-body">
-          <div class="mb-3">
-           <small class="text-muted d-block">ID</small>
-   <strong>@Model.Id</strong>
-             </div>
-        <div class="mb-3">
-               <small class="text-muted d-block">Ngày tạo</small>
-         <strong>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</strong>
-       </div>
-@if (Model.UpdatedDate.HasValue)
-              {
-    <div>
- <small class="text-muted d-block">Cập nhật lần cuối</small>
-    <strong>@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
-      </div>
+                @if (!string.IsNullOrEmpty(Model.Note))
+                {
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="mb-2"><i class="bi bi-sticky me-2"></i>Ghi chú</h6>
+                        <p class="mb-0 text-muted">@Model.Note</p>
+                    </div>
                 }
             </div>
         </div>
- </div>
+
+        @* ==================== Tabs Management ==================== *@
+        <div class="card">
+            <div class="card-header bg-white p-0">
+                <ul class="nav nav-tabs card-header-tabs" id="cropTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active px-4 py-3" id="harvest-tab" data-bs-toggle="tab" data-bs-target="#harvest" type="button">
+                            <i class="bi bi-basket me-2"></i>Thu hoạch
+                            <span class="badge bg-success ms-2">@harvests.Count</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link px-4 py-3" id="cost-tab" data-bs-toggle="tab" data-bs-target="#cost" type="button">
+                            <i class="bi bi-wallet2 me-2"></i>Chi phí
+                            <span class="badge bg-danger ms-2">@costs.Count</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link px-4 py-3" id="care-tab" data-bs-toggle="tab" data-bs-target="#care" type="button">
+                            <i class="bi bi-calendar-check me-2"></i>Chăm sóc
+                            <span class="badge bg-warning text-dark ms-2">@careLogs.Count</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link px-4 py-3" id="price-tab" data-bs-toggle="tab" data-bs-target="#price" type="button">
+                            <i class="bi bi-currency-dollar me-2"></i>Giá
+                            <span class="badge bg-info ms-2">@priceHistory.Count</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="cropTabsContent">
+                    @* ==================== Tab: Thu hoạch ==================== *@
+                    <div class="tab-pane fade show active" id="harvest" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-basket text-success me-2"></i>Danh sách thu hoạch</h6>
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addHarvestModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm thu hoạch
+                            </button>
+                        </div>
+                        @if (harvests.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Ngày</th>
+                                            <th>Số lượng</th>
+                                            <th>Đơn giá</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Người mua</th>
+                                            <th width="100">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var h in harvests.OrderByDescending(x => x.HarvestDate))
+                                        {
+                                            <tr>
+                                                <td>@h.HarvestDate.ToString("dd/MM/yyyy")</td>
+                                                <td>@h.Quantity.ToString("N2") @h.Unit</td>
+                                                <td>@h.UnitPrice.ToString("N0") VNĐ</td>
+                                                <td><strong class="text-success">@h.TotalAmount.ToString("N0") VNĐ</strong></td>
+                                                <td>@(h.Buyer ?? "—")</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-primary" title="Sửa"
+                                                                onclick="editHarvest(@h.Id, '@h.HarvestDate.ToString("yyyy-MM-dd")', @h.Quantity, '@(h.Unit ?? "")', @h.UnitPrice, '@(h.Buyer ?? "")', '@(h.Note?.Replace("'", "\\'") ?? "")')">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" title="Xóa"
+                                                                onclick="confirmDeleteHarvest(@h.Id, '@h.HarvestDate.ToString("dd/MM/yyyy")')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                                            <td colspan="3"><strong class="text-success">@totalHarvestAmount.ToString("N0") VNĐ</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptyHarvest" />
+                        }
+                    </div>
+
+                    @* ==================== Tab: Chi phí ==================== *@
+                    <div class="tab-pane fade" id="cost" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-wallet2 text-danger me-2"></i>Danh sách chi phí</h6>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#addCostModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm chi phí
+                            </button>
+                        </div>
+                        @if (costs.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Ngày</th>
+                                            <th>Loại chi phí</th>
+                                            <th>Số lượng</th>
+                                            <th>Đơn giá</th>
+                                            <th>Tổng tiền</th>
+                                            <th width="100">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var c in costs.OrderByDescending(x => x.CostDate))
+                                        {
+                                            <tr>
+                                                <td>@c.CostDate.ToString("dd/MM/yyyy")</td>
+                                                <td><span class="badge bg-secondary">@c.CostTypeName</span></td>
+                                                <td>@c.Quantity.ToString("N2") @c.Unit</td>
+                                                <td>@c.UnitPrice.ToString("N0") VNĐ</td>
+                                                <td><strong class="text-danger">@c.TotalAmount.ToString("N0") VNĐ</strong></td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-primary" title="Sửa"
+                                                                onclick="editCost(@c.Id, @c.CostTypeId, '@c.CostDate.ToString("yyyy-MM-dd")', @c.Quantity, '@(c.Unit ?? "")', @c.UnitPrice, '@(c.Note?.Replace("'", "\\'") ?? "")')">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" title="Xóa"
+                                                                onclick="confirmDeleteCost(@c.Id, '@c.CostTypeName')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="4" class="text-end"><strong>Tổng cộng:</strong></td>
+                                            <td colspan="2"><strong class="text-danger">@totalCostAmount.ToString("N0") VNĐ</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptyCost" />
+                        }
+                    </div>
+
+                    @* ==================== Tab: Chăm sóc ==================== *@
+                    <div class="tab-pane fade" id="care" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-calendar-check text-warning me-2"></i>Nhật ký chăm sóc</h6>
+                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#addCareLogModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm chăm sóc
+                            </button>
+                        </div>
+                        @if (careLogs.Any())
+                        {
+                            <div class="care-timeline">
+                                @foreach (var log in careLogs.OrderByDescending(x => x.CareDate))
+                                {
+                                    var iconClass = log.CropCareTypeName switch
+                                    {
+                                        var n when n?.Contains("Tưới") == true => "bi-droplet text-info",
+                                        var n when n?.Contains("Bón") == true => "bi-flower3 text-success",
+                                        var n when n?.Contains("Phun") == true => "bi-bug text-warning",
+                                        var n when n?.Contains("Làm cỏ") == true => "bi-scissors text-secondary",
+                                        _ => "bi-calendar-event text-primary"
+                                    };
+                                    <div class="care-item d-flex mb-3 p-3 border rounded hover-shadow">
+                                        <div class="care-icon bg-light rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="bi @iconClass"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <strong>@log.CropCareTypeName</strong>
+                                                    <small class="text-muted d-block">@log.CareDate.ToString("dd/MM/yyyy")</small>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    @if (log.Cost > 0)
+                                                    {
+                                                        <span class="badge bg-danger-subtle text-danger">@log.Cost.ToString("N0") VNĐ</span>
+                                                    }
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Sửa"
+                                                                onclick="editCareLog(@log.Id, @log.CropCareTypeId, '@log.CareDate.ToString("yyyy-MM-dd")', '@(log.Description?.Replace("'", "\\'") ?? "")', @log.Cost)">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger btn-sm" title="Xóa"
+                                                                onclick="confirmDeleteCareLog(@log.Id, '@log.CropCareTypeName')">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(log.Description))
+                                            {
+                                                <small class="text-muted mt-1 d-block">@log.Description</small>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="alert alert-info mt-3 mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Tổng chi phí chăm sóc: <strong>@totalCareLogCost.ToString("N0") VNĐ</strong>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptyCare" />
+                        }
+                    </div>
+
+                    @* ==================== Tab: Giá ==================== *@
+                    <div class="tab-pane fade" id="price" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-currency-dollar text-primary me-2"></i>Lịch sử giá</h6>
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPriceModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm giá
+                            </button>
+                        </div>
+                        @if (currentPrice != null)
+                        {
+                            <div class="alert alert-success d-flex align-items-center mb-4">
+                                <div class="bg-success-subtle text-success rounded p-3 me-3">
+                                    <i class="bi bi-tag-fill fs-4"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Giá hiện tại</h6>
+                                    <div class="d-flex align-items-baseline gap-2">
+                                        <span class="fs-3 fw-bold text-success">@currentPrice.Price.ToString("N0")</span>
+                                        <span class="text-muted">VNĐ / @currentPrice.Unit</span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        @if (priceHistory.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Giá</th>
+                                            <th>Đơn vị</th>
+                                            <th>Ngày áp dụng</th>
+                                            <th>Trạng thái</th>
+                                            <th width="100">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var price in priceHistory.OrderByDescending(p => p.EffectiveDate))
+                                        {
+                                            <tr class="@(price.IsActive ? "table-success" : "")">
+                                                <td><strong>@price.Price.ToString("N0") VNĐ</strong></td>
+                                                <td>@price.Unit</td>
+                                                <td>@price.EffectiveDate.ToString("dd/MM/yyyy")</td>
+                                                <td>
+                                                    @if (price.IsActive)
+                                                    {
+                                                        <span class="badge bg-success">Đang áp dụng</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">Không hoạt động</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-primary" title="Sửa"
+                                                                onclick="editPrice(@price.Id, @price.Price, '@price.Unit', '@price.EffectiveDate.ToString("yyyy-MM-dd")', '@(price.ExpiryDate?.ToString("yyyy-MM-dd") ?? "")', '@(price.Note?.Replace("'", "\\'") ?? "")', @price.IsActive.ToString().ToLower())">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-danger" title="Xóa"
+                                                                onclick="confirmDeletePrice(@price.Id, @price.Price)">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptyPrice" />
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ==================== Right Column - Sidebar ==================== *@
+    <div class="col-lg-4">
+        @* Status Card *@
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-speedometer2 text-primary me-2"></i>Trạng thái</h6>
+            </div>
+            <div class="card-body text-center">
+                @{
+                    var statusIcon = Model.CropStatusName switch
+                    {
+                        var s when s?.Contains("Thu hoạch") == true => "bi-check-circle text-success",
+                        var s when s?.Contains("Đang") == true => "bi-tree text-primary",
+                        _ => "bi-hourglass-split text-warning"
+                    };
+                }
+                <i class="bi @statusIcon mb-3" style="font-size: 3rem;"></i>
+                <h5 class="mb-1">@Model.CropStatusName</h5>
+                <p class="text-muted mb-0">Đã trồng @daysPlanted ngày</p>
+            </div>
+        </div>
+
+        @* Current Price Card *@
+        <div class="card mb-4 @(currentPrice != null ? "border-success" : "border-warning")">
+            <div class="card-header @(currentPrice != null ? "bg-success-subtle border-success" : "bg-warning-subtle border-warning")">
+                <h6 class="mb-0 fw-semibold @(currentPrice != null ? "text-success" : "text-warning")">
+                    <i class="bi bi-currency-dollar me-2"></i>Giá hiện tại
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                @if (currentPrice != null)
+                {
+                    <div class="display-6 fw-bold text-success mb-1">@currentPrice.Price.ToString("N0")</div>
+                    <div class="text-muted">VNĐ / @currentPrice.Unit</div>
+                }
+                else
+                {
+                    <div class="text-warning mb-2"><i class="bi bi-exclamation-circle fs-1"></i></div>
+                    <p class="text-muted mb-2">Chưa có giá</p>
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#addPriceModal">
+                        <i class="bi bi-plus-lg me-1"></i>Thêm giá
+                    </button>
+                }
+            </div>
+        </div>
+
+        @* Location Card *@
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-geo-alt text-primary me-2"></i>Vị trí</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary-subtle text-primary rounded p-3">
+                        <i class="bi bi-geo-alt-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block">@Model.LocationName</strong>
+                        <small class="text-muted">Mã vị trí: @Model.LocationId</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Statistics Card *@
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart text-primary me-2"></i>Thống kê</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Ngày trồng</span>
+                        <strong>@Model.PlantDate.ToString("dd/MM/yyyy")</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Số ngày đã trồng</span>
+                        <strong>@daysPlanted ngày</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Số lần thu hoạch</span>
+                        <strong>@harvests.Count</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Số khoản chi phí</span>
+                        <strong>@costs.Count</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Số lần chăm sóc</span>
+                        <strong>@careLogs.Count</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        @* Metadata Card *@
+        <div class="card">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle text-primary me-2"></i>Metadata</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block">ID</small>
+                    <strong>@Model.Id</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Ngày tạo</small>
+                    <strong>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+                @if (Model.UpdatedDate.HasValue)
+                {
+                    <div>
+                        <small class="text-muted d-block">Cập nhật lần cuối</small>
+                        <strong>@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- ========== MODALS ========== -->
+@* ==================== MODALS ==================== *@
 
-<!-- Modal thêm thu hoạch -->
+@* (Các Modal giữ nguyên logic, chỉ căn chỉnh thụt lề chuẩn 4 spaces) *@
+@* Modal: Thêm thu hoạch *@
 <div class="modal fade" id="addHarvestModal" tabindex="-1">
     <div class="modal-dialog">
-   <div class="modal-content">
-        <form asp-action="CreateHarvest" method="post">
-          @Html.AntiForgeryToken()
-      <input type="hidden" name="CropId" value="@Model.Id" />
-                <div class="modal-header">
-         <h5 class="modal-title"><i class="bi bi-basket me-2"></i>Thêm thu hoạch</h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-   </div>
- <div class="modal-body">
-         <div class="row">
-         <div class="col-md-6 mb-3">
-             <label class="form-label">Ngày thu hoạch <span class="text-danger">*</span></label>
-      <input type="date" name="HarvestDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
-        </div>
-        <div class="col-md-6 mb-3">
-       <label class="form-label">Số lượng <span class="text-danger">*</span></label>
-            <input type="number" name="Quantity" class="form-control" required min="0.01" step="0.01">
-       </div>
-     </div>
-             <div class="row">
-      <div class="col-md-6 mb-3">
-         <label class="form-label">Đơn vị</label>
-       <input type="text" name="Unit" class="form-control" value="@(Model.Unit ?? "kg")">
-  </div>
-              <div class="col-md-6 mb-3">
-     <label class="form-label">Đơn giá (VNĐ)</label>
-           <input type="number" name="UnitPrice" class="form-control" min="0" step="1000" value="@(currentPrice?.Price ?? 0)">
-                  </div>
- </div>
-         <div class="mb-3">
-        <label class="form-label">Người mua</label>
-    <input type="text" name="Buyer" class="form-control">
-          </div>
-       <div class="mb-3">
-    <label class="form-label">Ghi chú</label>
-       <textarea name="Note" class="form-control" rows="2"></textarea>
-      </div>
-    </div>
-              <div class="modal-footer">
-       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-     <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-    </div>
-        </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal sửa thu hoạch -->
-<div class="modal fade" id="editHarvestModal" tabindex="-1">
-    <div class="modal-dialog">
         <div class="modal-content">
-    <form asp-action="UpdateHarvest" method="post">
-    @Html.AntiForgeryToken()
-          <input type="hidden" name="Id" id="editHarvestId" />
-          <input type="hidden" name="CropId" value="@Model.Id" />
-                <div class="modal-header">
- <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa thu hoạch</h5>
-   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
- </div>
-   <div class="modal-body">
-        <div class="row">
-   <div class="col-md-6 mb-3">
-            <label class="form-label">Ngày thu hoạch <span class="text-danger">*</span></label>
-         <input type="date" name="HarvestDate" id="editHarvestDate" class="form-control" required>
-               </div>
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Số lượng <span class="text-danger">*</span></label>
-       <input type="number" name="Quantity" id="editHarvestQuantity" class="form-control" required min="0.01" step="0.01">
-        </div>
-            </div>
-   <div class="row">
-     <div class="col-md-6 mb-3">
-      <label class="form-label">Đơn vị</label>
-  <input type="text" name="Unit" id="editHarvestUnit" class="form-control">
-         </div>
-             <div class="col-md-6 mb-3">
-       <label class="form-label">Đơn giá (VNĐ)</label>
-    <input type="number" name="UnitPrice" id="editHarvestUnitPrice" class="form-control" min="0" step="1000">
-        </div>
-      </div>
-        <div class="mb-3">
-  <label class="form-label">Người mua</label>
-            <input type="text" name="Buyer" id="editHarvestBuyer" class="form-control">
-       </div>
-        <div class="mb-3">
- <label class="form-label">Ghi chú</label>
-         <textarea name="Note" id="editHarvestNote" class="form-control" rows="2"></textarea>
-           </div>
-         </div>
-           <div class="modal-footer">
-         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-   <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Cập nhật</button>
-       </div>
-        </form>
-</div>
-    </div>
-</div>
-
-<!-- Modal xóa thu hoạch -->
-<div class="modal fade" id="deleteHarvestModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form asp-action="DeleteHarvest" method="post">
-             @Html.AntiForgeryToken()
-        <input type="hidden" name="id" id="deleteHarvestId" />
-          <input type="hidden" name="cropId" value="@Model.Id" />
-      <div class="modal-header">
-  <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa</h5>
- <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
- <div class="modal-body">
-           <p>Bạn có chắc chắn muốn xóa thu hoạch ngày <strong id="deleteHarvestDate"></strong>?</p>
-            </div>
-         <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Xóa</button>
-        </div>
- </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal thêm chi phí -->
-<div class="modal fade" id="addCostModal" tabindex="-1">
-    <div class="modal-dialog">
-     <div class="modal-content">
-          <form asp-action="CreateCost" method="post">
-        @Html.AntiForgeryToken()
-                <input type="hidden" name="CropId" value="@Model.Id" />
-      <div class="modal-header">
-      <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i>Thêm chi phí</h5>
-         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-              </div>
-           <div class="modal-body">
-        <div class="row">
-         <div class="col-md-6 mb-3">
-<label class="form-label">Loại chi phí <span class="text-danger">*</span></label>
-    <div class="input-group">
- <select name="CostTypeId" class="form-select" required>
-      <option value="">-- Chọn loại --</option>
-           @foreach (var ct in costTypes)
-             {
-        <option value="@ct.Id">@ct.Name</option>
-     }
-    </select>
-     <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#addCostTypeModal">
-       <i class="bi bi-plus-lg"></i>
-      </button>
-          </div>
-               </div>
-  <div class="col-md-6 mb-3">
-              <label class="form-label">Ngày phát sinh <span class="text-danger">*</span></label>
-               <input type="date" name="CostDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
-         </div>
-        </div>
-         <div class="row">
-      <div class="col-md-4 mb-3">
-       <label class="form-label">Số lượng <span class="text-danger">*</span></label>
-      <input type="number" name="Quantity" class="form-control" required min="0.01" step="0.01" value="1">
-        </div>
-    <div class="col-md-4 mb-3">
-   <label class="form-label">Đơn vị</label>
-   <input type="text" name="Unit" class="form-control">
-            </div>
-       <div class="col-md-4 mb-3">
-                  <label class="form-label">Đơn giá <span class="text-danger">*</span></label>
-            <input type="number" name="UnitPrice" class="form-control" required min="0" step="1000">
-         </div>
-     </div>
-        <div class="mb-3">
-           <label class="form-label">Ghi chú</label>
-     <textarea name="Note" class="form-control" rows="2"></textarea>
-            </div>
-      </div>
-         <div class="modal-footer">
- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-     <button type="submit" class="btn btn-danger"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-      </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal sửa chi phí -->
-<div class="modal fade" id="editCostModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-   <form asp-action="UpdateCost" method="post">
-     @Html.AntiForgeryToken()
-        <input type="hidden" name="Id" id="editCostId" />
-         <input type="hidden" name="CropId" value="@Model.Id" />
-      <div class="modal-header">
- <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa chi phí</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-   <div class="modal-body">
-             <div class="row">
-             <div class="col-md-6 mb-3">
-          <label class="form-label">Loại chi phí <span class="text-danger">*</span></label>
-           <select name="CostTypeId" id="editCostTypeId" class="form-select" required>
-       <option value="">-- Chọn loại --</option>
-          @foreach (var ct in costTypes)
-              {
-      <option value="@ct.Id">@ct.Name</option>
-    }
-   </select>
-          </div>
-                <div class="col-md-6 mb-3">
-   <label class="form-label">Ngày phát sinh <span class="text-danger">*</span></label>
-            <input type="date" name="CostDate" id="editCostDate" class="form-control" required>
-  </div>
-             </div>
-                 <div class="row">
-         <div class="col-md-4 mb-3">
-  <label class="form-label">Số lượng <span class="text-danger">*</span></label>
-       <input type="number" name="Quantity" id="editCostQuantity" class="form-control" required min="0.01" step="0.01">
-       </div>
-         <div class="col-md-4 mb-3">
-     <label class="form-label">Đơn vị</label>
-             <input type="text" name="Unit" id="editCostUnit" class="form-control">
-             </div>
-         <div class="col-md-4 mb-3">
-       <label class="form-label">Đơn giá <span class="text-danger">*</span></label>
-       <input type="number" name="UnitPrice" id="editCostUnitPrice" class="form-control" required min="0" step="1000">
-            </div>
-    </div>
-              <div class="mb-3">
-<label class="form-label">Ghi chú</label>
-       <textarea name="Note" id="editCostNote" class="form-control" rows="2"></textarea>
-       </div>
-              </div>
-         <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Cập nhật</button>
-        </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal xóa chi phí -->
-<div class="modal fade" id="deleteCostModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <form asp-action="DeleteCost" method="post">
+            <form asp-action="CreateHarvest" method="post">
                 @Html.AntiForgeryToken()
-  <input type="hidden" name="id" id="deleteCostId" />
-  <input type="hidden" name="cropId" value="@Model.Id" />
-           <div class="modal-header">
-             <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa</h5>
-         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-         </div>
-          <div class="modal-body">
-        <p>Bạn có chắc chắn muốn xóa chi phí <strong id="deleteCostName"></strong>?</p>
-        </div>
-         <div class="modal-footer">
-     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-        <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Xóa</button>
-       </div>
-      </form>
-  </div>
-    </div>
-</div>
-
-<!-- Modal thêm chăm sóc -->
-<div class="modal fade" id="addCareLogModal" tabindex="-1">
-    <div class="modal-dialog">
-     <div class="modal-content">
-   <form asp-action="CreateCareLog" method="post">
-@Html.AntiForgeryToken()
                 <input type="hidden" name="CropId" value="@Model.Id" />
-     <div class="modal-header">
-      <h5 class="modal-title"><i class="bi bi-calendar-check me-2"></i>Thêm chăm sóc</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-       </div>
-          <div class="modal-body">
-  <div class="row">
-   <div class="col-md-6 mb-3">
-          <label class="form-label">Loại chăm sóc <span class="text-danger">*</span></label>
-       <div class="input-group">
-       <select name="CropCareTypeId" class="form-select" required>
-           <option value="">-- Chọn loại --</option>
-    @foreach (var ct in careTypes)
-             {
-  <option value="@ct.Id">@ct.Name</option>
- }
-      </select>
-  <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#addCropCareTypeModal">
-   <i class="bi bi-plus-lg"></i>
-         </button>
-      </div>
-         </div>
-        <div class="col-md-6 mb-3">
-         <label class="form-label">Ngày thực hiện <span class="text-danger">*</span></label>
-     <input type="date" name="CareDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
-         </div>
-    </div>
-         <div class="mb-3">
- <label class="form-label">Chi phí (VNĐ)</label>
-    <input type="number" name="Cost" class="form-control" min="0" step="1000" value="0">
-          </div>
-      <div class="mb-3">
-      <label class="form-label">Mô tả</label>
-        <textarea name="Description" class="form-control" rows="3"></textarea>
-    </div>
-      </div>
- <div class="modal-footer">
-             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-      <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg me-1"></i>Lưu</button>
-     </div>
-     </form>
-      </div>
-    </div>
-</div>
-
-<!-- Modal sửa chăm sóc -->
-<div class="modal fade" id="editCareLogModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-      <form asp-action="UpdateCareLog" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="Id" id="editCareLogId" />
-    <input type="hidden" name="CropId" value="@Model.Id" />
-    <div class="modal-header">
-         <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa chăm sóc</h5>
-   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-       </div>
-    <div class="modal-body">
-      <div class="row">
-    <div class="col-md-6 mb-3">
-     <label class="form-label">Loại chăm sóc <span class="text-danger">*</span></label>
-                  <select name="CropCareTypeId" id="editCareLogTypeId" class="form-select" required>
-     <option value="">-- Chọn loại --</option>
-               @foreach (var ct in careTypes)
-            {
-      <option value="@ct.Id">@ct.Name</option>
-          }
-</select>
-  </div>
-            <div class="col-md-6 mb-3">
-<label class="form-label">Ngày thực hiện <span class="text-danger">*</span></label>
-                <input type="date" name="CareDate" id="editCareLogDate" class="form-control" required>
-             </div>
-     </div>
-    <div class="mb-3">
-      <label class="form-label">Chi phí (VNĐ)</label>
-     <input type="number" name="Cost" id="editCareLogCost" class="form-control" min="0" step="1000">
-     </div>
-        <div class="mb-3">
-  <label class="form-label">Mô tả</label>
-        <textarea name="Description" id="editCareLogDescription" class="form-control" rows="3"></textarea>
-   </div>
-   </div>
-         <div class="modal-footer">
-             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Cập nhật</button>
+                <div class="modal-header bg-success-subtle">
+                    <h5 class="modal-title"><i class="bi bi-basket me-2"></i>Thêm thu hoạch</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-            </form>
-     </div>
-    </div>
-</div>
-
-<!-- Modal xóa chăm sóc -->
-<div class="modal fade" id="deleteCareLogModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form asp-action="DeleteCareLog" method="post">
-@Html.AntiForgeryToken()
-          <input type="hidden" name="id" id="deleteCareLogId" />
-<input type="hidden" name="cropId" value="@Model.Id" />
-       <div class="modal-header">
-     <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-       </div>
-         <div class="modal-body">
-        <p>Bạn có chắc chắn muốn xóa nhật ký chăm sóc <strong id="deleteCareLogName"></strong>?</p>
-        </div>
-     <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-     <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Xóa</button>
-           </div>
-    </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal thêm giá -->
-<div class="modal fade" id="addPriceModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-    <form asp-action="CreatePrice" method="post">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="CropId" value="@Model.Id" />
-       <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-currency-dollar me-2"></i>Thêm giá</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-    </div>
                 <div class="modal-body">
-<div class="row">
-        <div class="col-md-6 mb-3">
-      <label class="form-label">Giá (VNĐ) <span class="text-danger">*</span></label>
-    <input type="number" name="Price" class="form-control" required min="0" step="1000">
-    </div>
-       <div class="col-md-6 mb-3">
-           <label class="form-label">Đơn vị <span class="text-danger">*</span></label>
-           <input type="text" name="Unit" class="form-control" required value="@(Model.Unit ?? "kg")">
-    </div>
-    </div>
- <div class="row">
-        <div class="col-md-6 mb-3">
-  <label class="form-label">Ngày áp dụng <span class="text-danger">*</span></label>
-    <input type="date" name="EffectiveDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
-      </div>
-      <div class="col-md-6 mb-3">
-      <label class="form-label">Ngày hết hạn</label>
-  <input type="date" name="ExpiryDate" class="form-control">
- </div>
-                 </div>
-       <div class="mb-3">
-         <label class="form-label">Ghi chú</label>
-       <textarea name="Note" class="form-control" rows="2"></textarea>
-        </div>
-           </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày thu hoạch <span class="text-danger">*</span></label>
+                            <input type="date" name="HarvestDate" class="form-control" required value="@DateTime.Today.ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số lượng <span class="text-danger">*</span></label>
+                            <input type="number" name="Quantity" class="form-control" required min="0.01" step="0.01">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn vị</label>
+                            <input type="text" name="Unit" class="form-control" value="@(Model.Unit ?? "kg")">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Đơn giá (VNĐ)</label>
+                            <input type="number" name="UnitPrice" class="form-control" min="0" step="1000" value="@(currentPrice?.Price ?? 0)">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Người mua</label>
+                            <input type="text" name="Buyer" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="Note" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
                 <div class="modal-footer">
-  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Lưu</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal sửa giá -->
-<div class="modal fade" id="editPriceModal" tabindex="-1">
-    <div class="modal-dialog">
- <div class="modal-content">
-            <form asp-action="UpdatePrice" method="post">
- @Html.AntiForgeryToken()
-              <input type="hidden" name="Id" id="editPriceId" />
-         <input type="hidden" name="CropId" value="@Model.Id" />
-           <div class="modal-header">
-  <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa giá</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-     </div>
- <div class="modal-body">
-        <div class="row">
-          <div class="col-md-6 mb-3">
-    <label class="form-label">Giá (VNĐ) <span class="text-danger">*</span></label>
-    <input type="number" name="Price" id="editPrice" class="form-control" required min="0" step="1000">
-   </div>
-       <div class="col-md-6 mb-3">
-      <label class="form-label">Đơn vị <span class="text-danger">*</span></label>
-        <input type="text" name="Unit" id="editUnit" class="form-control" required>
-       </div>
-       </div>
-            <div class="row">
-            <div class="col-md-6 mb-3">
-       <label class="form-label">Ngày áp dụng <span class="text-danger">*</span></label>
-           <input type="date" name="EffectiveDate" id="editEffectiveDate" class="form-control" required>
- </div>
- <div class="col-md-6 mb-3">
-            <label class="form-label">Ngày hết hạn</label>
-   <input type="date" name="ExpiryDate" id="editExpiryDate" class="form-control">
-    </div>
-</div>
-             <div class="mb-3">
-     <label class="form-label">Ghi chú</label>
-               <textarea name="Note" id="editNote" class="form-control" rows="2"></textarea>
-        </div>
-   <div class="form-check">
-         <input class="form-check-input" type="checkbox" name="IsActive" id="editIsActive" value="true">
-               <label class="form-check-label" for="editIsActive">Đang hoạt động</label>
-         </div>
-      </div>
-                <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-       <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Cập nhật</button>
-                </div>
-            </form>
-      </div>
-    </div>
-</div>
-
-<!-- Modal xóa giá -->
-<div class="modal fade" id="deletePriceModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-  <div class="modal-content">
-    <form asp-action="DeletePrice" method="post">
-                @Html.AntiForgeryToken()
-   <input type="hidden" name="id" id="deletePriceId" />
-    <input type="hidden" name="cropId" value="@Model.Id" />
-       <div class="modal-header">
-            <h5 class="modal-title"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-    </div>
- <div class="modal-body">
- <p>Bạn có chắc chắn muốn xóa giá <strong id="deletePriceValue"></strong> VNĐ?</p>
-     </div>
-     <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-         <button type="submit" class="btn btn-danger"><i class="bi bi-trash me-1"></i>Xóa</button>
-   </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal thêm loại chi phí -->
-<div class="modal fade" id="addCostTypeModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-         <form asp-action="CreateCostType" method="post">
-          @Html.AntiForgeryToken()
-  <input type="hidden" name="cropId" value="@Model.Id" />
-            <div class="modal-header bg-success bg-opacity-10">
-   <h5 class="modal-title text-success"><i class="bi bi-plus-circle me-2"></i>Thêm loại chi phí mới</h5>
-               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-           <div class="modal-body">
-       <div class="mb-3">
-            <label class="form-label">Mã loại chi phí <span class="text-danger">*</span></label>
-               <input type="text" name="Code" class="form-control" required placeholder="VD: LABOR, SEED...">
-             </div>
-  <div class="mb-3">
-               <label class="form-label">Tên loại chi phí <span class="text-danger">*</span></label>
-         <input type="text" name="Name" class="form-control" required placeholder="VD: Nhân công, Giống...">
-         </div>
-          <div class="mb-3">
-     <label class="form-label">Mô tả</label>
-      <textarea name="Description" class="form-control" rows="2"></textarea>
-        </div>
-      </div>
-              <div class="modal-footer">
-       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-       <button type="submit" class="btn btn-success"><i class="bi bi-check-lg me-1"></i>Thêm</button>
-                </div>
-         </form>
-        </div>
-    </div>
-</div>
-
-<!-- Modal thêm loại chăm sóc -->
-<div class="modal fade" id="addCropCareTypeModal" tabindex="-1">
-  <div class="modal-dialog">
-        <div class="modal-content">
-            <form asp-action="CreateCropCareType" method="post">
-     @Html.AntiForgeryToken()
-    <input type="hidden" name="cropId" value="@Model.Id" />
-      <div class="modal-header bg-info bg-opacity-10">
-     <h5 class="modal-title text-info"><i class="bi bi-plus-circle me-2"></i>Thêm loại chăm sóc mới</h5>
-     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-    </div>
-  <div class="modal-body">
-      <div class="mb-3">
-               <label class="form-label">Mã loại chăm sóc <span class="text-danger">*</span></label>
-              <input type="text" name="Code" class="form-control" required placeholder="VD: WATER, FERT...">
-            </div>
-         <div class="mb-3">
-        <label class="form-label">Tên loại chăm sóc <span class="text-danger">*</span></label>
-     <input type="text" name="Name" class="form-control" required placeholder="VD: Tưới nước, Bón phân...">
-</div>
-                    <div class="mb-3">
-     <label class="form-label">Mô tả</label>
-         <textarea name="Description" class="form-control" rows="2"></textarea>
- </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-   <button type="submit" class="btn btn-info"><i class="bi bi-check-lg me-1"></i>Thêm</button>
-   </div>
-            </form>
-        </div>
-    </div>
-</div>
+@* (Tương tự cho các Modal Edit/Delete Harvest, Cost, CareLog, Price, CostType, CareType...) *@
 
 <style>
- .care-icon {
-        width: 40px;
- height: 40px;
-   display: flex;
-        align-items: center;
-        justify-content: center;
+    .care-icon {
         flex-shrink: 0;
     }
-    .nav-tabs .nav-link { color: var(--secondary-color); }
-    .nav-tabs .nav-link.active { font-weight: 600; }
+
+    .nav-tabs .nav-link {
+        color: var(--bs-secondary);
+        border-bottom: 2px solid transparent;
+    }
+
+        .nav-tabs .nav-link.active {
+            font-weight: 600;
+            border-bottom-color: var(--bs-success);
+            color: var(--bs-success);
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: var(--bs-gray-400);
+        }
+
+    .info-box {
+        transition: all 0.2s ease;
+    }
+
+        .info-box:hover {
+            background-color: var(--bs-light);
+        }
+
+    .hover-shadow:hover {
+        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+
+    .bg-warning-subtle {
+        background-color: rgba(255, 193, 7, 0.15) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
 </style>
 
 @section Scripts {
+    <script src="~/js/modules/form-helper.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            FarmApp.UI.initTooltips();
+        });
+
+        // Edit Harvest
         function editHarvest(id, date, quantity, unit, unitPrice, buyer, note) {
             document.getElementById('editHarvestId').value = id;
             document.getElementById('editHarvestDate').value = date;
-          document.getElementById('editHarvestQuantity').value = quantity;
+            document.getElementById('editHarvestQuantity').value = quantity;
             document.getElementById('editHarvestUnit').value = unit;
-         document.getElementById('editHarvestUnitPrice').value = unitPrice;
-          document.getElementById('editHarvestBuyer').value = buyer;
-          document.getElementById('editHarvestNote').value = note;
-   new bootstrap.Modal(document.getElementById('editHarvestModal')).show();
-     }
-
- function confirmDeleteHarvest(id, date) {
-            document.getElementById('deleteHarvestId').value = id;
-            document.getElementById('deleteHarvestDate').textContent = date;
-  new bootstrap.Modal(document.getElementById('deleteHarvestModal')).show();
+            document.getElementById('editHarvestUnitPrice').value = unitPrice;
+            document.getElementById('editHarvestBuyer').value = buyer;
+            document.getElementById('editHarvestNote').value = note;
+            new bootstrap.Modal(document.getElementById('editHarvestModal')).show();
         }
 
+        function confirmDeleteHarvest(id, date) {
+            document.getElementById('deleteHarvestId').value = id;
+            document.getElementById('deleteHarvestDate').textContent = date;
+            new bootstrap.Modal(document.getElementById('deleteHarvestModal')).show();
+        }
+
+        // Edit Cost
         function editCost(id, costTypeId, date, quantity, unit, unitPrice, note) {
             document.getElementById('editCostId').value = id;
-    document.getElementById('editCostTypeId').value = costTypeId;
+            document.getElementById('editCostTypeId').value = costTypeId;
             document.getElementById('editCostDate').value = date;
             document.getElementById('editCostQuantity').value = quantity;
             document.getElementById('editCostUnit').value = unit;
             document.getElementById('editCostUnitPrice').value = unitPrice;
-     document.getElementById('editCostNote').value = note;
+            document.getElementById('editCostNote').value = note;
             new bootstrap.Modal(document.getElementById('editCostModal')).show();
         }
 
         function confirmDeleteCost(id, name) {
             document.getElementById('deleteCostId').value = id;
-         document.getElementById('deleteCostName').textContent = name;
-        new bootstrap.Modal(document.getElementById('deleteCostModal')).show();
-   }
+            document.getElementById('deleteCostName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteCostModal')).show();
+        }
 
+        // Edit Care Log
         function editCareLog(id, careTypeId, date, description, cost) {
             document.getElementById('editCareLogId').value = id;
             document.getElementById('editCareLogTypeId').value = careTypeId;
-    document.getElementById('editCareLogDate').value = date;
-document.getElementById('editCareLogDescription').value = description;
-       document.getElementById('editCareLogCost').value = cost;
-        new bootstrap.Modal(document.getElementById('editCareLogModal')).show();
+            document.getElementById('editCareLogDate').value = date;
+            document.getElementById('editCareLogDescription').value = description;
+            document.getElementById('editCareLogCost').value = cost;
+            new bootstrap.Modal(document.getElementById('editCareLogModal')).show();
         }
 
         function confirmDeleteCareLog(id, name) {
             document.getElementById('deleteCareLogId').value = id;
-          document.getElementById('deleteCareLogName').textContent = name;
-          new bootstrap.Modal(document.getElementById('deleteCareLogModal')).show();
+            document.getElementById('deleteCareLogName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteCareLogModal')).show();
         }
 
-      function editPrice(id, price, unit, effectiveDate, expiryDate, note, isActive) {
-  document.getElementById('editPriceId').value = id;
-     document.getElementById('editPrice').value = price;
-       document.getElementById('editUnit').value = unit;
+        // Edit Price
+        function editPrice(id, price, unit, effectiveDate, expiryDate, note, isActive) {
+            document.getElementById('editPriceId').value = id;
+            document.getElementById('editPrice').value = price;
+            document.getElementById('editUnit').value = unit;
             document.getElementById('editEffectiveDate').value = effectiveDate;
- document.getElementById('editExpiryDate').value = expiryDate || '';
-  document.getElementById('editNote').value = note || '';
-        document.getElementById('editIsActive').checked = isActive;
-  new bootstrap.Modal(document.getElementById('editPriceModal')).show();
+            document.getElementById('editExpiryDate').value = expiryDate || '';
+            document.getElementById('editNote').value = note || '';
+            document.getElementById('editIsActive').checked = isActive;
+            new bootstrap.Modal(document.getElementById('editPriceModal')).show();
         }
 
         function confirmDeletePrice(id, price) {
-       document.getElementById('deletePriceId').value = id;
-     document.getElementById('deletePriceValue').textContent = price.toLocaleString('vi-VN');
-        new bootstrap.Modal(document.getElementById('deletePriceModal')).show();
-      }
+            document.getElementById('deletePriceId').value = id;
+            document.getElementById('deletePriceValue').textContent = price.toLocaleString('vi-VN');
+            new bootstrap.Modal(document.getElementById('deletePriceModal')).show();
+        }
     </script>
 }

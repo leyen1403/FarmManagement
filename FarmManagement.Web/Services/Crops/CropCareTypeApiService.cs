@@ -14,13 +14,12 @@ public class CropCareTypeApiService
     }
 
     public async Task<List<CropCareTypeDto>> GetAllAsync(bool includeInactive = true)
-        => await _http.GetFromJsonAsync<List<CropCareTypeDto>>(
-   $"api/CropCareType?includeInactive={includeInactive}")
-    ?? new();
+        => await _http.GetFromJsonAsync<List<CropCareTypeDto>>($"api/CropCareType?includeInactive={includeInactive}")
+           ?? new();
 
     public async Task<CropCareTypeDto> GetByIdAsync(int id)
         => await _http.GetFromJsonAsync<CropCareTypeDto>($"api/CropCareType/{id}")
-    ?? throw new ApiException("Không tìm thấy loại chăm sóc", 404);
+           ?? throw new ApiException("Không tìm thấy loại chăm sóc", 404);
 
     private async Task EnsureSuccess(HttpResponseMessage response)
     {
@@ -29,8 +28,8 @@ public class CropCareTypeApiService
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
-           error?.Message ?? "Lỗi hệ thống",
-                  (int)response.StatusCode
+            error?.Message ?? "Lỗi hệ thống",
+            (int)response.StatusCode
         );
     }
 

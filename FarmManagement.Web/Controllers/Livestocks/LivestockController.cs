@@ -18,13 +18,13 @@ public class LivestockController : Controller
 
     public LivestockController(
         LivestockApiService livestockService,
-   LivestockTypeApiService livestockTypeService,
+        LivestockTypeApiService livestockTypeService,
         LivestockStatusApiService livestockStatusService,
-     LocationApiClient locationService,
- LivestockCareLogApiService careLogService,
+        LocationApiClient locationService,
+        LivestockCareLogApiService careLogService,
         LivestockHealthLogApiService healthLogService,
- LivestockSaleApiService saleService,
- LivestockPriceApiService priceService)
+        LivestockSaleApiService saleService,
+        LivestockPriceApiService priceService)
     {
         _livestockService = livestockService;
         _livestockTypeService = livestockTypeService;
@@ -189,48 +189,49 @@ public class LivestockController : Controller
     {
         try
         {
-         await _careLogService.CreateAsync(dto);
-   TempData["Success"] = "Thêm nhật ký chăm sóc thành công!";
-     }
+            await _careLogService.CreateAsync(dto);
+            TempData["Success"] = "Thêm nhật ký chăm sóc thành công!";
+        }
         catch (Exception ex)
         {
-TempData["Error"] = ex.Message;
+            TempData["Error"] = ex.Message;
         }
 
-    return RedirectToAction(nameof(Details), new { id = dto.LivestockId });
+        return RedirectToAction(nameof(Details), new { id = dto.LivestockId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateCareLog(UpdateLivestockCareLogDto dto, int livestockId)
     {
-      try
- {
+        try
+        {
             await _careLogService.UpdateAsync(dto.Id, dto);
-        TempData["Success"] = "Cập nhật nhật ký chăm sóc thành công!";
-   }
+            TempData["Success"] = "Cập nhật nhật ký chăm sóc thành công!";
+        }
         catch (Exception ex)
         {
- TempData["Error"] = ex.Message;
-      }
+            TempData["Error"] = ex.Message;
+        }
 
         return RedirectToAction(nameof(Details), new { id = livestockId });
- }
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteCareLog(int id, int livestockId)
     {
         try
         {
-   await _careLogService.DeleteAsync(id);
-       TempData["Success"] = "Xóa nhật ký chăm sóc thành công!";
+            await _careLogService.DeleteAsync(id);
+            TempData["Success"] = "Xóa nhật ký chăm sóc thành công!";
         }
         catch (Exception ex)
         {
-      TempData["Error"] = ex.Message;
+            TempData["Error"] = ex.Message;
         }
 
-  return RedirectToAction(nameof(Details), new { id = livestockId });
+        return RedirectToAction(nameof(Details), new { id = livestockId });
     }
 
     #endregion
@@ -241,14 +242,14 @@ TempData["Error"] = ex.Message;
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateHealthLog(CreateLivestockHealthLogDto dto)
     {
-   try
-   {
-      await _healthLogService.CreateAsync(dto);
-      TempData["Success"] = "Thêm nhật ký sức khỏe thành công!";
+        try
+        {
+            await _healthLogService.CreateAsync(dto);
+            TempData["Success"] = "Thêm nhật ký sức khỏe thành công!";
         }
         catch (Exception ex)
- {
-   TempData["Error"] = ex.Message;
+        {
+            TempData["Error"] = ex.Message;
         }
 
         return RedirectToAction(nameof(Details), new { id = dto.LivestockId });
@@ -261,14 +262,14 @@ TempData["Error"] = ex.Message;
         try
         {
             await _healthLogService.UpdateAsync(dto.Id, dto);
-    TempData["Success"] = "Cập nhật nhật ký sức khỏe thành công!";
+            TempData["Success"] = "Cập nhật nhật ký sức khỏe thành công!";
         }
         catch (Exception ex)
-  {
+        {
             TempData["Error"] = ex.Message;
- }
+        }
 
-  return RedirectToAction(nameof(Details), new { id = livestockId });
+        return RedirectToAction(nameof(Details), new { id = livestockId });
     }
 
     [HttpPost]
@@ -277,15 +278,15 @@ TempData["Error"] = ex.Message;
     {
         try
         {
-     await _healthLogService.DeleteAsync(id);
-   TempData["Success"] = "Xóa nhật ký sức khỏe thành công!";
+            await _healthLogService.DeleteAsync(id);
+            TempData["Success"] = "Xóa nhật ký sức khỏe thành công!";
         }
         catch (Exception ex)
-    {
+        {
             TempData["Error"] = ex.Message;
         }
 
-    return RedirectToAction(nameof(Details), new { id = livestockId });
+        return RedirectToAction(nameof(Details), new { id = livestockId });
     }
 
     #endregion
@@ -296,52 +297,52 @@ TempData["Error"] = ex.Message;
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateSale(CreateLivestockSaleDto dto)
     {
-    try
+        try
         {
-        await _saleService.CreateAsync(dto);
+            await _saleService.CreateAsync(dto);
             TempData["Success"] = "Thêm giao dịch bán thành công!";
- }
+        }
         catch (Exception ex)
-    {
-   TempData["Error"] = ex.Message;
-  }
+        {
+            TempData["Error"] = ex.Message;
+        }
 
-   return RedirectToAction(nameof(Details), new { id = dto.LivestockId });
+        return RedirectToAction(nameof(Details), new { id = dto.LivestockId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateSale(UpdateLivestockSaleDto dto, int livestockId)
     {
- try
- {
-await _saleService.UpdateAsync(dto.Id, dto);
-      TempData["Success"] = "Cập nhật giao dịch bán thành công!";
-  }
- catch (Exception ex)
+        try
         {
-     TempData["Error"] = ex.Message;
-}
+            await _saleService.UpdateAsync(dto.Id, dto);
+            TempData["Success"] = "Cập nhật giao dịch bán thành công!";
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = ex.Message;
+        }
 
-   return RedirectToAction(nameof(Details), new { id = livestockId });
+        return RedirectToAction(nameof(Details), new { id = livestockId });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteSale(int id, int livestockId)
     {
- try
+        try
         {
-     await _saleService.DeleteAsync(id);
-TempData["Success"] = "Xóa giao dịch bán thành công!";
+            await _saleService.DeleteAsync(id);
+            TempData["Success"] = "Xóa giao dịch bán thành công!";
         }
         catch (Exception ex)
-   {
-   TempData["Error"] = ex.Message;
-    }
+        {
+            TempData["Error"] = ex.Message;
+        }
 
-    return RedirectToAction(nameof(Details), new { id = livestockId });
-  }
+        return RedirectToAction(nameof(Details), new { id = livestockId });
+    }
 
     #endregion
 

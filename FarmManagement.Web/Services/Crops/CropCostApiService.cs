@@ -14,13 +14,13 @@ public class CropCostApiService
     }
 
     public async Task<List<CropCostDto>> GetByCropIdAsync(int cropId)
-   => await _http.GetFromJsonAsync<List<CropCostDto>>($"api/CropCost/crop/{cropId}") ?? new();
+        => await _http.GetFromJsonAsync<List<CropCostDto>>($"api/CropCost/crop/{cropId}") ?? new();
 
     public async Task<CropCostDto?> GetByIdAsync(int id)
         => await _http.GetFromJsonAsync<CropCostDto>($"api/CropCost/{id}");
 
     public async Task<List<CostTypeDto>> GetCostTypesAsync()
-     => await _http.GetFromJsonAsync<List<CostTypeDto>>("api/CostType") ?? new();
+        => await _http.GetFromJsonAsync<List<CostTypeDto>>("api/CostType") ?? new();
 
     private async Task EnsureSuccess(HttpResponseMessage response)
     {
@@ -29,9 +29,9 @@ public class CropCostApiService
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
-        error?.Message ?? "Lỗi hệ thống",
-                (int)response.StatusCode
-         );
+            error?.Message ?? "Lỗi hệ thống",
+            (int)response.StatusCode
+        );
     }
 
     public async Task<int> CreateAsync(CreateCropCostDto dto)

@@ -8,13 +8,14 @@ public class LocationStatusApiClient
 {
     private readonly HttpClient _http;
 
-    public LocationStatusApiClient(IHttpClientFactory factory) => _http = factory.CreateClient("FarmApi");
+    public LocationStatusApiClient(IHttpClientFactory factory)
+        => _http = factory.CreateClient("FarmApi");
 
-    public async Task<List<LocationStatusDto>> GetAllAsync() =>
-    await _http.GetFromJsonAsync<List<LocationStatusDto>>("api/LocationStatuses");
+    public async Task<List<LocationStatusDto>> GetAllAsync()
+        => await _http.GetFromJsonAsync<List<LocationStatusDto>>("api/LocationStatuses") ?? new();
 
-    public async Task<LocationStatusDto> GetByIdAsync(int id) =>
-    await _http.GetFromJsonAsync<LocationStatusDto>($"api/LocationStatuses/{id}");
+    public async Task<LocationStatusDto?> GetByIdAsync(int id)
+        => await _http.GetFromJsonAsync<LocationStatusDto>($"api/LocationStatuses/{id}");
 
     private async Task EnsureSuccess(HttpResponseMessage response)
     {

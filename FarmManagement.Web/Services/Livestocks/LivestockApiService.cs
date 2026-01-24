@@ -34,7 +34,8 @@ public class LivestockApiService
     {
         var response = await _http.PostAsJsonAsync("api/Livestocks", dto);
         await EnsureSuccess(response);
-        // CreatedAtAction returns location header, extract id
+
+        // CreatedAtAction trả về location header, trích xuất ID từ URL
         if (response.Headers.Location != null)
         {
             var segments = response.Headers.Location.Segments;
@@ -63,8 +64,8 @@ public class LivestockApiService
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
-               error?.Message ?? "Lỗi hệ thống",
-               (int)response.StatusCode
+            error?.Message ?? "Lỗi hệ thống",
+            (int)response.StatusCode
         );
     }
 }

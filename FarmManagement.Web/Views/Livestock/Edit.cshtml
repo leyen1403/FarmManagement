@@ -3,221 +3,385 @@
 @using FarmManagement.Application.DTOs.Locations
 
 @{
-    ViewData["Title"] = "Sửa vật nuôi";
-    ViewData["Breadcrumb"] = "Chỉnh sửa";
+    var displayName = Model.Name ?? Model.TagCode ?? $"VN-{Model.Id:D4}";
+    ViewData["Title"] = $"Sửa vật nuôi: {displayName}";
+
+    // Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        new BreadcrumbItem("Vật nuôi", "/Livestock", "bi bi-bug"),
+        BreadcrumbItem.Current("Chỉnh sửa")
+    );
 
     var livestockTypes = ViewBag.LivestockTypes as List<LivestockTypeDto> ?? new List<LivestockTypeDto>();
     var livestockStatuses = ViewBag.LivestockStatuses as List<LivestockStatusDto> ?? new List<LivestockStatusDto>();
     var locations = ViewBag.Locations as List<LocationDto> ?? new List<LocationDto>();
     var livestockDto = ViewBag.LivestockDto as LivestockDto;
+
+    // Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Chỉnh sửa vật nuôi",
+        Subtitle = $"Cập nhật thông tin: {displayName}",
+        Icon = "bi bi-pencil-square",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            ActionButtonModel.Back("/Livestock", "Quay lại"),
+            ActionButtonModel.Details($"/Livestock/Details/{Model.Id}", "Xem chi tiết")
+        }
+    };
+
+    // Delete Modal
+    var deleteModal = new DeleteModalModel
+    {
+        ControllerName = "Livestock",
+        Title = "Xác nhận xóa vật nuôi",
+        Message = $"Bạn có chắc chắn muốn xóa vật nuôi \"{displayName}\"?",
+        WarningMessage = "Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan (chăm sóc, sức khỏe, bán hàng) sẽ bị xóa."
+    };
 }
 
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="page-title">Chỉnh sửa vật nuôi</h1>
-        <p class="page-subtitle mb-0">Cập nhật thông tin: @(Model.Name ?? Model.TagCode ?? $"VN-{Model.Id:D4}")</p>
-    </div>
-    <div class="page-actions">
-        <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i> Quay lại
-        </a>
-    </div>
-</div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<div class="card">
-    <div class="card-header">
-        <h5 class="card-title mb-0">
-            <i class="bi bi-bug me-2"></i>Thông tin vật nuôi
-        </h5>
-    </div>
-    <div class="card-body">
-        <form asp-action="Edit" method="post">
+@* ==================== Form ==================== *@
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <form asp-action="Edit" method="post" data-validate="true">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-            <!-- Thông tin cơ bản -->
-            <h6 class="text-muted mb-3"><i class="bi bi-info-circle me-2"></i>Thông tin cơ bản</h6>
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label asp-for="Name" class="form-label">Tên đàn/Mô tả</label>
-                    <input asp-for="Name" class="form-control" placeholder="VD: Đàn heo giống lứa 1..." />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-pencil text-primary me-2"></i>Thông tin vật nuôi
+                    </h5>
+                    <span class="badge bg-primary-subtle text-primary">ID: @Model.Id</span>
+                </div>
+                <div class="card-body">
+                    @* Validation Summary *@
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    @* ==================== Section 1: Thông tin cơ bản ==================== *@
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title text-primary mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Name" class="form-label">Tên đàn/Mô tả</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-tag"></i></span>
+                                    <input asp-for="Name" class="form-control" />
+                                </div>
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="TagCode" class="form-label">Mã thẻ/Mã lô</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-upc-scan"></i></span>
+                                    <input asp-for="TagCode" class="form-control" />
+                                </div>
+                                <span asp-validation-for="TagCode" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="LivestockTypeId" class="form-label">
+                                    Loại vật nuôi <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="LivestockTypeId" class="form-select" asp-items="@(new SelectList(livestockTypes, "Id", "Name"))" required>
+                                    <option value="">-- Chọn loại vật nuôi --</option>
+                                </select>
+                                <span asp-validation-for="LivestockTypeId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="LivestockStatusId" class="form-label">
+                                    Trạng thái <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="LivestockStatusId" class="form-select" asp-items="@(new SelectList(livestockStatuses, "Id", "Name"))" required>
+                                    <option value="">-- Chọn trạng thái --</option>
+                                </select>
+                                <span asp-validation-for="LivestockStatusId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="LocationId" class="form-label">
+                                    Vị trí nuôi <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="LocationId" class="form-select" asp-items="@(new SelectList(locations, "Id", "Name"))" required>
+                                    <option value="">-- Chọn vị trí --</option>
+                                </select>
+                                <span asp-validation-for="LocationId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ImportDate" class="form-label">
+                                    Ngày nhập <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="ImportDate" type="date" class="form-control" required />
+                                <span asp-validation-for="ImportDate" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    @* ==================== Section 2: Số lượng ==================== *@
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title text-primary mb-3">
+                            <i class="bi bi-123 me-2"></i>Số lượng
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="Quantity" class="form-label">
+                                    Tổng số lượng (con) <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Quantity" type="number" min="1" class="form-control" id="quantityInput" required />
+                                <span asp-validation-for="Quantity" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="MaleCount" class="form-label">
+                                    <i class="bi bi-gender-male text-primary me-1"></i>Số con đực
+                                </label>
+                                <input asp-for="MaleCount" type="number" min="0" class="form-control" id="maleInput" />
+                                <span asp-validation-for="MaleCount" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="FemaleCount" class="form-label">
+                                    <i class="bi bi-gender-female text-danger me-1"></i>Số con cái
+                                </label>
+                                <input asp-for="FemaleCount" type="number" min="0" class="form-control" id="femaleInput" />
+                                <span asp-validation-for="FemaleCount" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="alert alert-info py-2 mb-0" id="genderValidation" style="display: none;">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <span id="genderMessage"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    @* ==================== Section 3: Trọng lượng & Giá trị ==================== *@
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title text-primary mb-3">
+                            <i class="bi bi-currency-dollar me-2"></i>Trọng lượng & Giá trị
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="ImportWeight" class="form-label">Trọng lượng TB/con (kg)</label>
+                                <input asp-for="ImportWeight" type="number" step="0.1" min="0" class="form-control" id="weightInput" />
+                                <span asp-validation-for="ImportWeight" class="text-danger small"></span>
+                                <small class="form-text text-muted">Tổng TL: <strong id="totalWeight">0</strong> kg</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ImportPrice" class="form-label">Giá nhập/con (VNĐ)</label>
+                                <input asp-for="ImportPrice" type="number" step="1000" min="0" class="form-control" id="priceInput" />
+                                <span asp-validation-for="ImportPrice" class="text-danger small"></span>
+                                <small class="form-text text-muted">Tổng giá trị: <strong id="totalPrice">0</strong> VNĐ</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    @* ==================== Section 4: Ghi chú ==================== *@
+                    <div class="form-section">
+                        <h6 class="form-section-title text-primary mb-3">
+                            <i class="bi bi-sticky me-2"></i>Ghi chú
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Note" class="form-label">Ghi chú bổ sung</label>
+                                <textarea asp-for="Note" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Note" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-6">
-                    <label asp-for="TagCode" class="form-label">Mã thẻ/Mã lô</label>
-                    <input asp-for="TagCode" class="form-control" />
-                    <span asp-validation-for="TagCode" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-6">
-                    <label asp-for="LivestockTypeId" class="form-label">Loại vật nuôi <span class="text-danger">*</span></label>
-                    <select asp-for="LivestockTypeId" class="form-select" asp-items="@(new SelectList(livestockTypes, "Id", "Name"))">
-                        <option value="">-- Chọn loại vật nuôi --</option>
-                    </select>
-                    <span asp-validation-for="LivestockTypeId" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-6">
-                    <label asp-for="LivestockStatusId" class="form-label">Trạng thái <span class="text-danger">*</span></label>
-                    <select asp-for="LivestockStatusId" class="form-select" asp-items="@(new SelectList(livestockStatuses, "Id", "Name"))">
-                        <option value="">-- Chọn trạng thái --</option>
-                    </select>
-                    <span asp-validation-for="LivestockStatusId" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-6">
-                    <label asp-for="LocationId" class="form-label">Vị trí nuôi <span class="text-danger">*</span></label>
-                    <select asp-for="LocationId" class="form-select" asp-items="@(new SelectList(locations, "Id", "Name"))">
-                        <option value="">-- Chọn vị trí --</option>
-                    </select>
-                    <span asp-validation-for="LocationId" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-6">
-                    <label asp-for="ImportDate" class="form-label">Ngày nhập <span class="text-danger">*</span></label>
-                    <input asp-for="ImportDate" type="date" class="form-control" />
-                    <span asp-validation-for="ImportDate" class="text-danger"></span>
-                </div>
-            </div>
-
-            <!-- Số lượng -->
-            <h6 class="text-muted mb-3"><i class="bi bi-123 me-2"></i>Số lượng</h6>
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <label asp-for="Quantity" class="form-label">Tổng số lượng (con) <span class="text-danger">*</span></label>
-                    <input asp-for="Quantity" type="number" min="1" class="form-control" id="quantityInput" />
-                    <span asp-validation-for="Quantity" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-4">
-                    <label asp-for="MaleCount" class="form-label">
-                        <i class="bi bi-gender-male text-primary me-1"></i>Số con đực
-                    </label>
-                    <input asp-for="MaleCount" type="number" min="0" class="form-control" id="maleInput" />
-                    <span asp-validation-for="MaleCount" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-4">
-                    <label asp-for="FemaleCount" class="form-label">
-                        <i class="bi bi-gender-female text-danger me-1"></i>Số con cái
-                    </label>
-                    <input asp-for="FemaleCount" type="number" min="0" class="form-control" id="femaleInput" />
-                    <span asp-validation-for="FemaleCount" class="text-danger"></span>
-                </div>
-
-                <div class="col-12">
-                    <div class="alert alert-info py-2" id="genderValidation" style="display: none;">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <span id="genderMessage"></span>
+                @* ==================== Form Actions ==================== *@
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Các trường có dấu <span class="text-danger">*</span> là bắt buộc
+                        </span>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>Cập nhật
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Trọng lượng và Giá -->
-            <h6 class="text-muted mb-3"><i class="bi bi-currency-dollar me-2"></i>Trọng lượng & Giá trị</h6>
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <label asp-for="ImportWeight" class="form-label">Trọng lượng TB/con (kg)</label>
-                    <input asp-for="ImportWeight" type="number" step="0.1" min="0" class="form-control" id="weightInput" />
-                    <span asp-validation-for="ImportWeight" class="text-danger"></span>
-                    <small class="form-text text-muted">Tổng TL: <strong id="totalWeight">0</strong> kg</small>
-                </div>
-
-                <div class="col-md-6">
-                    <label asp-for="ImportPrice" class="form-label">Giá nhập/con (VNĐ)</label>
-                    <input asp-for="ImportPrice" type="number" step="1000" min="0" class="form-control" id="priceInput" />
-                    <span asp-validation-for="ImportPrice" class="text-danger"></span>
-                    <small class="form-text text-muted">Tổng giá trị: <strong id="totalPrice">0</strong> VNĐ</small>
-                </div>
-            </div>
-
-            <!-- Ghi chú -->
-            <h6 class="text-muted mb-3"><i class="bi bi-sticky me-2"></i>Ghi chú</h6>
-            <div class="row g-3">
-                <div class="col-12">
-                    <textarea asp-for="Note" class="form-control" rows="3"></textarea>
-                    <span asp-validation-for="Note" class="text-danger"></span>
-                </div>
-            </div>
-
-            <hr class="my-4" />
-
-            <div class="d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="bi bi-x-lg me-1"></i>Hủy
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-check-lg me-1"></i>Cập nhật
-                </button>
-            </div>
         </form>
+
+        @* ==================== Info Card ==================== *@
+        <div class="card mt-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock-history text-info me-2"></i>Lịch sử
+                </h6>
+            </div>
+            <div class="card-body py-3">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-primary-subtle text-primary rounded p-2">
+                                <i class="bi bi-calendar-plus"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Ngày tạo</small>
+                                <strong>@(livestockDto?.CreatedDate.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-info-subtle text-info rounded p-2">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Cập nhật lần cuối</small>
+                                <strong>@(livestockDto?.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ==================== Danger Zone ==================== *@
+        <div class="card mt-3 border-danger">
+            <div class="card-header bg-danger-subtle border-danger">
+                <h6 class="mb-0 text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Vùng nguy hiểm
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-1 fw-medium">Xóa vật nuôi này</p>
+                        <p class="text-muted small mb-0">Hành động này không thể hoàn tác</p>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            data-entity-id="@Model.Id"
+                            data-entity-name="@displayName">
+                        <i class="bi bi-trash me-1"></i>Xóa vật nuôi
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
+@* ==================== Delete Modal ==================== *@
+<partial name="_DeleteModal" model="deleteModal" />
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/modules/form-helper.js"></script>
     <script>
-           const quantityInput = document.getElementById('quantityInput');
-         const maleInput = document.getElementById('maleInput');
-         const femaleInput = document.getElementById('femaleInput');
-         const weightInput = document.getElementById('weightInput');
-        const priceInput = document.getElementById('priceInput');
-               const genderValidation = document.getElementById('genderValidation');
-         const genderMessage = document.getElementById('genderMessage');
-          const totalWeight = document.getElementById('totalWeight');
-         const totalPrice = document.getElementById('totalPrice');
+        document.addEventListener('DOMContentLoaded', function () {
+            const quantityInput = document.getElementById('quantityInput');
+            const maleInput = document.getElementById('maleInput');
+            const femaleInput = document.getElementById('femaleInput');
+            const weightInput = document.getElementById('weightInput');
+            const priceInput = document.getElementById('priceInput');
+            const genderValidation = document.getElementById('genderValidation');
+            const genderMessage = document.getElementById('genderMessage');
+            const totalWeight = document.getElementById('totalWeight');
+            const totalPrice = document.getElementById('totalPrice');
 
-          function validateGender() {
-            const quantity = parseInt(quantityInput.value) || 0;
-               const male = parseInt(maleInput.value) || 0;
-           const female = parseInt(femaleInput.value) || 0;
-            const total = male + female;
+            function validateGender() {
+                const quantity = parseInt(quantityInput.value) || 0;
+                const male = parseInt(maleInput.value) || 0;
+                const female = parseInt(femaleInput.value) || 0;
+                const total = male + female;
 
-          if (total > quantity) {
-                genderValidation.style.display = 'block';
-                       genderValidation.className = 'alert alert-danger py-2';
-            genderMessage.textContent = `Tổng đực (${male}) + cái (${female}) = ${total} vượt quá số lượng (${quantity})!`;
-                   } else if (total < quantity && total > 0) {
-              genderValidation.style.display = 'block';
-           genderValidation.className = 'alert alert-warning py-2';
-         genderMessage.textContent = `Còn ${quantity - total} con chưa xác định giới tính.`;
-               } else if (total === quantity && quantity > 0) {
-           genderValidation.style.display = 'block';
-          genderValidation.className = 'alert alert-success py-2';
-                   genderMessage.textContent = `Đã xác định đủ giới tính: ${male} đực + ${female} cái = ${quantity} con.`;
-            } else {
-          genderValidation.style.display = 'none';
-                   }
-        }
+                if (total > quantity) {
+                    genderValidation.style.display = 'block';
+                    genderValidation.className = 'alert alert-danger py-2 mb-0';
+                    genderMessage.textContent = `Tổng đực (${male}) + cái (${female}) = ${total} vượt quá số lượng (${quantity})!`;
+                } else if (total < quantity && total > 0) {
+                    genderValidation.style.display = 'block';
+                    genderValidation.className = 'alert alert-warning py-2 mb-0';
+                    genderMessage.textContent = `Còn ${quantity - total} con chưa xác định giới tính.`;
+                } else if (total === quantity && quantity > 0) {
+                    genderValidation.style.display = 'block';
+                    genderValidation.className = 'alert alert-success py-2 mb-0';
+                    genderMessage.textContent = `Đã xác định đủ giới tính: ${male} đực + ${female} cái = ${quantity} con.`;
+                } else {
+                    genderValidation.style.display = 'none';
+                }
+            }
 
             function calculateTotals() {
-         const quantity = parseInt(quantityInput.value) || 0;
-             const weight = parseFloat(weightInput.value) || 0;
-           const price = parseFloat(priceInput.value) || 0;
+                const quantity = parseInt(quantityInput.value) || 0;
+                const weight = parseFloat(weightInput.value) || 0;
+                const price = parseFloat(priceInput.value) || 0;
 
-           totalWeight.textContent = (quantity * weight).toLocaleString('vi-VN', {maximumFractionDigits: 1});
-             totalPrice.textContent = (quantity * price).toLocaleString('vi-VN');
-               }
+                totalWeight.textContent = (quantity * weight).toLocaleString('vi-VN', { maximumFractionDigits: 1 });
+                totalPrice.textContent = (quantity * price).toLocaleString('vi-VN');
+            }
 
-          quantityInput.addEventListener('input', function() { validateGender(); calculateTotals(); });
+            // Gán sự kiện lắng nghe thay đổi
+            quantityInput.addEventListener('input', function () {
+                validateGender();
+                calculateTotals();
+            });
             maleInput.addEventListener('input', validateGender);
             femaleInput.addEventListener('input', validateGender);
-               weightInput.addEventListener('input', calculateTotals);
+            weightInput.addEventListener('input', calculateTotals);
             priceInput.addEventListener('input', calculateTotals);
 
-               // Initialize
-               validateGender();
-           calculateTotals();
+            // Khởi tạo giá trị ban đầu
+            validateGender();
+            calculateTotals();
+
+            if (typeof FarmApp !== 'undefined' && FarmApp.UI) {
+                FarmApp.UI.initTooltips();
+            }
+        });
     </script>
 }
+
+<style>
+    .form-section-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-bottom: 2px solid var(--bs-primary);
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+</style>

@@ -1,158 +1,191 @@
 ﻿@using FarmManagement.Application.DTOs.Common
 @{
     ViewData["Title"] = "Dashboard";
-    ViewData["Breadcrumb"] = "Dashboard";
 
+    // Thiết lập breadcrumbs bằng extension method
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Current("Dashboard", "bi bi-grid-1x2")
+    );
+
+    // Lấy dữ liệu từ ViewBag
     var locationCount = ViewBag.LocationCount ?? 0;
-    var cropTypeCount = ViewBag.CropTypeCount ?? 0;
-    var cropStatusCount = ViewBag.CropStatusCount ?? 0;
+    var cropCount = ViewBag.CropCount ?? 0;
     var livestockCount = ViewBag.LivestockCount ?? 0;
-    var livestockTypeCount = ViewBag.LivestockTypeCount ?? 0;
     var activityCountToday = ViewBag.ActivityCountToday ?? 0;
     var recentActivities = ViewBag.RecentActivities as List<ActivityLogDto> ?? new List<ActivityLogDto>();
+
+    // Cấu hình dữ liệu cho Stats Cards
+    var statsCards = new List<StatsCardModel>
+    {
+        new StatsCardModel
+        {
+            Value = locationCount.ToString(),
+            Label = "Vị trí",
+            Icon = "bi bi-geo-alt",
+            IconBackgroundClass = "bg-primary-subtle",
+            ColorClass = "text-primary",
+            LinkUrl = "/Location",
+            LinkText = "Xem danh sách"
+        },
+        new StatsCardModel
+        {
+            Value = cropCount.ToString(),
+            Label = "Cây trồng",
+            Icon = "bi bi-flower2",
+            IconBackgroundClass = "bg-success-subtle",
+            ColorClass = "text-success",
+            LinkUrl = "/Crop",
+            LinkText = "Xem danh sách"
+        },
+        new StatsCardModel
+        {
+            Value = livestockCount.ToString(),
+            Label = "Vật nuôi",
+            Icon = "bi bi-bug",
+            IconBackgroundClass = "bg-warning-subtle",
+            ColorClass = "text-warning",
+            LinkUrl = "/Livestock",
+            LinkText = "Xem danh sách"
+        },
+        new StatsCardModel
+        {
+            Value = activityCountToday.ToString(),
+            Label = "Hoạt động hôm nay",
+            Icon = "bi bi-activity",
+            IconBackgroundClass = "bg-info-subtle",
+            ColorClass = "text-info",
+            Trend = activityCountToday > 0 ? TrendDirection.Up : TrendDirection.Neutral,
+            TrendDescription = "hôm nay"
+        }
+    };
+
+    // Cấu hình Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Dashboard",
+        Subtitle = "Tổng quan hệ thống quản lý nông trại",
+        Icon = "bi bi-grid-1x2",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            new ActionButtonModel("Xuất báo cáo", "#", "bi bi-download", "btn-outline-primary")
+            {
+                Size = ButtonSize.Small,
+                Id = "btnExportReport"
+            },
+            new ActionButtonModel("Làm mới", "#", "bi bi-arrow-clockwise", "btn-outline-secondary")
+            {
+                Size = ButtonSize.Small,
+                OnClick = "location.reload()"
+            }
+        }
+    };
+
+    // Quick Actions - Thao tác nhanh
+    var quickActions = new List<(string Title, string Url, string Icon, string ColorClass)>
+    {
+        ("Thêm vị trí", "/Location/Create", "bi bi-geo-alt", "btn-outline-primary"),
+        ("Thêm cây trồng", "/Crop/Create", "bi bi-flower2", "btn-outline-success"),
+        ("Thêm vật nuôi", "/Livestock/Create", "bi bi-bug", "btn-outline-warning"),
+        ("Báo cáo", "#", "bi bi-file-earmark-text", "btn-outline-info")
+    };
+
+    // Management Modules - Các phân hệ quản lý
+    var modules = new List<(string Title, string Description, string Icon, string ColorClass, string Controller)>
+    {
+        ("Quản lý vị trí", "Quản lý các vị trí, khu vực, chuồng trại trong nông trại", "bi bi-geo-alt", "primary", "Location"),
+        ("Quản lý cây trồng", "Theo dõi cây trồng, mùa vụ, thu hoạch và chi phí", "bi bi-flower2", "success", "Crop"),
+        ("Quản lý vật nuôi", "Theo dõi vật nuôi, sức khỏe, chăm sóc và giao dịch bán", "bi bi-bug", "warning", "Livestock"),
+        ("Loại vị trí", "Phân loại các loại vị trí: chuồng, ao, vườn...", "bi bi-tags", "secondary", "LocationTypes"),
+        ("Loại cây trồng", "Danh mục các loại cây trồng trong trang trại", "bi bi-flower1", "success", "CropType"),
+        ("Loại vật nuôi", "Danh mục các loại vật nuôi: gà, vịt, heo...", "bi bi-collection", "warning", "LivestockType")
+    };
+
+    // Trạng thái trống cho nhật ký hoạt động
+    var emptyActivityState = EmptyStateModel.NoData("hoạt động");
+    emptyActivityState.Icon = "bi bi-clock-history";
+    emptyActivityState.Description = "Chưa có hoạt động nào được ghi nhận hôm nay.";
+    emptyActivityState.PrimaryAction = null;
 }
 
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-subtitle mb-0">Tổng quan hệ thống quản lý nông trại</p>
-    </div>
-    <div class="page-actions">
-        <button class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-download me-1"></i> Xuất báo cáo
-        </button>
-    </div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
+
+@* ==================== Stats Cards ==================== *@
+<div class="mb-4">
+    <partial name="_StatsCards" model="statsCards" />
 </div>
 
-<!-- Stats Cards Row 1 -->
+@* ==================== Quick Actions & Recent Activities ==================== *@
 <div class="row g-4 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@locationCount</div>
-                    <div class="stats-card-label">Vị trí</div>
-                </div>
-                <div class="stats-card-icon primary">
-                    <i class="bi bi-geo-alt"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@cropTypeCount</div>
-                    <div class="stats-card-label">Loại cây trồng</div>
-                </div>
-                <div class="stats-card-icon success">
-                    <i class="bi bi-flower1"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@livestockCount</div>
-                    <div class="stats-card-label">Vật nuôi</div>
-                </div>
-                <div class="stats-card-icon warning">
-                    <i class="bi bi-bug"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@activityCountToday</div>
-                    <div class="stats-card-label">Hoạt động hôm nay</div>
-                </div>
-                <div class="stats-card-icon danger">
-                    <i class="bi bi-activity"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions & Recent Activity -->
-<div class="row g-4">
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title">
-                    <i class="bi bi-lightning-charge me-2"></i>Thao tác nhanh
-                </h5>
+    @* Thao tác nhanh *@
+    <div class="col-lg-5">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0 fw-semibold text-dark">
+                    <i class="bi bi-lightning-charge-fill text-warning me-2"></i>Thao tác nhanh
+                </h6>
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-6">
-                        <a asp-controller="Location" asp-action="Create" class="btn btn-outline-primary w-100 py-3">
-                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
-                            Thêm vị trí
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a asp-controller="Crop" asp-action="Create" class="btn btn-outline-success w-100 py-3">
-                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
-                            Thêm cây trồng
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a asp-controller="Livestock" asp-action="Create" class="btn btn-outline-warning w-100 py-3">
-                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
-                            Thêm vật nuôi
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a asp-controller="CropType" asp-action="Create" class="btn btn-outline-info w-100 py-3">
-                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
-                            Thêm loại cây trồng
-                        </a>
-                    </div>
+                    @foreach (var action in quickActions)
+                    {
+                        <div class="col-6">
+                            <a href="@action.Url" class="btn @action.ColorClass w-100 py-3 d-flex flex-column align-items-center gap-2 quick-action-btn border-2">
+                                <i class="@action.Icon fs-4"></i>
+                                <span class="small fw-bold">@action.Title</span>
+                            </a>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-lg-6">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="card-title">
-                    <i class="bi bi-clock-history me-2"></i>Hoạt động gần đây
-                </h5>
+    @* Hoạt động gần đây *@
+    <div class="col-lg-7">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-semibold text-dark">
+                    <i class="bi bi-clock-history text-info me-2"></i>Hoạt động gần đây
+                </h6>
+                @if (recentActivities.Any())
+                {
+                    <a href="#" class="btn btn-sm btn-link text-decoration-none p-0">
+                        Xem tất cả <i class="bi bi-chevron-right small"></i>
+                    </a>
+                }
             </div>
             <div class="card-body p-0">
                 @if (recentActivities.Any())
                 {
-                    <ul class="list-group list-group-flush">
-                        @foreach (var activity in recentActivities)
+                    <div class="list-group list-group-flush">
+                        @foreach (var activity in recentActivities.Take(5))
                         {
-                            <li class="list-group-item d-flex align-items-center py-3">
-                                <div class="bg-@activity.ActionColorClass bg-opacity-10 text-@activity.ActionColorClass rounded p-2 me-3">
+                            <div class="list-group-item d-flex align-items-center py-3 border-0 border-bottom">
+                                <div class="activity-icon bg-@(activity.ActionColorClass)-subtle text-@activity.ActionColorClass rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
+                                     style="width: 42px; height: 42px;">
                                     <i class="bi @activity.ActionIcon"></i>
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-medium">@activity.Description</div>
-                                    <small class="text-muted">@activity.RelativeTime</small>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="fw-medium text-dark text-truncate">@activity.Description</div>
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>@activity.RelativeTime
+                                    </small>
                                 </div>
-                            </li>
+                                <div class="ms-2">
+                                    <span class="badge rounded-pill bg-@(activity.ActionColorClass)-subtle text-@activity.ActionColorClass border border-@(activity.ActionColorClass)-subtle">
+                                        @activity.ActionType
+                                    </span>
+                                </div>
+                            </div>
                         }
-                    </ul>
+                    </div>
                 }
                 else
                 {
-                    <div class="text-center py-5 text-muted">
-                        <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                        <p class="mt-2 mb-0">Chưa có hoạt động nào</p>
+                    <div class="py-4">
+                        <partial name="_EmptyState" model="emptyActivityState" />
                     </div>
                 }
             </div>
@@ -160,66 +193,161 @@
     </div>
 </div>
 
-<!-- Summary Section -->
-<div class="row g-4 mt-2">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-geo-alt text-primary me-2"></i>Quản lý vị trí
-                </h6>
-            </div>
+@* ==================== Management Modules Summary ==================== *@
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h6 class="card-title mb-0 fw-semibold text-dark">
+            <i class="bi bi-grid-3x3-gap text-primary me-2"></i>Các module quản lý
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            @foreach (var module in modules)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="module-card border rounded p-3 h-100 hover-lift bg-white">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="module-icon bg-@(module.ColorClass)-subtle text-@module.ColorClass rounded p-2 d-flex align-items-center justify-content-center"
+                                 style="width: 44px; height: 44px; min-width: 44px;">
+                                <i class="@module.Icon fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <h6 class="mb-1 fw-bold text-dark">@module.Title</h6>
+                                <p class="text-muted small mb-3 text-truncate-2" style="height: 2.5rem;">@module.Description</p>
+                                <div class="d-flex gap-2">
+                                    <a asp-controller="@module.Controller" asp-action="Index"
+                                       class="btn btn-sm btn-outline-@module.ColorClass flex-grow-1">
+                                        <i class="bi bi-list me-1"></i>Danh sách
+                                    </a>
+                                    <a asp-controller="@module.Controller" asp-action="Create"
+                                       class="btn btn-sm btn-@module.ColorClass">
+                                        <i class="bi bi-plus"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* ==================== System Info Footer ==================== *@
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <p class="text-muted small mb-3">Quản lý các vị trí, chuồng trại trong nông trại</p>
-                <div class="d-flex gap-2">
-                    <a asp-controller="Location" asp-action="Index" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-list me-1"></i>Danh sách
-                    </a>
-                    <a asp-controller="Location" asp-action="Create" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus me-1"></i>Thêm mới
-                    </a>
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary-subtle text-primary rounded-circle p-3 me-3">
+                        <i class="bi bi-info-circle fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold text-dark">Thông tin hệ thống</h6>
+                        <p class="text-muted small mb-0">
+                            Farm Management System v1.0 - <span class="badge bg-light text-dark border">.NET 8</span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-flower2 text-success me-2"></i>Quản lý cây trồng
-                </h6>
-            </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
             <div class="card-body">
-                <p class="text-muted small mb-3">Theo dõi cây trồng, thu hoạch và chi phí</p>
-                <div class="d-flex gap-2">
-                    <a asp-controller="Crop" asp-action="Index" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-list me-1"></i>Danh sách
-                    </a>
-                    <a asp-controller="Crop" asp-action="Create" class="btn btn-sm btn-success">
-                        <i class="bi bi-plus me-1"></i>Thêm mới
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i class="bi bi-bug text-warning me-2"></i>Quản lý vật nuôi
-                </h6>
-            </div>
-            <div class="card-body">
-                <p class="text-muted small mb-3">Theo dõi vật nuôi, sức khỏe và giao dịch bán</p>
-                <div class="d-flex gap-2">
-                    <a asp-controller="Livestock" asp-action="Index" class="btn btn-sm btn-outline-warning">
-                        <i class="bi bi-list me-1"></i>Danh sách
-                    </a>
-                    <a asp-controller="Livestock" asp-action="Create" class="btn btn-sm btn-warning">
-                        <i class="bi bi-plus me-1"></i>Thêm mới
-                    </a>
+                <div class="d-flex align-items-center">
+                    <div class="bg-success-subtle text-success rounded-circle p-3 me-3">
+                        <i class="bi bi-check-circle fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-1 fw-bold text-dark">Trạng thái máy chủ</h6>
+                        <p class="text-muted small mb-0">
+                            Hoạt động bình thường - <span class="text-success fw-bold"><i class="bi bi-dot"></i> Online</span>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Khởi tạo tooltips
+            FarmApp.UI.initTooltips();
+
+            // Xử lý nút xuất báo cáo
+            const btnExport = document.getElementById('btnExportReport');
+            if (btnExport) {
+                btnExport.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    FarmApp.UI.toast('Tính năng xuất báo cáo đang được phát triển', 'info');
+                });
+            }
+
+            // Hiệu ứng hover cho Quick Action Buttons
+            document.querySelectorAll('.quick-action-btn').forEach(btn => {
+                btn.addEventListener('mouseenter', function () {
+                    this.classList.add('shadow-sm');
+                });
+                btn.addEventListener('mouseleave', function () {
+                    this.classList.remove('shadow-sm');
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    /* Nâng cấp giao diện nút thao tác nhanh */
+    .quick-action-btn {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        text-transform: none;
+    }
+
+        .quick-action-btn:hover {
+            transform: translateY(-4px);
+        }
+
+    /* Hiệu ứng Module Cards */
+    .module-card {
+        transition: all 0.2s ease;
+        background: #fff;
+    }
+
+        .module-card:hover {
+            border-color: var(--bs-primary) !important;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+            background: #f8f9fa;
+        }
+
+    /* Tiện ích text */
+    .text-truncate-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Màu sắc bổ trợ nhạt */
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.08) !important;
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.08) !important;
+    }
+
+    .bg-warning-subtle {
+        background-color: rgba(255, 193, 7, 0.1) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.08) !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: rgba(108, 117, 125, 0.08) !important;
+    }
+</style>

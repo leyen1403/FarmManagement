@@ -8,13 +8,14 @@ public class LocationTypeApiClient
 {
     private readonly HttpClient _http;
 
-    public LocationTypeApiClient(IHttpClientFactory factory) => _http = factory.CreateClient("FarmApi");
+    public LocationTypeApiClient(IHttpClientFactory factory)
+        => _http = factory.CreateClient("FarmApi");
 
-    public async Task<List<LocationTypeDto>> GetAllAsync() =>
-    await _http.GetFromJsonAsync<List<LocationTypeDto>>("api/LocationTypes");
+    public async Task<List<LocationTypeDto>> GetAllAsync()
+        => await _http.GetFromJsonAsync<List<LocationTypeDto>>("api/LocationTypes") ?? new();
 
-    public async Task<LocationTypeDto> GetByIdAsync(int id) =>
-    await _http.GetFromJsonAsync<LocationTypeDto>($"api/LocationTypes/{id}");
+    public async Task<LocationTypeDto?> GetByIdAsync(int id)
+        => await _http.GetFromJsonAsync<LocationTypeDto>($"api/LocationTypes/{id}");
 
     private async Task EnsureSuccess(HttpResponseMessage response)
     {

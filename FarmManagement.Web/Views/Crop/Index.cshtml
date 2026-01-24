@@ -4,7 +4,12 @@
 
 @{
     ViewData["Title"] = "Quản lý cây trồng";
-    ViewData["Breadcrumb"] = "Cây trồng";
+
+    // Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        BreadcrumbItem.Current("Cây trồng", "bi bi-flower2")
+    );
 
     var cropTypes = ViewBag.CropTypes as List<CropTypeDto> ?? new List<CropTypeDto>();
     var cropStatuses = ViewBag.CropStatuses as IEnumerable<CropStatusDto> ?? new List<CropStatusDto>();
@@ -13,258 +18,248 @@
     int? selectedCropTypeId = ViewBag.SelectedCropTypeId;
     int? selectedCropStatusId = ViewBag.SelectedCropStatusId;
     int? selectedLocationId = ViewBag.SelectedLocationId;
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+
+    // Stats Logic
+    var totalCount = Model.Count;
+    var growingCount = Model.Count(c => c.CropStatusName?.Contains("Đang") == true || c.CropStatusId == 1);
+    var upcomingHarvestCount = Model.Count(c => c.ExpectedHarvestDate.HasValue && c.ExpectedHarvestDate.Value <= DateTime.Today.AddDays(30) && !c.ActualHarvestDate.HasValue);
+    var harvestedCount = Model.Count(c => c.ActualHarvestDate.HasValue);
+
+    // Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Quản lý cây trồng",
+        Subtitle = "Theo dõi và quản lý cây trồng trong trang trại",
+        Icon = "bi bi-flower2",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            new ActionButtonModel("Xuất Excel", "#", "bi bi-file-earmark-excel", "btn-outline-success") { Size = ButtonSize.Small },
+            ActionButtonModel.Create("/Crop/Create", "Thêm cây trồng")
+        }
+    };
+
+    // Stats Cards
+    var statsCards = new List<StatsCardModel>
+    {
+        new StatsCardModel
+        {
+            Value = totalCount.ToString(),
+            Label = "Tổng cây trồng",
+            Icon = "bi bi-flower2",
+            IconBackgroundClass = "bg-primary-subtle",
+            ColorClass = "text-primary"
+        },
+        new StatsCardModel
+        {
+            Value = growingCount.ToString(),
+            Label = "Đang trồng",
+            Icon = "bi bi-tree",
+            IconBackgroundClass = "bg-success-subtle",
+            ColorClass = "text-success"
+        },
+        new StatsCardModel
+        {
+            Value = upcomingHarvestCount.ToString(),
+            Label = "Sắp thu hoạch",
+            Icon = "bi bi-calendar-check",
+            IconBackgroundClass = "bg-warning-subtle",
+            ColorClass = "text-warning",
+            TrendDescription = "trong 30 ngày"
+        },
+        new StatsCardModel
+        {
+            Value = harvestedCount.ToString(),
+            Label = "Đã thu hoạch",
+            Icon = "bi bi-basket",
+            IconBackgroundClass = "bg-info-subtle",
+            ColorClass = "text-info"
+        }
+    };
+
+    // Filter Form
+    var filterForm = new FilterFormModel
+    {
+        ActionUrl = "/Crop",
+        Method = "GET",
+        Title = "Bộ lọc tìm kiếm",
+        Icon = "bi bi-funnel",
+        IsExpanded = !string.IsNullOrEmpty(searchTerm) || selectedCropTypeId.HasValue || selectedCropStatusId.HasValue || selectedLocationId.HasValue,
+        ResetUrl = "/Crop",
+        ColumnsPerRow = 4,
+        Fields = new List<FilterFieldModel>
+        {
+            new FilterFieldModel
+            {
+                Name = "searchTerm",
+                Label = "Tìm kiếm",
+                Type = FilterFieldType.Text,
+                Value = searchTerm,
+                Placeholder = "Tên cây trồng...",
+                Icon = "bi bi-search",
+                ColSpan = 3
+            },
+            new FilterFieldModel
+            {
+                Name = "cropTypeId",
+                Label = "Loại cây trồng",
+                Type = FilterFieldType.Select,
+                Value = selectedCropTypeId?.ToString(),
+                Placeholder = "Tất cả loại",
+                ColSpan = 3,
+                Options = cropTypes.Select(t => new SelectOptionModel(t.Id.ToString(), t.Name, t.Id == selectedCropTypeId)).ToList()
+            },
+            new FilterFieldModel
+            {
+                Name = "cropStatusId",
+                Label = "Trạng thái",
+                Type = FilterFieldType.Select,
+                Value = selectedCropStatusId?.ToString(),
+                Placeholder = "Tất cả trạng thái",
+                ColSpan = 3,
+                Options = cropStatuses.Select(s => new SelectOptionModel(s.Id.ToString(), s.Name, s.Id == selectedCropStatusId)).ToList()
+            },
+            new FilterFieldModel
+            {
+                Name = "locationId",
+                Label = "Vị trí",
+                Type = FilterFieldType.Select,
+                Value = selectedLocationId?.ToString(),
+                Placeholder = "Tất cả vị trí",
+                ColSpan = 3,
+                Options = locations.Select(l => new SelectOptionModel(l.Id.ToString(), l.Name, l.Id == selectedLocationId)).ToList()
+            }
+        }
+    };
+
+    // Delete Modal
+    var deleteModal = DeleteModalModel.ForEntity("cây trồng", "Crop");
 }
 
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="page-title">Quản lý cây trồng</h1>
-        <p class="page-subtitle mb-0">Theo dõi và quản lý cây trồng trong trang trại</p>
-    </div>
-    <div class="page-actions">
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> Thêm cây trồng
-        </a>
-    </div>
-</div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+@* ==================== Stats Cards ==================== *@
+<partial name="_StatsCards" model="statsCards" />
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+@* ==================== Filter Form ==================== *@
+<partial name="_FilterForm" model="filterForm" />
 
-<!-- Summary Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@Model.Count</div>
-                    <div class="stats-card-label">Tổng cây trồng</div>
-                </div>
-                <div class="stats-card-icon primary">
-                    <i class="bi bi-flower2"></i>
-                </div>
-            </div>
+@* ==================== Data Table ==================== *@
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="card-title mb-0 fw-semibold">
+                <i class="bi bi-list-ul text-success me-2"></i>Danh sách cây trồng
+            </h6>
+            <span class="badge bg-success">@totalCount</span>
         </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@Model.Count(c => c.CropStatusName?.Contains("Đang") == true || c.CropStatusId == 1)</div>
-                    <div class="stats-card-label">Đang trồng</div>
-                </div>
-                <div class="stats-card-icon success">
-                    <i class="bi bi-tree"></i>
-                </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="quickSearch" placeholder="Tìm nhanh trong bảng...">
             </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@Model.Count(c => c.ExpectedHarvestDate.HasValue && c.ExpectedHarvestDate.Value <= DateTime.Today.AddDays(30))</div>
-                    <div class="stats-card-label">Sắp thu hoạch</div>
-                </div>
-                <div class="stats-card-icon warning">
-                    <i class="bi bi-calendar-check"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stats-card">
-            <div class="d-flex align-items-center justify-content-between">
-                <div>
-                    <div class="stats-card-value">@Model.Count(c => c.ActualHarvestDate.HasValue)</div>
-                    <div class="stats-card-label">Đã thu hoạch</div>
-                </div>
-                <div class="stats-card-icon danger">
-                    <i class="bi bi-basket"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Filter Card -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="card-title mb-0">
-            <i class="bi bi-funnel me-2"></i>Bộ lọc
-        </h5>
-    </div>
-    <div class="card-body">
-        <form asp-action="Index" method="get">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Loại cây trồng</label>
-                    <select name="cropTypeId" class="form-select">
-                        <option value="">-- Tất cả --</option>
-                        @foreach (var ct in cropTypes)
-                        {
-                            <option value="@ct.Id" selected="@(selectedCropTypeId == ct.Id)">@ct.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Trạng thái</label>
-                    <select name="cropStatusId" class="form-select">
-                        <option value="">-- Tất cả --</option>
-                        @foreach (var cs in cropStatuses)
-                        {
-                            <option value="@cs.Id" selected="@(selectedCropStatusId == cs.Id)">@cs.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Vị trí</label>
-                    <select name="locationId" class="form-select">
-                        <option value="">-- Tất cả --</option>
-                        @foreach (var loc in locations)
-                        {
-                            <option value="@loc.Id" selected="@(selectedLocationId == loc.Id)">@loc.Name</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="bi bi-search me-1"></i>Lọc
-                    </button>
-                    <a asp-action="Index" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-lg me-1"></i>Xóa lọc
-                    </a>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Data Table -->
-<div class="table-container">
-    <div class="table-toolbar">
-        <div class="table-search">
-            <i class="bi bi-search"></i>
-            <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm cây trồng...">
-        </div>
-        <div class="d-flex gap-2">
-            <span class="badge bg-secondary">Hiển thị: @Model.Count</span>
         </div>
     </div>
 
     @if (Model.Any())
     {
         <div class="table-responsive">
-            <table class="table data-table mb-0" id="dataTable">
-                <thead>
+            <table class="table table-hover align-middle mb-0" id="cropTable">
+                <thead class="bg-light">
                     <tr>
-                        <th width="50">#</th>
+                        <th width="50" class="text-center">#</th>
                         <th>Tên cây</th>
-                        <th>Loại cây</th>
-                        <th>Vị trí</th>
-                        <th>Ngày trồng</th>
-                        <th>Dự kiến thu hoạch</th>
-                        <th>Trạng thái</th>
-                        <th width="180">Thao tác</th>
+                        <th width="130">Loại cây</th>
+                        <th width="150">Vị trí</th>
+                        <th width="110">Ngày trồng</th>
+                        <th width="140">Dự kiến thu hoạch</th>
+                        <th width="120">Trạng thái</th>
+                        <th width="130" class="text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @{
+                        var index = 0;
+                    }
                     @foreach (var item in Model)
                     {
+                        index++;
                         <tr>
-                            <td class="text-muted">@item.Id</td>
+                            <td class="text-center text-muted">@index</td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="crop-icon bg-success-subtle text-success rounded d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                         <i class="bi bi-flower2"></i>
                                     </div>
                                     <div>
-                                        <span class="fw-medium">@item.Name</span>
+                                        <div class="fw-semibold">@item.Name</div>
                                         @if (item.EstimatedYield.HasValue)
                                         {
-                                            <small class="d-block text-muted">
-                                                Năng suất dự kiến: @item.EstimatedYield @item.Unit
+                                            <small class="text-muted">
+                                                <i class="bi bi-basket me-1"></i>Dự kiến: @item.EstimatedYield.Value.ToString("N0") @item.Unit
                                             </small>
                                         }
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-info bg-opacity-10 text-info">
-                                    @item.CropTypeName
+                                <span class="badge bg-info-subtle text-info">
+                                    <i class="bi bi-tag me-1"></i>@item.CropTypeName
                                 </span>
                             </td>
                             <td>
-                                <i class="bi bi-geo-alt text-muted me-1"></i>
-                                @item.LocationName
+                                <span class="text-muted">
+                                    <i class="bi bi-geo-alt me-1"></i>@item.LocationName
+                                </span>
                             </td>
                             <td>
-                                <i class="bi bi-calendar3 text-muted me-1"></i>
-                                @item.PlantDate.ToString("dd/MM/yyyy")
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>@item.PlantDate.ToString("dd/MM/yyyy")
+                                </small>
                             </td>
                             <td>
                                 @if (item.ExpectedHarvestDate.HasValue)
                                 {
                                     var daysLeft = (item.ExpectedHarvestDate.Value - DateTime.Today).Days;
-                                    <i class="bi bi-calendar-check text-muted me-1"></i>
-                                    @item.ExpectedHarvestDate.Value.ToString("dd/MM/yyyy")
-                                    @if (daysLeft > 0 && daysLeft <= 30)
+                                    <small>
+                                        <i class="bi bi-calendar-check me-1 text-muted"></i>
+                                        @item.ExpectedHarvestDate.Value.ToString("dd/MM/yyyy")
+                                    </small>
+                                    @if (!item.ActualHarvestDate.HasValue)
                                     {
-                                        <span class="badge bg-warning text-dark ms-1">@daysLeft ngày</span>
-                                    }
-                                    else if (daysLeft <= 0 && !item.ActualHarvestDate.HasValue)
-                                    {
-                                        <span class="badge bg-danger ms-1">Quá hạn</span>
+                                        if (daysLeft > 0 && daysLeft <= 30)
+                                        {
+                                            <span class="badge bg-warning-subtle text-warning ms-1">@daysLeft ngày</span>
+                                        }
+                                        else if (daysLeft <= 0)
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger ms-1">Quá hạn</span>
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    <span class="text-muted">-</span>
+                                    <span class="text-muted">—</span>
                                 }
                             </td>
                             <td>
                                 @{
                                     var statusClass = item.CropStatusName switch
                                     {
-                                        var s when s?.Contains("Thu hoạch") == true => "badge-active",
-                                        var s when s?.Contains("Đang") == true => "bg-primary",
-                                        _ => "badge-inactive"
+                                        var s when s?.Contains("Thu hoạch") == true => "success",
+                                        var s when s?.Contains("Đang") == true => "primary",
+                                        _ => "secondary"
                                     };
                                 }
-                                <span class="badge badge-status @statusClass">
+                                <span class="badge bg-@statusClass-subtle text-@statusClass">
+                                    <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i>
                                     @item.CropStatusName
                                 </span>
                             </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a asp-action="Details" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-outline-info" title="Chi tiết">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a asp-action="Edit" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-outline-primary" title="Sửa">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                            title="Xóa"
-                                            onclick="confirmDelete(@item.Id, '@item.Name')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                            <td class="text-center">
+                                <partial name="_ActionButtons" model="@(new ActionButtonsModel(item.Id, "Crop", item.Name) { ShowDetails = true })" />
                             </td>
                         </tr>
                     }
@@ -274,70 +269,56 @@
     }
     else
     {
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="bi bi-flower2"></i>
-            </div>
-            <div class="empty-state-title">Chưa có cây trồng</div>
-            <p class="text-muted">Bắt đầu bằng cách thêm cây trồng đầu tiên</p>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Thêm cây trồng
-            </a>
-        </div>
+        <partial name="_EmptyState" model="@(EmptyStateModel.NoData("cây trồng", "/Crop/Create"))" />
     }
 </div>
 
-<!-- Delete Form (hidden) -->
-<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="id" id="deleteId" />
-</form>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa cây trồng <strong id="deleteItemName"></strong>?</p>
-                <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" onclick="submitDelete()">
-                    <i class="bi bi-trash me-1"></i>Xóa
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+@* ==================== Delete Modal ==================== *@
+<partial name="_DeleteModal" model="deleteModal" />
 
 @section Scripts {
     <script>
-            // Search functionality
-                document.getElementById('searchInput').addEventListener('keyup', function() {
-        const filter = this.value.toLowerCase();
-             const rows = document.querySelectorAll('#dataTable tbody tr');
-             rows.forEach(row => {
-             const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize DataTable
+            FarmApp.DataTable.init('#cropTable', {
+                searchInput: '#quickSearch',
+                sortable: true,
+                highlightMatches: true,
+                searchableColumns: [1, 2, 3, 6] // Name, Type, Location, Status
             });
-           });
 
-                // Delete confirmation
-                function confirmDelete(id, name) {
-              document.getElementById('deleteItemName').textContent = name;
-         document.getElementById('deleteId').value = id;
-               new bootstrap.Modal(document.getElementById('deleteModal')).show();
-                }
-
-                function submitDelete() {
-              document.getElementById('deleteForm').submit();
-                }
+            // Initialize tooltips
+            FarmApp.UI.initTooltips();
+        });
     </script>
 }
+
+<style>
+    .crop-icon {
+        flex-shrink: 0;
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+
+    .bg-warning-subtle {
+        background-color: rgba(255, 193, 7, 0.15) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: rgba(108, 117, 125, 0.1) !important;
+    }
+</style>

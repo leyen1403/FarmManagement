@@ -19,7 +19,7 @@ public class SaleTypeApiService
     }
 
     public async Task<SaleTypeDto?> GetByIdAsync(int id)
-     => await _http.GetFromJsonAsync<SaleTypeDto>($"api/SaleTypes/{id}");
+        => await _http.GetFromJsonAsync<SaleTypeDto>($"api/SaleTypes/{id}");
 
     public async Task<int> CreateAsync(CreateSaleTypeDto dto)
     {
@@ -48,7 +48,7 @@ public class SaleTypeApiService
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
             error?.Message ?? "Lỗi hệ thống",
-       (int)response.StatusCode
-);
+            (int)response.StatusCode
+        );
     }
 }

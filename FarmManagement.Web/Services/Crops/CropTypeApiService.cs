@@ -14,8 +14,7 @@ public class CropTypeApiService
     }
 
     public async Task<List<CropTypeDto>> GetAllAsync(bool includeInactive = true)
-        => await _http.GetFromJsonAsync<List<CropTypeDto>>(
-            $"api/CropType?includeInactive={includeInactive}")
+        => await _http.GetFromJsonAsync<List<CropTypeDto>>($"api/CropType?includeInactive={includeInactive}")
            ?? new();
 
     public async Task<CropTypeDto> GetByIdAsync(int id)

@@ -2,82 +2,108 @@
 
 @{
     ViewData["Title"] = "Sửa loại chăm sóc";
- ViewData["Breadcrumb"] = "Sửa loại chăm sóc";
+    ViewData["Breadcrumb"] = "Sửa loại chăm sóc";
 }
 
+@* ==================== Page Header ==================== *@
 <div class="page-header mb-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-      <li class="breadcrumb-item">
-   <a asp-controller="CropCareType" asp-action="Index">Loại chăm sóc</a>
-   </li>
-    <li class="breadcrumb-item active">Sửa</li>
-     </ol>
+            <li class="breadcrumb-item">
+                <a asp-controller="CropCareType" asp-action="Index">Loại chăm sóc</a>
+            </li>
+            <li class="breadcrumb-item active">Sửa</li>
+        </ol>
     </nav>
- <h1 class="page-title">Sửa loại chăm sóc</h1>
-    <p class="page-subtitle">Cập nhật thông tin loại chăm sóc</p>
+    <h1 class="page-title">Sửa loại chăm sóc</h1>
+    <p class="page-subtitle">Cập nhật thông tin loại chăm sóc hệ thống</p>
 </div>
 
 <div class="row">
     <div class="col-lg-8">
-  <div class="card">
-   <div class="card-header">
-  <h5 class="card-title mb-0">
- <i class="bi bi-heart-pulse me-2"></i>Thông tin loại chăm sóc
- </h5>
- </div>
-      <div class="card-body">
-     <form asp-action="Edit" method="post">
-       @Html.AntiForgeryToken()
-       <input type="hidden" asp-for="Id" />
-        <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pencil-square text-primary me-2"></i>Thông tin loại chăm sóc
+                </h5>
+            </div>
 
-   <div class="row g-3">
-<div class="col-md-6">
-        <label asp-for="Code" class="form-label">
-<i class="bi bi-hash me-1"></i>Mã loại chăm sóc <span class="text-danger">*</span>
-        </label>
-      <input asp-for="Code" class="form-control" />
-         <span asp-validation-for="Code" class="text-danger small"></span>
-       </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
 
-       <div class="col-md-6">
-   <label asp-for="Name" class="form-label">
-             <i class="bi bi-tag me-1"></i>Tên loại chăm sóc <span class="text-danger">*</span>
-   </label>
-<input asp-for="Name" class="form-control" />
-       <span asp-validation-for="Name" class="text-danger small"></span>
-  </div>
+                    @* Hiển thị tổng hợp lỗi validation *@
+                    <div asp-validation-summary="All" class="alert alert-danger"
+                         style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")">
+                    </div>
 
-   <div class="col-12">
-      <label asp-for="Description" class="form-label">
- <i class="bi bi-text-paragraph me-1"></i>Mô tả
-      </label>
-            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-   <span asp-validation-for="Description" class="text-danger small"></span>
-  </div>
+                    <div class="row g-3">
+                        @* Mã loại chăm sóc *@
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label fw-bold">
+                                <i class="bi bi-hash me-1"></i>Mã loại chăm sóc <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Code" class="form-control" placeholder="VD: WATER, FERT..." />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
 
-     <div class="col-12">
-<div class="form-check form-switch">
-          <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch">
-<label asp-for="IsActive" class="form-check-label">Đang hoạt động</label>
-      </div>
-     </div>
-  </div>
+                        @* Tên loại chăm sóc *@
+                        <div class="col-md-6">
+                            <label asp-for="Name" class="form-label fw-bold">
+                                <i class="bi bi-tag me-1"></i>Tên loại chăm sóc <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control" placeholder="VD: Tưới nước" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
 
-  <hr class="my-4">
+                        @* Mô tả *@
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-bold">
+                                <i class="bi bi-text-paragraph me-1"></i>Mô tả
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Mô tả chi tiết về loại chăm sóc này..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
 
-   <div class="d-flex gap-2">
-       <button type="submit" class="btn btn-primary">
-           <i class="bi bi-check-lg me-1"></i>Cập nhật
-     </button>
- <a asp-action="Index" class="btn btn-outline-secondary">
-  <i class="bi bi-x-lg me-1"></i>Hủy
-          </a>
-  </div>
-      </form>
- </div>
- </div>
+                        @* Trạng thái hoạt động *@
+                        <div class="col-12">
+                            <div class="form-check form-switch p-2 ps-5 border rounded bg-light bg-opacity-50">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch">
+                                <label asp-for="IsActive" class="form-check-label ms-2 fw-medium">Đang hoạt động</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    @* Nút thao tác *@
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i>Cập nhật
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x-lg me-1"></i>Hủy bỏ
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* Sidebar hướng dẫn (tùy chọn thêm để giao diện cân đối) *@
+    <div class="col-lg-4">
+        <div class="card border-info bg-info bg-opacity-10">
+            <div class="card-body">
+                <h6 class="card-title text-info fw-bold">
+                    <i class="bi bi-info-circle me-2"></i>Lưu ý khi sửa
+                </h6>
+                <p class="small text-muted mb-0">
+                    Khi thay đổi <strong>Mã loại chăm sóc</strong>, hãy đảm bảo rằng mã này là duy nhất trong hệ thống để tránh xung đột dữ liệu khi thống kê.
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 

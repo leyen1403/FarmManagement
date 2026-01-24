@@ -1,0 +1,143 @@
+﻿@*
+    _DeleteModal.cshtml
+  Modal xác nhận xóa sử dụng Bootstrap 5 và Form POST
+    Sử dụng: @await Html.PartialAsync("_DeleteModal", model)
+    
+    JavaScript cần thiết để cập nhật modal khi mở:
+    - data-entity-id: ID của entity cần xóa
+    - data-entity-name: Tên hiển thị của entity
+*@
+
+@model DeleteModalModel
+
+@{
+ var modalSizeClass = string.IsNullOrEmpty(Model.ModalSize) ? "" : $"modal-{Model.ModalSize}";
+}
+
+<div class="modal fade @Model.CssClass" id="@Model.ModalId" tabindex="-1" aria-labelledby="@(Model.ModalId)Label" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered @modalSizeClass">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+ <h5 class="modal-title" id="@(Model.ModalId)Label">
+        <i class="@Model.TitleIcon me-2"></i>
+  @Model.Title
+     </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+ </div>
+
+ <form id="@(Model.ModalId)Form" method="post" action="">
+          <div class="modal-body">
+  @* Thông báo xác nhận *@
+      <p class="mb-3">@Model.Message</p>
+
+         @* Tên item cần xóa *@
+    @if (Model.ShowItemName)
+     {
+        <div class="alert alert-light border mb-3">
+        <strong>@Model.ItemNameLabel</strong>
+       <span id="@(Model.ModalId)ItemName" class="text-primary"></span>
+     </div>
+   }
+
+ @* Cảnh báo *@
+ @if (!string.IsNullOrEmpty(Model.WarningMessage))
+    {
+ <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+           <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <div>@Model.WarningMessage</div>
+           </div>
+    }
+
+ @* Lý do xóa (tùy chọn) *@
+             @if (Model.RequireReason)
+       {
+   <div class="mb-3">
+  <label for="@(Model.ModalId)Reason" class="form-label">@Model.ReasonLabel</label>
+     <textarea class="form-control"
+         id="@(Model.ModalId)Reason"
+name="reason"
+    rows="3"
+  placeholder="@Model.ReasonPlaceholder"
+        required></textarea>
+   </div>
+     }
+
+   @* Hidden field cho ID *@
+   <input type="hidden" id="@(Model.ModalId)EntityId" name="id" value="" />
+   </div>
+
+  <div class="modal-footer border-0 pt-0">
+      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+    @Model.CancelButtonText
+ </button>
+    <button type="submit" class="btn @Model.DeleteButtonClass" id="@(Model.ModalId)SubmitBtn">
+          @if (Model.ShowLoadingOnSubmit)
+       {
+  <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+        }
+       <i class="@Model.DeleteButtonIcon me-1"></i>
+        @Model.DeleteButtonText
+       </button>
+   </div>
+  </form>
+</div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var modal = document.getElementById('@Model.ModalId');
+ if (modal) {
+  modal.addEventListener('show.bs.modal', function (event) {
+   // Button that triggered the modal
+   var button = event.relatedTarget;
+    if (!button) return;
+
+   // Extract info from data-* attributes
+ var entityId = button.getAttribute('data-entity-id');
+        var entityName = button.getAttribute('data-entity-name');
+
+        // Update modal content
+        var itemNameEl = modal.querySelector('#@(Model.ModalId)ItemName');
+            if (itemNameEl) {
+         itemNameEl.textContent = entityName || '';
+   }
+
+        // Update hidden input
+            var entityIdInput = modal.querySelector('#@(Model.ModalId)EntityId');
+       if (entityIdInput) {
+   entityIdInput.value = entityId || '';
+            }
+
+   // Update form action
+     var form = modal.querySelector('#@(Model.ModalId)Form');
+           if (form) {
+      @if (!string.IsNullOrEmpty(Model.ControllerName))
+         {
+      @:form.action = '/@Model.ControllerName/@Model.ActionName/' + entityId;
+ }
+   else if (!string.IsNullOrEmpty(Model.ActionUrl))
+      {
+     @:form.action = '@Model.ActionUrl'.replace('{id}', entityId);
+     }
+}
+    });
+
+  @if (Model.ShowLoadingOnSubmit)
+      {
+        @:// Show loading on submit
+            @:var form = modal.querySelector('#@(Model.ModalId)Form');
+     @:if (form) {
+    @:    form.addEventListener('submit', function () {
+       @:  var submitBtn = modal.querySelector('#@(Model.ModalId)SubmitBtn');
+     @:        var spinner = submitBtn.querySelector('.spinner-border');
+   @:        if (spinner) {
+            @:            spinner.classList.remove('d-none');
+  @:        }
+ @:    submitBtn.disabled = true;
+      @:    });
+@:}
+   }
+   }
+    });
+</script>

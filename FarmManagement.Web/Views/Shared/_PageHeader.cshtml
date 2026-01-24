@@ -1,0 +1,82 @@
+﻿@*
+    _PageHeader.cshtml
+    Partial view để hiển thị header của trang với Title, Subtitle và Actions
+  Sử dụng: @await Html.PartialAsync("_PageHeader", model)
+    Hoặc: <partial name="_PageHeader" model="model" />
+*@
+
+@model PageHeaderModel
+
+@{
+ var pageHeader = Model ?? ViewData.GetPageHeader() ?? new PageHeaderModel();
+    var breadcrumbs = pageHeader.Breadcrumbs.Count > 0 ? pageHeader.Breadcrumbs : ViewData.GetBreadcrumbs();
+}
+
+<div class="page-header @pageHeader.CssClass">
+    @* Breadcrumb Section *@
+    @if (pageHeader.ShowBreadcrumb && breadcrumbs.Count > 0)
+    {
+        <nav aria-label="breadcrumb" class="page-header-breadcrumb">
+     <ol class="breadcrumb mb-2">
+      @foreach (var item in breadcrumbs.OrderBy(b => b.Order))
+         {
+  @if (item.IsActive)
+          {
+     <li class="breadcrumb-item active" aria-current="page">
+        @if (!string.IsNullOrEmpty(item.Icon))
+         {
+            <i class="@item.Icon me-1"></i>
+         }
+           @item.Title
+    </li>
+            }
+       else
+              {
+ <li class="breadcrumb-item">
+           <a href="@item.Url">
+         @if (!string.IsNullOrEmpty(item.Icon))
+       {
+      <i class="@item.Icon me-1"></i>
+        }
+       @item.Title
+              </a>
+         </li>
+             }
+ }
+     </ol>
+  </nav>
+    }
+
+    @* Header Content *@
+    <div class="page-header-content d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div class="page-header-title">
+            <h1 class="h3 mb-1">
+    @if (!string.IsNullOrEmpty(pageHeader.Icon))
+       {
+  <i class="@pageHeader.Icon me-2"></i>
+       }
+    @pageHeader.Title
+        </h1>
+            @if (!string.IsNullOrEmpty(pageHeader.Subtitle))
+ {
+       <p class="text-muted mb-0">@pageHeader.Subtitle</p>
+     }
+     </div>
+
+        @* Action Buttons *@
+     @if (pageHeader.Actions.Count > 0)
+        {
+         <div class="page-header-actions d-flex flex-wrap gap-2">
+    @foreach (var action in pageHeader.Actions.OrderBy(a => a.Order))
+        {
+          @await Html.PartialAsync("_ActionButton", action)
+            }
+            </div>
+        }
+</div>
+</div>
+
+@* _ActionButton inline partial - có thể tách ra file riêng nếu cần *@
+@functions {
+    
+}

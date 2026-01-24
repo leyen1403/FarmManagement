@@ -13,11 +13,11 @@ public class LocationApiClient
         _http = factory.CreateClient("FarmApi");
     }
 
-    public async Task<List<LocationDto>> GetAllAsync(bool activeOnly = false) =>
-        await _http.GetFromJsonAsync<List<LocationDto>>($"api/Locations?activeOnly={activeOnly}");
+    public async Task<List<LocationDto>> GetAllAsync(bool activeOnly = false)
+        => await _http.GetFromJsonAsync<List<LocationDto>>($"api/Locations?activeOnly={activeOnly}") ?? new();
 
-    public async Task<LocationDto> GetByIdAsync(int id) =>
-    await _http.GetFromJsonAsync<LocationDto>($"api/Locations/{id}");
+    public async Task<LocationDto?> GetByIdAsync(int id)
+        => await _http.GetFromJsonAsync<LocationDto>($"api/Locations/{id}");
 
     private async Task EnsureSuccess(HttpResponseMessage response)
     {

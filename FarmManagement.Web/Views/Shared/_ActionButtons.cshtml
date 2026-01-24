@@ -1,0 +1,159 @@
+﻿@*
+    _ActionButtons.cshtml
+    Partial view cho nhóm action buttons trong table row
+    Sử dụng: @await Html.PartialAsync("_ActionButtons", model)
+*@
+
+@model ActionButtonsModel
+
+@{
+    var sizeClass = Model.ButtonSize switch
+    {
+        ButtonSize.Small => "btn-sm",
+    ButtonSize.Large => "btn-lg",
+     _ => ""
+    };
+
+    var editUrl = Model.EditUrl ?? $"/{Model.ControllerName}/Edit/{Model.EntityId}";
+  var detailsUrl = Model.DetailsUrl ?? $"/{Model.ControllerName}/Details/{Model.EntityId}";
+}
+
+@switch (Model.DisplayMode)
+{
+    case ActionButtonsDisplayMode.Dropdown:
+        <div class="dropdown @Model.CssClass">
+    <button class="btn btn-secondary @sizeClass dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+         <i class="bi bi-three-dots-vertical"></i>
+         </button>
+       <ul class="dropdown-menu dropdown-menu-end">
+   @if (Model.ShowDetails)
+   {
+           <li>
+          <a class="dropdown-item" href="@detailsUrl">
+      <i class="bi bi-eye me-2"></i>Chi tiết
+  </a>
+     </li>
+             }
+   @if (Model.ShowEdit)
+             {
+           <li>
+        <a class="dropdown-item" href="@editUrl">
+  <i class="bi bi-pencil me-2"></i>Sửa
+ </a>
+   </li>
+     }
+        @if (Model.ShowDelete)
+         {
+  @if (Model.ShowEdit || Model.ShowDetails)
+ {
+ <li><hr class="dropdown-divider"></li>
+ }
+  <li>
+      <button type="button" class="dropdown-item text-danger"
+    data-bs-toggle="modal"
+    data-bs-target="#@Model.DeleteModalId"
+        data-entity-id="@Model.EntityId"
+   data-entity-name="@Model.EntityName">
+     <i class="bi bi-trash me-2"></i>Xóa
+  </button>
+   </li>
+       }
+  </ul>
+  </div>
+   break;
+
+    case ActionButtonsDisplayMode.ButtonGroup:
+  <div class="btn-group @Model.CssClass" role="group">
+     @if (Model.ShowDetails)
+       {
+         <a href="@detailsUrl" class="btn btn-outline-info @sizeClass" title="Chi tiết">
+              <i class="bi bi-eye"></i>
+       @if (Model.ShowText) { <span class="ms-1">Chi tiết</span> }
+    </a>
+   }
+            @if (Model.ShowEdit)
+    {
+         <a href="@editUrl" class="btn btn-outline-warning @sizeClass" title="Sửa">
+   <i class="bi bi-pencil"></i>
+  @if (Model.ShowText) { <span class="ms-1">Sửa</span> }
+ </a>
+ }
+ @if (Model.ShowDelete)
+  {
+        <button type="button" class="btn btn-outline-danger @sizeClass"
+    title="Xóa"
+data-bs-toggle="modal"
+    data-bs-target="#@Model.DeleteModalId"
+  data-entity-id="@Model.EntityId"
+         data-entity-name="@Model.EntityName">
+ <i class="bi bi-trash"></i>
+        @if (Model.ShowText) { <span class="ms-1">Xóa</span> }
+            </button>
+      }
+  </div>
+        break;
+
+    case ActionButtonsDisplayMode.IconsOnly:
+ <div class="d-flex gap-1 @Model.CssClass">
+   @if (Model.ShowDetails)
+ {
+     <a href="@detailsUrl" class="text-info" title="Chi tiết">
+    <i class="bi bi-eye fs-5"></i>
+ </a>
+  }
+   @if (Model.ShowEdit)
+         {
+<a href="@editUrl" class="text-warning" title="Sửa">
+        <i class="bi bi-pencil fs-5"></i>
+         </a>
+ }
+       @if (Model.ShowDelete)
+      {
+            <a href="#" class="text-danger" title="Xóa"
+   data-bs-toggle="modal"
+       data-bs-target="#@Model.DeleteModalId"
+     data-entity-id="@Model.EntityId"
+      data-entity-name="@Model.EntityName">
+       <i class="bi bi-trash fs-5"></i>
+   </a>
+       }
+        </div>
+        break;
+
+ default: // Buttons
+ <div class="d-flex gap-1 @Model.CssClass">
+       @if (Model.ShowDetails)
+            {
+   <a href="@detailsUrl" class="btn btn-info @sizeClass" title="Chi tiết">
+   <i class="bi bi-eye"></i>
+     @if (Model.ShowText) { <span class="ms-1">Chi tiết</span> }
+ </a>
+    }
+  @if (Model.ShowEdit)
+ {
+  <a href="@editUrl" class="btn btn-warning @sizeClass" title="Sửa">
+   <i class="bi bi-pencil"></i>
+      @if (Model.ShowText) { <span class="ms-1">Sửa</span> }
+          </a>
+         }
+   @if (Model.ShowDelete)
+      {
+         <button type="button" class="btn btn-danger @sizeClass"
+       title="Xóa"
+        data-bs-toggle="modal"
+       data-bs-target="#@Model.DeleteModalId"
+   data-entity-id="@Model.EntityId"
+      data-entity-name="@Model.EntityName">
+<i class="bi bi-trash"></i>
+         @if (Model.ShowText) { <span class="ms-1">Xóa</span> }
+        </button>
+       }
+
+@* Custom Buttons *@
+  @foreach (var button in Model.Buttons)
+     {
+    @await Html.PartialAsync("_ActionButton", button)
+            }
+     </div>
+        break;
+}

@@ -14,13 +14,12 @@ public class CostTypeApiService
     }
 
     public async Task<List<CostTypeDto>> GetAllAsync(bool includeInactive = true)
-   => await _http.GetFromJsonAsync<List<CostTypeDto>>(
-   $"api/CostType?includeInactive={includeInactive}")
-        ?? new();
+        => await _http.GetFromJsonAsync<List<CostTypeDto>>($"api/CostType?includeInactive={includeInactive}")
+           ?? new();
 
     public async Task<CostTypeDto> GetByIdAsync(int id)
-    => await _http.GetFromJsonAsync<CostTypeDto>($"api/CostType/{id}")
-?? throw new ApiException("Không tìm thấy loại chi phí", 404);
+        => await _http.GetFromJsonAsync<CostTypeDto>($"api/CostType/{id}")
+           ?? throw new ApiException("Không tìm thấy loại chi phí", 404);
 
     private async Task EnsureSuccess(HttpResponseMessage response)
     {
@@ -29,9 +28,9 @@ public class CostTypeApiService
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
-error?.Message ?? "Lỗi hệ thống",
- (int)response.StatusCode
-     );
+            error?.Message ?? "Lỗi hệ thống",
+            (int)response.StatusCode
+        );
     }
 
     public async Task CreateAsync(CreateCostTypeDto dto)

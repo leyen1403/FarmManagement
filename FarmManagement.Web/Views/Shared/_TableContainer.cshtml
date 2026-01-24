@@ -1,0 +1,162 @@
+﻿@*
+    _TableContainer.cshtml
+    Partial view cho table container với toolbar
+    Sử dụng: 
+    @await Html.PartialAsync("_TableContainer", model, new ViewDataDictionary(ViewData) { { "TableContent", tableContent } })
+    Hoặc sử dụng như wrapper với RenderSection
+*@
+
+@model TableContainerModel
+
+<div class="table-container card @Model.CssClass">
+    @* Toolbar *@
+    @if (Model.ShowToolbar)
+    {
+   <div class="card-header bg-white py-2">
+     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+   @* Left side: Title và Badge *@
+             <div class="d-flex align-items-center gap-2">
+    @if (!string.IsNullOrEmpty(Model.Title))
+  {
+       <h6 class="mb-0 fw-medium">
+@if (!string.IsNullOrEmpty(Model.Icon))
+ {
+   <i class="@Model.Icon me-1"></i>
+       }
+  @Model.Title
+     </h6>
+        }
+        @if (Model.ShowTotalBadge)
+             {
+      <span class="badge bg-secondary">
+            @Model.TotalRecords @Model.TotalBadgeText
+       </span>
+  }
+    </div>
+
+       @* Right side: Search và Actions *@
+   <div class="d-flex align-items-center gap-2">
+       @* Quick Search *@
+        @if (Model.ShowQuickSearch)
+           {
+          <form method="get" class="d-flex">
+        @* Preserve other query parameters *@
+           @foreach (var filter in Model.ActiveFilters)
+      {
+        <input type="hidden" name="@filter.FieldName" value="@filter.DisplayValue" />
+    }
+         <div class="input-group input-group-sm" style="width: 220px;">
+          <input type="text"
+      class="form-control form-control-sm"
+          name="@Model.SearchParameterName"
+     value="@Model.SearchValue"
+         placeholder="@Model.QuickSearchPlaceholder"
+    aria-label="Tìm kiếm" />
+               <button class="btn btn-outline-secondary" type="submit">
+ <i class="bi bi-search"></i>
+           </button>
+ </div>
+          </form>
+            }
+
+    @* Toolbar Actions *@
+           @foreach (var action in Model.ToolbarActions)
+    {
+   @await Html.PartialAsync("_ActionButton", action)
+         }
+ </div>
+ </div>
+
+     @* Active Filters Badges *@
+            @if (Model.ActiveFilters.Count > 0)
+  {
+     <div class="d-flex flex-wrap gap-1 mt-2 pt-2 border-top">
+    <span class="small text-muted me-1">Đang lọc:</span>
+      @foreach (var filter in Model.ActiveFilters)
+    {
+   <span class="badge @filter.CssClass d-flex align-items-center gap-1">
+          @filter.Label: @filter.DisplayValue
+    @if (!string.IsNullOrEmpty(filter.RemoveUrl))
+               {
+         <a href="@filter.RemoveUrl" class="text-white ms-1" title="Xóa bộ lọc">
+   <i class="bi bi-x"></i>
+        </a>
+        }
+                  </span>
+      }
+    </div>
+   }
+ </div>
+    }
+
+    @* Table Content *@
+    @if (Model.HasData)
+    {
+     <div class="card-body p-0">
+         @if (Model.IsResponsive)
+ {
+<div class="table-responsive">
+  @if (ViewData["TableContent"] is string tableHtml)
+        {
+         @Html.Raw(tableHtml)
+   }
+   else
+ {
+  @RenderBody()
+        }
+    </div>
+         }
+     else
+       {
+  @if (ViewData["TableContent"] is string tableHtml2)
+       {
+           @Html.Raw(tableHtml2)
+       }
+    else
+               {
+      @RenderBody()
+             }
+   }
+   </div>
+    }
+  else
+    {
+        @* Empty State *@
+      @if (Model.EmptyState != null)
+     {
+        @await Html.PartialAsync("_EmptyState", Model.EmptyState)
+        }
+ else
+{
+     @await Html.PartialAsync("_EmptyState", EmptyStateModel.NoData())
+        }
+    }
+</div>
+
+<style>
+    .table-container .table {
+        margin-bottom: 0;
+    }
+
+    .table-container .table th {
+        font-weight: 600;
+        font-size: 0.875rem;
+ background-color: var(--bs-light);
+        border-bottom-width: 2px;
+        white-space: nowrap;
+    }
+
+    .table-container .table td {
+        vertical-align: middle;
+      font-size: 0.875rem;
+    }
+
+    .table-container .badge a {
+   text-decoration: none;
+  opacity: 0.8;
+    }
+
+    .table-container .badge a:hover {
+        opacity: 1;
+    }
+</style>

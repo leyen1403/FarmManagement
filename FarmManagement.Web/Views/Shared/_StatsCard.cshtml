@@ -1,0 +1,73 @@
+﻿@*
+    _StatsCard.cshtml
+    Partial view để render một thẻ thống kê đơn lẻ
+    Sử dụng: @await Html.PartialAsync("_StatsCard", model)
+    Hoặc: <partial name="_StatsCard" model="model" />
+*@
+
+@model StatsCardModel
+
+@{
+    var trendIcon = Model.Trend switch
+    {
+        TrendDirection.Up => "bi-arrow-up",
+   TrendDirection.Down => "bi-arrow-down",
+     _ => "bi-dash"
+    };
+
+  var trendColorClass = Model.Trend switch
+    {
+        TrendDirection.Up => "text-success",
+        TrendDirection.Down => "text-danger",
+        _ => "text-muted"
+  };
+
+    var hasLink = !string.IsNullOrEmpty(Model.LinkUrl);
+}
+
+<div class="stats-card card h-100 @Model.CssClass">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+      <div class="stats-card-content">
+    <p class="stats-card-label text-muted mb-1">@Model.Label</p>
+       <div class="stats-card-value">
+      <h3 class="mb-0 fw-bold @Model.ColorClass">
+            @Model.Value
+     @if (!string.IsNullOrEmpty(Model.Unit))
+            {
+             <small class="fs-6 fw-normal text-muted">@Model.Unit</small>
+   }
+        </h3>
+      </div>
+       @if (Model.ChangePercentage.HasValue)
+                {
+        <div class="stats-card-trend mt-2">
+       <span class="@trendColorClass small">
+    <i class="bi @trendIcon me-1"></i>
+        @Model.ChangePercentage.Value.ToString("N1")%
+</span>
+        @if (!string.IsNullOrEmpty(Model.TrendDescription))
+      {
+      <span class="text-muted small ms-1">@Model.TrendDescription</span>
+     }
+          </div>
+            }
+            </div>
+@if (!string.IsNullOrEmpty(Model.Icon))
+            {
+          <div class="stats-card-icon @Model.IconBackgroundClass">
+        <i class="@Model.Icon"></i>
+    </div>
+            }
+        </div>
+    </div>
+    @if (hasLink)
+    {
+        <div class="card-footer bg-transparent border-0 pt-0">
+  <a href="@Model.LinkUrl" class="small text-primary text-decoration-none">
+      @(Model.LinkText ?? "Xem chi tiết")
+    <i class="bi bi-chevron-right ms-1"></i>
+   </a>
+        </div>
+    }
+</div>

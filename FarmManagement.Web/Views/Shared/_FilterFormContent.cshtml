@@ -1,0 +1,176 @@
+﻿@*
+    _FilterFormContent.cshtml
+    Nội dung bên trong của filter form
+*@
+
+@model FilterFormModel
+
+@{
+    var colClass = Model.ColumnsPerRow switch
+    {
+  1 => "col-12",
+        2 => "col-md-6",
+        3 => "col-md-6 col-lg-4",
+  4 => "col-md-6 col-lg-3",
+        6 => "col-md-4 col-lg-2",
+        _ => "col-md-6 col-lg-4"
+    };
+}
+
+<div class="card-body">
+    <form action="@Model.ActionUrl" method="@Model.Method" class="filter-form">
+    <div class="row g-3">
+  @foreach (var field in Model.Fields)
+         {
+      var fieldColClass = field.ColSpan > 0 ? $"col-md-{field.ColSpan}" : colClass;
+              <div class="@fieldColClass @field.CssClass">
+           <label class="form-label small fw-medium" for="@field.Name">@field.Label</label>
+     @switch (field.Type)
+          {
+             case FilterFieldType.Text:
+ <div class="input-group input-group-sm">
+          @if (!string.IsNullOrEmpty(field.Icon))
+    {
+   <span class="input-group-text"><i class="@field.Icon"></i></span>
+               }
+         <input type="text"
+      class="form-control form-control-sm"
+ id="@field.Name"
+      name="@field.Name"
+        value="@field.Value"
+              placeholder="@field.Placeholder"
+           @(field.IsRequired ? "required" : "") />
+                   </div>
+         break;
+
+     case FilterFieldType.Number:
+                 <div class="input-group input-group-sm">
+   @if (!string.IsNullOrEmpty(field.Icon))
+             {
+   <span class="input-group-text"><i class="@field.Icon"></i></span>
+       }
+       <input type="number"
+                class="form-control form-control-sm"
+         id="@field.Name"
+      name="@field.Name"
+ value="@field.Value"
+             placeholder="@field.Placeholder"
+                   @(field.IsRequired ? "required" : "") />
+           </div>
+     break;
+
+            case FilterFieldType.Date:
+      <input type="date"
+       class="form-control form-control-sm"
+          id="@field.Name"
+  name="@field.Name"
+  value="@field.Value"
+         @(field.IsRequired ? "required" : "") />
+      break;
+
+          case FilterFieldType.Select:
+   <select class="form-select form-select-sm"
+id="@field.Name"
+             name="@field.Name"
+      @(field.IsRequired ? "required" : "")>
+        <option value="">@(field.Placeholder ?? "-- Chọn --")</option>
+       @foreach (var option in field.Options)
+  {
+           var isSelected = option.IsSelected || option.Value == field.Value;
+          <option value="@option.Value" selected="@isSelected" disabled="@option.IsDisabled">
+         @option.Text
+                   </option>
+         }
+       </select>
+       break;
+
+              case FilterFieldType.MultiSelect:
+        <select class="form-select form-select-sm"
+   id="@field.Name"
+         name="@field.Name"
+  multiple
+     @(field.IsRequired ? "required" : "")>
+          @foreach (var option in field.Options)
+    {
+        <option value="@option.Value" selected="@option.IsSelected" disabled="@option.IsDisabled">
+             @option.Text
+      </option>
+   }
+       </select>
+     break;
+
+      case FilterFieldType.Checkbox:
+       <div class="d-flex flex-wrap gap-3">
+          @foreach (var option in field.Options)
+        {
+     <div class="form-check">
+      <input class="form-check-input"
+       type="checkbox"
+       id="@(field.Name)_@option.Value"
+ name="@field.Name"
+             value="@option.Value"
+         checked="@option.IsSelected"
+       disabled="@option.IsDisabled" />
+      <label class="form-check-label small" for="@(field.Name)_@option.Value">
+            @option.Text
+    </label>
+             </div>
+      }
+       </div>
+    break;
+
+  case FilterFieldType.Radio:
+   <div class="d-flex flex-wrap gap-3">
+     @foreach (var option in field.Options)
+        {
+         var isChecked = option.IsSelected || option.Value == field.Value;
+                    <div class="form-check">
+             <input class="form-check-input"
+       type="radio"
+   id="@(field.Name)_@option.Value"
+          name="@field.Name"
+   value="@option.Value"
+        checked="@isChecked"
+   disabled="@option.IsDisabled" />
+             <label class="form-check-label small" for="@(field.Name)_@option.Value">
+       @option.Text
+       </label>
+            </div>
+         }
+           </div>
+      break;
+
+    case FilterFieldType.Hidden:
+          <input type="hidden" name="@field.Name" value="@field.Value" />
+     break;
+       }
+     </div>
+            }
+    </div>
+
+    @* Buttons *@
+        <div class="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+  @if (Model.ShowResetButton)
+            {
+    @if (!string.IsNullOrEmpty(Model.ResetUrl))
+   {
+        <a href="@Model.ResetUrl" class="btn btn-outline-secondary btn-sm">
+           <i class="bi bi-x-circle me-1"></i>
+        @Model.ResetButtonText
+           </a>
+       }
+       else
+     {
+ <button type="reset" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-circle me-1"></i>
+    @Model.ResetButtonText
+          </button>
+ }
+            }
+     <button type="submit" class="btn btn-primary btn-sm">
+    <i class="bi bi-search me-1"></i>
+      @Model.SearchButtonText
+      </button>
+        </div>
+    </form>
+</div>

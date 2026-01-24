@@ -5,6 +5,7 @@
     ViewData["Breadcrumb"] = "Thêm trạng thái cây trồng";
 }
 
+@* ==================== Page Header ==================== *@
 <div class="page-header mb-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -15,57 +16,67 @@
         </ol>
     </nav>
     <h1 class="page-title">Thêm trạng thái cây trồng</h1>
-    <p class="page-subtitle">Tạo trạng thái mới cho cây trồng trong hệ thống</p>
+    <p class="page-subtitle text-muted">Tạo trạng thái mới để theo dõi vòng đời của cây trồng trong hệ thống</p>
 </div>
 
 <div class="row">
+    @* --- Cột bên trái: Form nhập liệu --- *@
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-info-circle me-2"></i>Thông tin trạng thái
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-semibold">
+                    <i class="bi bi-info-circle text-primary me-2"></i>Thông tin trạng thái
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form asp-action="Create" method="post">
-                    <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+                    @Html.AntiForgeryToken()
 
-                    <div class="row g-3">
+                    @* Hiển thị lỗi tổng hợp từ Server-side *@
+                    <div asp-validation-summary="All" class="alert alert-danger"
+                         style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")">
+                    </div>
+
+                    <div class="row g-4">
+                        @* Mã trạng thái *@
                         <div class="col-md-6">
-                            <label asp-for="Code" class="form-label">
+                            <label asp-for="Code" class="form-label fw-medium">
                                 <i class="bi bi-hash me-1"></i>Mã trạng thái <span class="text-danger">*</span>
                             </label>
                             <input asp-for="Code" class="form-control" placeholder="VD: GROWING" />
                             <span asp-validation-for="Code" class="text-danger small"></span>
-                            <div class="form-text">Mã định danh duy nhất, nên viết hoa</div>
+                            <div class="form-text mt-2 text-muted small">Mã định danh duy nhất (Nên viết hoa, không dấu)</div>
                         </div>
 
+                        @* Tên trạng thái *@
                         <div class="col-md-6">
-                            <label asp-for="Name" class="form-label">
+                            <label asp-for="Name" class="form-label fw-medium">
                                 <i class="bi bi-tag me-1"></i>Tên trạng thái <span class="text-danger">*</span>
                             </label>
                             <input asp-for="Name" class="form-control" placeholder="VD: Đang phát triển" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
 
+                        @* Mô tả chi tiết *@
                         <div class="col-12">
-                            <label asp-for="Description" class="form-label">
+                            <label asp-for="Description" class="form-label fw-medium">
                                 <i class="bi bi-text-paragraph me-1"></i>Mô tả
                             </label>
-                            <textarea asp-for="Description" class="form-control" rows="3"
-                                      placeholder="Mô tả chi tiết về trạng thái này..."></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Mô tả chi tiết về trạng thái này và mục đích sử dụng..."></textarea>
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
                     </div>
 
-                    <hr class="my-4">
+                    <hr class="my-4 text-secondary opacity-25">
 
+                    @* Nút thao tác *@
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Lưu
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i>Lưu trạng thái
                         </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x-lg me-1"></i>Hủy bỏ
                         </a>
                     </div>
                 </form>
@@ -73,28 +84,39 @@
         </div>
     </div>
 
+    @* --- Cột bên phải: Hướng dẫn & Gợi ý --- *@
     <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
+        <div class="card border-info bg-info bg-opacity-10 shadow-sm">
+            <div class="card-header border-info bg-transparent py-3">
+                <h5 class="card-title mb-0 text-info fw-semibold">
                     <i class="bi bi-lightbulb me-2"></i>Hướng dẫn
                 </h5>
             </div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
-                    <li class="mb-3">
-                        <i class="bi bi-check-circle text-success me-2"></i>
-                        <strong>Mã trạng thái</strong> nên ngắn gọn, dễ nhớ
+                    <li class="mb-3 d-flex align-items-start">
+                        <i class="bi bi-check-circle-fill text-success me-2 mt-1"></i>
+                        <span><strong>Mã trạng thái:</strong> Nên sử dụng các từ tiếng Anh ngắn gọn để dễ truy vấn trong mã nguồn (VD: `SEED`, `PLANTED`, `HARVESTED`).</span>
                     </li>
-                    <li class="mb-3">
-                        <i class="bi bi-check-circle text-success me-2"></i>
-                        <strong>Tên</strong> mô tả rõ ràng trạng thái
+                    <li class="mb-3 d-flex align-items-start">
+                        <i class="bi bi-check-circle-fill text-success me-2 mt-1"></i>
+                        <span><strong>Tên:</strong> Hiển thị trực tiếp lên giao diện người dùng, cần mô tả chính xác giai đoạn của cây.</span>
                     </li>
-                    <li>
-                        <i class="bi bi-check-circle text-success me-2"></i>
-                        <strong>Mô tả</strong> giúp người dùng hiểu rõ hơn
+                    <li class="d-flex align-items-start">
+                        <i class="bi bi-check-circle-fill text-success me-2 mt-1"></i>
+                        <span><strong>Mô tả:</strong> Ghi chú cách xác định trạng thái này để nhân viên trang trại cập nhật đồng nhất.</span>
                     </li>
                 </ul>
+            </div>
+        </div>
+
+        @* Widget bổ sung *@
+        <div class="card mt-4 shadow-sm">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center text-muted small">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <span>Các trường có dấu <span class="text-danger">*</span> là bắt buộc.</span>
+                </div>
             </div>
         </div>
     </div>
@@ -102,4 +124,11 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        // Tự động viết hoa mã Code khi người dùng nhập
+        document.querySelector('input[name="Code"]')?.addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase().replace(/\s/g, '_');
+        });
+    </script>
 }

@@ -2,81 +2,104 @@
 
 @{
     ViewData["Title"] = "Sửa loại cây trồng";
-    ViewData["Breadcrumb"] = "Sửa loại cây trồng";
+
+    // Cấu hình Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        new BreadcrumbItem("Loại cây trồng", "/CropType", "bi bi-flower1"),
+        BreadcrumbItem.Current("Chỉnh sửa")
+    );
+
+    // Cấu hình Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Sửa loại cây trồng",
+        Subtitle = $"Cập nhật thông tin chi tiết cho bản ghi #{Model.Id}",
+        Icon = "bi bi-flower1",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            ActionButtonModel.Back("/CropType", "Quay lại danh sách")
+        }
+    };
 }
 
-<div class="page-header mb-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a asp-controller="CropType" asp-action="Index">Loại cây trồng</a>
-            </li>
-            <li class="breadcrumb-item active">Sửa</li>
-        </ol>
-    </nav>
-    <h1 class="page-title">Sửa loại cây trồng</h1>
-    <p class="page-subtitle">Cập nhật thông tin loại cây #@Model.Id</p>
-</div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
 
-<div class="row">
+<div class="row g-4">
+    @* ==================== Main Form: Cập nhật dữ liệu ==================== *@
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-pencil me-2"></i>Thông tin loại cây
-                </h5>
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0 fw-semibold text-dark">
+                    <i class="bi bi-pencil-square text-success me-2"></i>Thông tin loại cây trồng
+                </h6>
             </div>
-            <div class="card-body">
-                <form asp-action="Edit" method="post">
-                    <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
 
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
 
-                    <div class="row g-3">
+                    @* Thông báo lỗi tổng quát *@
+                    <div asp-validation-summary="All" class="alert alert-danger alert-dismissible fade show"
+                         style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")" role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <div class="row g-4">
+                        @* Mã loại cây (Chỉ đọc) *@
                         <div class="col-md-6">
-                            <label asp-for="Code" class="form-label">
-                                <i class="bi bi-hash me-1"></i>Mã loại cây
+                            <label asp-for="Code" class="form-label fw-medium">
+                                <i class="bi bi-hash me-1 text-muted"></i>Mã loại cây
                             </label>
-                            <input asp-for="Code" class="form-control bg-light" readonly />
+                            <input asp-for="Code" class="form-control bg-light" readonly
+                                   title="Mã hệ thống không thể thay đổi sau khi tạo" />
                             <span asp-validation-for="Code" class="text-danger small"></span>
-                            <div class="form-text">Mã không thể thay đổi</div>
+                            <div class="form-text small">Mã định danh không được phép thay đổi</div>
                         </div>
 
+                        @* Tên loại cây *@
                         <div class="col-md-6">
-                            <label asp-for="Name" class="form-label">
-                                <i class="bi bi-tag me-1"></i>Tên loại cây <span class="text-danger">*</span>
+                            <label asp-for="Name" class="form-label fw-medium">
+                                <i class="bi bi-tag me-1 text-muted"></i>Tên loại cây <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="Name" class="form-control" />
+                            <input asp-for="Name" class="form-control" placeholder="Nhập tên loại cây..." />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
 
+                        @* Mô tả *@
                         <div class="col-12">
-                            <label asp-for="Description" class="form-label">
-                                <i class="bi bi-text-paragraph me-1"></i>Mô tả
+                            <label asp-for="Description" class="form-label fw-medium">
+                                <i class="bi bi-text-paragraph me-1 text-muted"></i>Mô tả chi tiết
                             </label>
-                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Cập nhật mô tả mới cho loại cây này..."></textarea>
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
+                        @* Switch: Trạng thái hoạt động *@
                         <div class="col-12">
-                            <div class="form-check form-switch">
-                                <input asp-for="IsActive" class="form-check-input" role="switch" />
-                                <label asp-for="IsActive" class="form-check-label">
-                                    <i class="bi bi-toggle-on me-1"></i>Trạng thái hoạt động
+                            <div class="form-check form-switch p-3 border rounded bg-light bg-opacity-50">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" id="isActiveSwitch">
+                                <label asp-for="IsActive" class="form-check-label ms-2 fw-medium" for="isActiveSwitch">
+                                    <i class="bi bi-power me-1"></i>Trạng thái hoạt động
                                 </label>
+                                <div class="form-text ms-1 mt-1 small">Tắt để ngừng sử dụng loại cây này trong các vụ mùa mới</div>
                             </div>
-                            <div class="form-text">Bật để cho phép sử dụng loại cây này</div>
                         </div>
                     </div>
 
-                    <hr class="my-4">
+                    <hr class="my-4 opacity-25">
 
+                    @* Nhóm nút thao tác *@
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Cập nhật
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="bi bi-save me-1"></i>Lưu cập nhật
                         </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x-lg me-1"></i>Hủy bỏ
                         </a>
                     </div>
                 </form>
@@ -84,52 +107,57 @@
         </div>
     </div>
 
+    @* ==================== Sidebar: Thông tin & Vùng nguy hiểm ==================== *@
     <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-info-circle me-2"></i>Thông tin
-                </h5>
+        @* Card: Thông tin tóm tắt *@
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h6 class="card-title mb-0 fw-semibold">
+                    <i class="bi bi-info-circle text-success me-2"></i>Thông tin hệ thống
+                </h6>
             </div>
             <div class="card-body">
-                <div class="mb-3">
-                    <small class="text-muted d-block">ID</small>
-                    <strong>@Model.Id</strong>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                    <span class="text-muted small">ID bản ghi</span>
+                    <span class="fw-bold text-dark">#@Model.Id</span>
                 </div>
-                <div class="mb-3">
-                    <small class="text-muted d-block">Mã</small>
-                    <code class="bg-light px-2 py-1 rounded">@Model.Code</code>
+                <div class="d-flex justify-content-between mb-3 border-bottom pb-2">
+                    <span class="text-muted small">Mã định danh</span>
+                    <code class="text-success fw-bold">@Model.Code</code>
                 </div>
-                <div>
-                    <small class="text-muted d-block">Trạng thái hiện tại</small>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="text-muted small">Tình trạng</span>
                     @if (Model.IsActive)
                     {
-                        <span class="badge badge-status badge-active">
-                            <i class="bi bi-check-circle me-1"></i>Hoạt động
+                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3">
+                            <i class="bi bi-check-circle-fill me-1"></i>Hoạt động
                         </span>
                     }
                     else
                     {
-                        <span class="badge badge-status badge-inactive">
-                            <i class="bi bi-x-circle me-1"></i>Không hoạt động
+                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3">
+                            <i class="bi bi-x-circle-fill me-1"></i>Ngưng sử dụng
                         </span>
                     }
                 </div>
             </div>
         </div>
 
-        <!-- Danger Zone -->
-        <div class="card border-danger mt-3">
-            <div class="card-header bg-danger bg-opacity-10 border-danger">
-                <h5 class="card-title mb-0 text-danger">
+        @* Card: Danger Zone (Xóa) *@
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger-subtle border-danger py-3">
+                <h6 class="card-title mb-0 text-danger fw-bold">
                     <i class="bi bi-exclamation-triangle me-2"></i>Vùng nguy hiểm
-                </h5>
+                </h6>
             </div>
-            <div class="card-body">
-                <p class="small text-muted mb-3">Các thao tác không thể hoàn tác</p>
+            <div class="card-body bg-danger bg-opacity-10">
+                <p class="small text-danger-emphasis mb-3">
+                    Hành động xóa sẽ gỡ bỏ hoàn toàn loại cây này khỏi hệ thống. Việc này có thể ảnh hưởng đến lịch sử canh tác liên quan.
+                </p>
                 <form asp-action="Delete" asp-route-id="@Model.Id" method="post"
-                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa loại cây này?');">
-                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                      onsubmit="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa loại cây trồng này? Hành động này không thể hoàn tác!');">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-2 fw-medium">
                         <i class="bi bi-trash me-1"></i>Xóa loại cây này
                     </button>
                 </form>
@@ -139,5 +167,26 @@
 </div>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <partial name="_ValidationScriptsPartial" />
 }
+
+<style>
+    /* Custom Subscriptions Colors */
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.08) !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: rgba(108, 117, 125, 0.08) !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(220, 53, 69, 0.08) !important;
+    }
+
+    /* Animation cho card nguy hiểm */
+    .card.border-danger:hover {
+        border-color: #dc3545 !important;
+        transition: all 0.3s ease;
+    }
+</style>

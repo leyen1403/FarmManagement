@@ -7,6 +7,7 @@ namespace FarmManagement.Web.Services.Livestocks;
 public class LivestockPriceApiService
 {
     private readonly HttpClient _http;
+
     public LivestockPriceApiService(IHttpClientFactory factory)
     {
         _http = factory.CreateClient("FarmApi");
@@ -26,7 +27,9 @@ public class LivestockPriceApiService
     {
         var q = $"api/LivestockPrices/active?livestockId={livestockId}&gender={gender}";
         if (at.HasValue)
+        {
             q += $"&at={at.Value:O}";
+        }
         return await _http.GetFromJsonAsync<LivestockPriceDto?>(q);
     }
 
@@ -53,7 +56,11 @@ public class LivestockPriceApiService
     {
         if (response.IsSuccessStatusCode)
             return;
+
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
-        throw new ApiException(error?.Message ?? "Lỗi hệ thống", (int)response.StatusCode);
+        throw new ApiException(
+            error?.Message ?? "Lỗi hệ thống",
+            (int)response.StatusCode
+        );
     }
 }

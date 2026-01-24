@@ -1,0 +1,74 @@
+﻿@*
+    _FilterForm.cshtml
+    Partial view cho form lọc/tìm kiếm dạng expandable
+    Sử dụng: @await Html.PartialAsync("_FilterForm", model)
+*@
+
+@model FilterFormModel
+
+@{
+    var colClass = Model.ColumnsPerRow switch
+    {
+1 => "col-12",
+        2 => "col-md-6",
+        3 => "col-md-6 col-lg-4",
+        4 => "col-md-6 col-lg-3",
+ 6 => "col-md-4 col-lg-2",
+      _ => "col-md-6 col-lg-4"
+    };
+}
+
+<div class="filter-form-container card mb-4 @Model.CssClass">
+    @if (Model.IsCollapsible)
+    {
+    <div class="card-header bg-white py-2">
+  <button class="btn btn-link text-decoration-none p-0 w-100 d-flex justify-content-between align-items-center"
+   type="button"
+     data-bs-toggle="collapse"
+  data-bs-target="#@Model.CollapseId"
+      aria-expanded="@Model.IsExpanded.ToString().ToLower()"
+    aria-controls="@Model.CollapseId">
+ <span class="fw-medium">
+                <i class="@Model.Icon me-2"></i>
+      @Model.Title
+         </span>
+           <i class="bi bi-chevron-down filter-toggle-icon"></i>
+            </button>
+     </div>
+        <div class="collapse @(Model.IsExpanded ? "show" : "")" id="@Model.CollapseId">
+   @await Html.PartialAsync("_FilterFormContent", Model)
+        </div>
+    }
+    else
+    {
+        <div class="card-header bg-white py-2">
+            <span class="fw-medium">
+                <i class="@Model.Icon me-2"></i>
+      @Model.Title
+        </span>
+        </div>
+        @await Html.PartialAsync("_FilterFormContent", Model)
+    }
+</div>
+
+<style>
+    .filter-form-container .card-header .btn-link {
+        color: var(--bs-dark);
+    }
+
+    .filter-form-container .card-header .btn-link:hover {
+        color: var(--bs-primary);
+  }
+
+    .filter-form-container .filter-toggle-icon {
+        transition: transform 0.2s ease;
+    }
+
+    .filter-form-container .btn-link[aria-expanded="true"] .filter-toggle-icon {
+        transform: rotate(180deg);
+}
+
+    .filter-form-container .card-body {
+        background-color: var(--bs-light);
+    }
+</style>

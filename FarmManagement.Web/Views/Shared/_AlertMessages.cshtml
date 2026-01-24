@@ -1,0 +1,79 @@
+﻿@* 
+    _AlertMessages.cshtml
+    Partial view để hiển thị các thông báo từ TempData
+ Sử dụng: @await Html.PartialAsync("_AlertMessages")
+*@
+
+@{
+    var successMessage = TempData["Success"]?.ToString();
+    var errorMessage = TempData["Error"]?.ToString();
+    var warningMessage = TempData["Warning"]?.ToString();
+    var infoMessage = TempData["Info"]?.ToString();
+}
+
+<div class="alert-messages-container">
+    @* Success Alert *@
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+    <i class="bi bi-check-circle-fill me-2 flex-shrink-0"></i>
+    <div class="flex-grow-1">
+       @successMessage
+            </div>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+      </div>
+    }
+
+    @* Error Alert *@
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2 flex-shrink-0"></i>
+            <div class="flex-grow-1">
+     @errorMessage
+ </div>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+
+    @* Warning Alert *@
+    @if (!string.IsNullOrEmpty(warningMessage))
+    {
+     <div class="alert alert-warning alert-dismissible fade show d-flex align-items-center" role="alert">
+     <i class="bi bi-exclamation-circle-fill me-2 flex-shrink-0"></i>
+            <div class="flex-grow-1">
+       @warningMessage
+            </div>
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+
+@* Info Alert *@
+    @if (!string.IsNullOrEmpty(infoMessage))
+    {
+        <div class="alert alert-info alert-dismissible fade show d-flex align-items-center" role="alert">
+        <i class="bi bi-info-circle-fill me-2 flex-shrink-0"></i>
+        <div class="flex-grow-1">
+      @infoMessage
+     </div>
+<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+</div>
+
+@* Auto-dismiss alerts after 5 seconds *@
+@if (!string.IsNullOrEmpty(successMessage) || !string.IsNullOrEmpty(errorMessage) || 
+     !string.IsNullOrEmpty(warningMessage) || !string.IsNullOrEmpty(infoMessage))
+{
+  <script>
+      document.addEventListener('DOMContentLoaded', function() {
+   // Auto dismiss success and info alerts after 5 seconds
+    setTimeout(function() {
+  document.querySelectorAll('.alert-success, .alert-info').forEach(function(alert) {
+          var bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+   });
+         }, 5000);
+        });
+    </script>
+}

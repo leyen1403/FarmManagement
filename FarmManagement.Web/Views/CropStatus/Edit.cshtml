@@ -5,6 +5,7 @@
     ViewData["Breadcrumb"] = "Sửa trạng thái cây trồng";
 }
 
+@* ==================== Page Header ==================== *@
 <div class="page-header mb-4">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -15,68 +16,80 @@
         </ol>
     </nav>
     <h1 class="page-title">Sửa trạng thái cây trồng</h1>
-    <p class="page-subtitle">Cập nhật thông tin trạng thái #@Model.Id</p>
+    <p class="page-subtitle text-muted">Cập nhật thông tin chi tiết cho trạng thái <strong>#@Model.Id</strong></p>
 </div>
 
 <div class="row">
+    @* --- Cột bên trái: Form cập nhật --- *@
     <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-pencil me-2"></i>Thông tin trạng thái
+        <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-semibold">
+                    <i class="bi bi-pencil-square text-primary me-2"></i>Thông tin trạng thái
                 </h5>
             </div>
-            <div class="card-body">
-                <form asp-action="Edit" method="post">
-                    <div asp-validation-summary="All" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
 
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
                     <input type="hidden" asp-for="Id" />
 
-                    <div class="row g-3">
+                    @* Hiển thị lỗi validation tổng quát *@
+                    <div asp-validation-summary="All" class="alert alert-danger"
+                         style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")">
+                    </div>
+
+                    <div class="row g-4">
+                        @* Mã trạng thái (Chỉ đọc) *@
                         <div class="col-md-6">
-                            <label asp-for="Code" class="form-label">
+                            <label asp-for="Code" class="form-label fw-medium">
                                 <i class="bi bi-hash me-1"></i>Mã trạng thái
                             </label>
-                            <input asp-for="Code" class="form-control bg-light" readonly />
+                            <input asp-for="Code" class="form-control bg-light" readonly title="Mã trạng thái không được phép sửa" />
                             <span asp-validation-for="Code" class="text-danger small"></span>
-                            <div class="form-text">Mã không thể thay đổi</div>
+                            <div class="form-text small">Mã định danh duy nhất (Không thể thay đổi)</div>
                         </div>
 
+                        @* Tên trạng thái *@
                         <div class="col-md-6">
-                            <label asp-for="Name" class="form-label">
+                            <label asp-for="Name" class="form-label fw-medium">
                                 <i class="bi bi-tag me-1"></i>Tên trạng thái <span class="text-danger">*</span>
                             </label>
-                            <input asp-for="Name" class="form-control" />
+                            <input asp-for="Name" class="form-control" placeholder="Nhập tên trạng thái..." />
                             <span asp-validation-for="Name" class="text-danger small"></span>
                         </div>
 
+                        @* Mô tả *@
                         <div class="col-12">
-                            <label asp-for="Description" class="form-label">
+                            <label asp-for="Description" class="form-label fw-medium">
                                 <i class="bi bi-text-paragraph me-1"></i>Mô tả
                             </label>
-                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <textarea asp-for="Description" class="form-control" rows="4"
+                                      placeholder="Ghi chú chi tiết về trạng thái này..."></textarea>
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
+                        @* Trạng thái hoạt động *@
                         <div class="col-12">
-                            <div class="form-check form-switch">
-                                <input asp-for="IsActive" class="form-check-input" role="switch" />
-                                <label asp-for="IsActive" class="form-check-label">
-                                    <i class="bi bi-toggle-on me-1"></i>Trạng thái hoạt động
+                            <div class="form-check form-switch p-3 border rounded bg-light bg-opacity-50">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch" id="isActiveSwitch">
+                                <label class="form-check-label ms-2 fw-medium" for="isActiveSwitch">
+                                    <i class="bi bi-power me-1"></i>Trạng thái hoạt động
                                 </label>
+                                <div class="form-text ms-1 mt-1">Bật để cho phép hệ thống sử dụng trạng thái này cho cây trồng</div>
                             </div>
-                            <div class="form-text">Bật để cho phép sử dụng trạng thái này</div>
                         </div>
                     </div>
 
-                    <hr class="my-4">
+                    <hr class="my-4 opacity-25">
 
+                    @* Nút thao tác *@
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Cập nhật
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i>Cập nhật dữ liệu
                         </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-lg me-1"></i>Hủy
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="bi bi-x-lg me-1"></i>Hủy bỏ
                         </a>
                     </div>
                 </form>
@@ -84,36 +97,46 @@
         </div>
     </div>
 
+    @* --- Cột bên phải: Thông tin tóm tắt & Nhật ký --- *@
     <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-info-circle me-2"></i>Thông tin
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-header bg-transparent border-0 py-3">
+                <h5 class="card-title mb-0 fw-semibold">
+                    <i class="bi bi-info-circle text-info me-2"></i>Thông tin tóm tắt
                 </h5>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <small class="text-muted d-block">ID</small>
-                    <strong>@Model.Id</strong>
+            <div class="card-body pt-0">
+                <div class="list-group list-group-flush rounded border shadow-sm bg-white">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">ID hệ thống</span>
+                        <span class="fw-bold">#@Model.Id</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Mã định danh</span>
+                        <code class="text-primary fw-bold">@Model.Code</code>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <span class="text-muted small">Trạng thái hiện tại</span>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                                <i class="bi bi-check-circle-fill me-1"></i>Đang hoạt động
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">
+                                <i class="bi bi-x-circle-fill me-1"></i>Đã tạm dừng
+                            </span>
+                        }
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <small class="text-muted d-block">Mã</small>
-                    <code class="bg-light px-2 py-1 rounded">@Model.Code</code>
-                </div>
-                <div>
-                    <small class="text-muted d-block">Trạng thái hiện tại</small>
-                    @if (Model.IsActive)
-                    {
-                        <span class="badge badge-status badge-active">
-                            <i class="bi bi-check-circle me-1"></i>Hoạt động
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="badge badge-status badge-inactive">
-                            <i class="bi bi-x-circle me-1"></i>Không hoạt động
-                        </span>
-                    }
+
+                <div class="mt-4 p-3 border border-warning border-opacity-25 rounded bg-warning bg-opacity-10">
+                    <p class="small text-warning-emphasis mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Lưu ý:</strong> Việc tắt trạng thái hoạt động có thể làm ảnh hưởng đến các cây trồng hiện đang thuộc trạng thái này.
+                    </p>
                 </div>
             </div>
         </div>

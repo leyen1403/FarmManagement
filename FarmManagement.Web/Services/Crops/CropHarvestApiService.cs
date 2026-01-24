@@ -26,8 +26,8 @@ public class CropHarvestApiService
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
-  error?.Message ?? "Lỗi hệ thống",
-      (int)response.StatusCode
+            error?.Message ?? "Lỗi hệ thống",
+            (int)response.StatusCode
         );
     }
 

@@ -1,0 +1,68 @@
+﻿@*
+    _ActionButton.cshtml
+    Partial view để render một action button
+    Sử dụng: @await Html.PartialAsync("_ActionButton", model)
+*@
+
+@model ActionButtonModel
+
+@{
+    var sizeClass = Model.Size switch
+    {
+        ButtonSize.Small => "btn-sm",
+        ButtonSize.Large => "btn-lg",
+        _ => ""
+  };
+
+    var buttonClasses = $"btn {Model.CssClass} {sizeClass}".Trim();
+    
+    var dataAttributes = string.Join(" ", Model.DataAttributes.Select(kv => $"data-{kv.Key}=\"{kv.Value}\""));
+}
+
+@if (Model.Type == ButtonType.Link && !string.IsNullOrEmpty(Model.Url))
+{
+    <a href="@Model.Url" 
+  class="@buttonClasses"
+       @(Model.IsDisabled ? "disabled" : "")
+       @(string.IsNullOrEmpty(Model.Id) ? "" : $"id=\"{Model.Id}\"")
+       @(string.IsNullOrEmpty(Model.Target) ? "" : $"target=\"{Model.Target}\"")
+@(string.IsNullOrEmpty(Model.Tooltip) ? "" : $"title=\"{Model.Tooltip}\" data-bs-toggle=\"tooltip\"")
+       @Html.Raw(dataAttributes)>
+        @if (Model.ShowLoading)
+    {
+<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        }
+        @if (!string.IsNullOrEmpty(Model.Icon))
+        {
+     <i class="@Model.Icon @(string.IsNullOrEmpty(Model.Text) ? "" : "me-1")"></i>
+        }
+@Model.Text
+    </a>
+}
+else
+{
+    var buttonType = Model.Type switch
+    {
+        ButtonType.Submit => "submit",
+    ButtonType.Reset => "reset",
+        _ => "button"
+    };
+
+    <button type="@buttonType"
+  class="@buttonClasses"
+            @(Model.IsDisabled ? "disabled" : "")
+      @(string.IsNullOrEmpty(Model.Id) ? "" : $"id=\"{Model.Id}\"")
+       @(string.IsNullOrEmpty(Model.OnClick) ? "" : $"onclick=\"{Model.OnClick}\"")
+    @(string.IsNullOrEmpty(Model.Tooltip) ? "" : $"title=\"{Model.Tooltip}\" data-bs-toggle=\"tooltip\"")
+            @Html.Raw(dataAttributes)>
+        @if (Model.ShowLoading)
+        {
+      <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+        }
+   @if (!string.IsNullOrEmpty(Model.Icon))
+        {
+  <i class="@Model.Icon @(string.IsNullOrEmpty(Model.Text) ? "" : "me-1")"></i>
+        }
+        @Model.Text
+    </button>
+}

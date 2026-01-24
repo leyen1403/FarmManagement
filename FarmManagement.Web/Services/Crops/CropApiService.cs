@@ -28,7 +28,7 @@ public class CropApiService
     }
 
     public async Task<CropDto?> GetByIdAsync(int id)
-           => await _http.GetFromJsonAsync<CropDto>($"api/Crop/{id}");
+        => await _http.GetFromJsonAsync<CropDto>($"api/Crop/{id}");
 
     private async Task EnsureSuccess(HttpResponseMessage response)
     {
@@ -37,7 +37,7 @@ public class CropApiService
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
-          error?.Message ?? "Lỗi hệ thống",
+            error?.Message ?? "Lỗi hệ thống",
             (int)response.StatusCode
         );
     }

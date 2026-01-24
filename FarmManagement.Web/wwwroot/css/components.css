@@ -1,0 +1,125 @@
+﻿/* 
+ * _components.css
+ * Styles cho các UI components: StatsCard, PageHeader, AlertMessages
+ */
+
+/* ==================== Stats Card ==================== */
+.stats-card {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+.stats-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bs-primary-bg-subtle, #e7f1ff);
+    color: var(--bs-primary, #0d6efd);
+    font-size: 1.25rem;
+}
+
+    .stats-card-icon.bg-success-subtle {
+        background-color: var(--bs-success-bg-subtle, #d1e7dd);
+        color: var(--bs-success, #198754);
+    }
+
+    .stats-card-icon.bg-warning-subtle {
+        background-color: var(--bs-warning-bg-subtle, #fff3cd);
+        color: var(--bs-warning, #ffc107);
+    }
+
+    .stats-card-icon.bg-danger-subtle {
+        background-color: var(--bs-danger-bg-subtle, #f8d7da);
+        color: var(--bs-danger, #dc3545);
+    }
+
+    .stats-card-icon.bg-info-subtle {
+        background-color: var(--bs-info-bg-subtle, #cff4fc);
+        color: var(--bs-info, #0dcaf0);
+    }
+
+.stats-card-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.stats-card-value h3 {
+    font-size: 1.75rem;
+}
+
+/* ==================== Page Header ==================== */
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-header-breadcrumb .breadcrumb {
+    font-size: 0.875rem;
+}
+
+.page-header-breadcrumb .breadcrumb-item a {
+    color: var(--bs-secondary);
+    text-decoration: none;
+}
+
+    .page-header-breadcrumb .breadcrumb-item a:hover {
+        color: var(--bs-primary);
+    }
+
+.page-header-title h1 {
+    color: var(--bs-dark);
+    font-weight: 600;
+}
+
+.page-header-title p {
+    font-size: 0.9375rem;
+}
+
+.page-header-actions .btn {
+    white-space: nowrap;
+}
+
+/* ==================== Alert Messages ==================== */
+.alert-messages-container {
+    margin-bottom: 1rem;
+}
+
+    .alert-messages-container .alert {
+        border-radius: 0.5rem;
+        border: none;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .alert-messages-container .alert-success {
+        background-color: #d1e7dd;
+        color: #0f5132;
+    }
+
+    .alert-messages-container .alert-danger {
+        background-color: #f8d7da;
+        color: #842029;
+    }
+
+    .alert-messages-container .alert-warning {
+        background-color: #fff3cd;
+        color: #664d03;
+    }
+
+    .alert-messages-container .alert-info {
+        background-color: #cff4fc;
+        color: #055160;
+    }
+
+    /* Animation for alerts */
+    .alert-messages-container .alert.fade {
+        transition: opacity 0.3s ease-in-out;
+    }

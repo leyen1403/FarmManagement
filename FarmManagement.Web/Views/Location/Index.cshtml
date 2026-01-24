@@ -3,121 +3,299 @@
 
 @{
     ViewData["Title"] = "Quản lý vị trí";
-    ViewData["Breadcrumb"] = "Vị trí";
+
+    // Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        BreadcrumbItem.Current("Vị trí", "bi bi-geo-alt")
+    );
+
+    // Get filter values from query string
+    var searchTerm = Context.Request.Query["searchTerm"].ToString();
+    var typeFilter = Context.Request.Query["typeId"].ToString();
+    var statusFilter = Context.Request.Query["statusId"].ToString();
+
+    var types = ViewBag.Types as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var statuses = ViewBag.Statuses as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+
+    var totalCount = Model.Count();
+    var activeCount = Model.Count(x =>
+        x.LocationStatusName?.ToLower().Contains("hoạt động") == true ||
+        x.LocationStatusName?.ToLower().Contains("active") == true
+    );
+
+    // Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Quản lý vị trí",
+        Subtitle = "Quản lý các vị trí, khu vực trong nông trại",
+        Icon = "bi bi-geo-alt",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            new ActionButtonModel("Xuất Excel", "#", "bi bi-file-earmark-excel", "btn-outline-success")
+            {
+                Size = ButtonSize.Small
+            },
+            ActionButtonModel.Create("/Location/Create", "Thêm vị trí")
+        }
+    };
+
+    // Stats Cards
+    var statsCards = new List<StatsCardModel>
+    {
+        new StatsCardModel
+        {
+            Value = totalCount.ToString(),
+            Label = "Tổng vị trí",
+            Icon = "bi bi-geo-alt",
+            IconBackgroundClass = "bg-primary-subtle",
+            ColorClass = "text-primary"
+        },
+        new StatsCardModel
+        {
+            Value = activeCount.ToString(),
+            Label = "Đang hoạt động",
+            Icon = "bi bi-check-circle",
+            IconBackgroundClass = "bg-success-subtle",
+            ColorClass = "text-success"
+        },
+        new StatsCardModel
+        {
+            Value = (totalCount - activeCount).ToString(),
+            Label = "Không hoạt động",
+            Icon = "bi bi-pause-circle",
+            IconBackgroundClass = "bg-secondary-subtle",
+            ColorClass = "text-secondary"
+        },
+        new StatsCardModel
+        {
+            Value = types.Count().ToString(),
+            Label = "Loại vị trí",
+            Icon = "bi bi-tags",
+            IconBackgroundClass = "bg-info-subtle",
+            ColorClass = "text-info",
+            LinkUrl = "/LocationTypes",
+            LinkText = "Quản lý"
+        }
+    };
+
+    // Filter Form
+    var filterForm = new FilterFormModel
+    {
+        ActionUrl = "/Location",
+        Method = "GET",
+        Title = "Bộ lọc tìm kiếm",
+        Icon = "bi bi-funnel",
+        IsExpanded =
+            !string.IsNullOrEmpty(searchTerm) ||
+            !string.IsNullOrEmpty(typeFilter) ||
+            !string.IsNullOrEmpty(statusFilter),
+        ResetUrl = "/Location",
+        ColumnsPerRow = 3,
+        Fields = new List<FilterFieldModel>
+        {
+            new FilterFieldModel
+            {
+                Name = "searchTerm",
+                Label = "Tìm kiếm",
+                Type = FilterFieldType.Text,
+                Value = searchTerm,
+                Placeholder = "Tên vị trí, địa chỉ...",
+                Icon = "bi bi-search",
+                ColSpan = 4
+            },
+            new FilterFieldModel
+            {
+                Name = "typeId",
+                Label = "Loại vị trí",
+                Type = FilterFieldType.Select,
+                Value = typeFilter,
+                Placeholder = "Tất cả loại",
+                ColSpan = 4,
+                Options = types.Select(t =>
+                    new SelectOptionModel(
+                        t.Id.ToString(),
+                        t.Name,
+                        t.Id.ToString() == typeFilter
+                    )
+                ).ToList()
+            },
+            new FilterFieldModel
+            {
+                Name = "statusId",
+                Label = "Trạng thái",
+                Type = FilterFieldType.Select,
+                Value = statusFilter,
+                Placeholder = "Tất cả trạng thái",
+                ColSpan = 4,
+                Options = statuses.Select(s =>
+                    new SelectOptionModel(
+                        s.Id.ToString(),
+                        s.Name,
+                        s.Id.ToString() == statusFilter
+                    )
+                ).ToList()
+            }
+        }
+    };
+
+    // Table Container
+    var tableContainer = new TableContainerModel
+    {
+        Title = "Danh sách vị trí",
+        Icon = "bi bi-list-ul",
+        ShowQuickSearch = true,
+        QuickSearchPlaceholder = "Tìm nhanh...",
+        SearchValue = searchTerm,
+        TotalRecords = totalCount,
+        TotalBadgeText = "vị trí",
+        HasData = Model.Any(),
+        TableId = "locationTable",
+        EmptyState = EmptyStateModel.NoData("vị trí", "/Location/Create")
+    };
+
+    // Delete Modal
+    var deleteModal = DeleteModalModel.ForEntity("vị trí", "Location");
 }
 
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="page-title">Quản lý vị trí</h1>
-        <p class="page-subtitle mb-0">Quản lý các vị trí, khu vực trong nông trại</p>
-    </div>
-    <div class="page-actions">
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> Thêm vị trí
-        </a>
-    </div>
-</div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+@* ==================== Stats Cards ==================== *@
+<partial name="_StatsCards" model="statsCards" />
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+@* ==================== Filter Form ==================== *@
+<partial name="_FilterForm" model="filterForm" />
 
-<div class="table-container">
-    <div class="table-toolbar">
-        <div class="table-search">
-            <i class="bi bi-search"></i>
-            <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm vị trí...">
+@* ==================== Data Table ==================== *@
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="card-title mb-0 fw-semibold">
+                <i class="bi bi-list-ul text-primary me-2"></i>
+                Danh sách vị trí
+            </h6>
+            <span class="badge bg-primary">@totalCount</span>
         </div>
-        <div class="d-flex gap-2">
-            <span class="badge bg-secondary">Tổng: @Model.Count()</span>
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control"
+                       id="quickSearch"
+                       placeholder="Tìm nhanh trong bảng..." />
+            </div>
         </div>
     </div>
 
     @if (Model.Any())
     {
         <div class="table-responsive">
-            <table class="table data-table mb-0" id="dataTable">
-                <thead>
+            <table class="table table-hover align-middle mb-0" id="locationTable">
+                <thead class="bg-light">
                     <tr>
-                        <th width="60">#</th>
+                        <th width="60" class="text-center">#</th>
                         <th>Tên vị trí</th>
-                        <th>Loại</th>
-                        <th>Trạng thái</th>
+                        <th width="150">Loại</th>
+                        <th width="140">Trạng thái</th>
                         <th>Địa chỉ</th>
-                        <th>Diện tích</th>
-                        <th>Ngày tạo</th>
-                        <th width="140">Thao tác</th>
+                        <th width="120" class="text-end">Diện tích</th>
+                        <th width="120">Ngày tạo</th>
+                        <th width="130" class="text-center">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
+                    @{
+                        var index = 0;
+                    }
                     @foreach (var item in Model)
                     {
+                        index++;
                         <tr>
-                            <td class="text-muted">@item.Id</td>
+                            <td class="text-center text-muted">@index</td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="location-icon bg-primary-subtle text-primary rounded d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;">
                                         <i class="bi bi-geo-alt"></i>
                                     </div>
                                     <div>
-                                        <div class="fw-medium">@item.Name</div>
+                                        <div class="fw-semibold">@item.Name</div>
                                         @if (!string.IsNullOrEmpty(item.Description))
                                         {
-                                            <small class="text-muted">@item.Description</small>
+                                            <small class="text-muted text-truncate d-block"
+                                                   style="max-width: 200px;">
+                                                @item.Description
+                                            </small>
                                         }
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <span class="badge bg-info bg-opacity-10 text-info">
-                                    <i class="bi bi-tag me-1"></i>@(item.LocationTypeName ?? "-")
+                                <span class="badge bg-info-subtle text-info">
+                                    <i class="bi bi-tag me-1"></i>
+                                    @(item.LocationTypeName ?? "—")
                                 </span>
                             </td>
                             <td>
-                                <span class="badge bg-success bg-opacity-10 text-success">
-                                    @(item.LocationStatusName ?? "-")
+                                @{
+                                    var statusClass = item.LocationStatusName?.ToLower() switch
+                                    {
+                                        var s when s?.Contains("hoạt động") == true ||
+                                        s?.Contains("active") == true => "success",
+                                        var s when s?.Contains("bảo trì") == true ||
+                                        s?.Contains("maintenance") == true => "warning",
+                                        var s when s?.Contains("ngừng") == true ||
+                                        s?.Contains("inactive") == true => "secondary",
+                                        _ => "primary"
+                                    };
+                                }
+                                <span class="badge bg-@statusClass-subtle text-@statusClass">
+                                    <i class="bi bi-circle-fill me-1"
+                                       style="font-size: 0.5rem;"></i>
+                                    @(item.LocationStatusName ?? "—")
                                 </span>
                             </td>
-                            <td class="text-muted">@(item.Address ?? "-")</td>
                             <td>
+                                @if (!string.IsNullOrEmpty(item.Address))
+                                {
+                                    <span class="text-muted" title="@item.Address">
+                                        <i class="bi bi-pin-map me-1"></i>
+                                        @(item.Address.Length > 30
+                                                                    ? item.Address.Substring(0, 30) + "..."
+                                                                    : item.Address)
+                        </span>
+                                                }
+                                else
+                                {
+                                    <span class="text-muted">—</span>
+                                }
+                            </td>
+                            <td class="text-end">
                                 @if (item.Area.HasValue)
                                 {
-                                    <span>@item.Area.Value.ToString("N0") m²</span>
+                                    <span class="fw-medium">
+                                        @item.Area.Value.ToString("N0")
+                                    </span>
+                                    <small class="text-muted">m²</small>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">-</span>
+                                    <span class="text-muted">—</span>
                                 }
                             </td>
-                            <td class="text-muted">
-                                @item.CreatedDate?.ToString("dd/MM/yyyy")
-                            </td>
                             <td>
-                                <div class="action-buttons">
-                                    <a asp-action="Edit" asp-route-id="@item.Id"
-                                       class="btn btn-sm btn-outline-primary" title="Sửa">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                            title="Xóa"
-                                            onclick="confirmDelete(@item.Id, '@item.Name')">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>
+                                    @(item.CreatedDate?.ToString("dd/MM/yyyy") ?? "—")
+                                </small>
+                            </td>
+                            <td class="text-center">
+                                <partial name="_ActionButtons"
+                                         model="@(new ActionButtonsModel(item.Id, "Location", item.Name))" />
                             </td>
                         </tr>
                     }
@@ -127,60 +305,53 @@
     }
     else
     {
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="bi bi-geo-alt"></i>
-            </div>
-            <div class="empty-state-title">Chưa có vị trí nào</div>
-            <p class="text-muted">Bắt đầu bằng cách thêm vị trí đầu tiên</p>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Thêm vị trí
-            </a>
-        </div>
+        <partial name="_EmptyState"
+                 model="@(EmptyStateModel.NoData("vị trí", "/Location/Create"))" />
     }
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa vị trí <strong id="deleteItemName"></strong>?</p>
-                <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <a id="deleteLink" href="#" class="btn btn-danger">
-                    <i class="bi bi-trash me-1"></i>Xóa
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+@* ==================== Delete Modal ==================== *@
+<partial name="_DeleteModal" model="deleteModal" />
 
 @section Scripts {
     <script>
-         // Search functionality
-          document.getElementById('searchInput').addEventListener('keyup', function() {
-         const filter = this.value.toLowerCase();
-        const rows = document.querySelectorAll('#dataTable tbody tr');
-              rows.forEach(row => {
-                  const text = row.textContent.toLowerCase();
-              row.style.display = text.includes(filter) ? '' : 'none';
-              });
-          });
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize DataTable with quick search
+            FarmApp.DataTable.init('#locationTable', {
+                searchInput: '#quickSearch',
+                sortable: true,
+                highlightMatches: true,
+                searchableColumns: [1, 2, 3, 4] // Name, Type, Status, Address
+            });
 
-        // Delete confirmation
-          function confirmDelete(id, name) {
-              document.getElementById('deleteItemName').textContent = name;
-          document.getElementById('deleteLink').href = '@Url.Action("Delete")/' + id;
-              new bootstrap.Modal(document.getElementById('deleteModal')).show();
-          }
+            // Initialize tooltips
+            FarmApp.UI.initTooltips();
+        });
     </script>
 }
+
+<style>
+    .location-icon {
+        flex-shrink: 0;
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+
+    .bg-warning-subtle {
+        background-color: rgba(255, 193, 7, 0.15) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: rgba(108, 117, 125, 0.1) !important;
+    }
+</style>

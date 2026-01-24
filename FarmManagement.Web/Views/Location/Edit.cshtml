@@ -2,206 +2,347 @@
 @model LocationDto
 
 @{
-    ViewData["Title"] = "Sửa vị trí";
-    ViewData["Breadcrumb"] = "Sửa vị trí";
+    ViewData["Title"] = $"Sửa vị trí: {Model.Name}";
+
+    // Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        new BreadcrumbItem("Vị trí", "/Location", "bi bi-geo-alt"),
+        BreadcrumbItem.Current("Chỉnh sửa")
+    );
+
+    // Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Chỉnh sửa vị trí",
+        Subtitle = $"Cập nhật thông tin vị trí #{Model.Id}: {Model.Name}",
+        Icon = "bi bi-pencil-square",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            ActionButtonModel.Back("/Location", "Quay lại"),
+            ActionButtonModel.Details($"/Location/Details/{Model.Id}", "Xem chi tiết")
+        }
+    };
+
+    // Delete Modal
+    var deleteModal = new DeleteModalModel
+    {
+        ControllerName = "Location",
+        Title = "Xác nhận xóa vị trí",
+        Message = $"Bạn có chắc chắn muốn xóa vị trí \"{Model.Name}\"?",
+        WarningMessage = "Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan sẽ bị ảnh hưởng."
+    };
 }
 
-<div class="page-header mb-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a asp-controller="Location" asp-action="Index">Vị trí</a>
-            </li>
-            <li class="breadcrumb-item active">Sửa</li>
-        </ol>
-    </nav>
-    <h1 class="page-title">Sửa vị trí</h1>
-    <p class="page-subtitle">Cập nhật thông tin vị trí #@Model.Id</p>
-</div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="Id" />
+@* ==================== Form ==================== *@
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <form asp-action="Edit" method="post" data-validate="true">
+            <input type="hidden" asp-for="Id" />
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-pencil me-2"></i>Thông tin cơ bản
+                        <i class="bi bi-pencil text-primary me-2"></i>
+                        Thông tin vị trí
                     </h5>
+                    <span class="badge bg-primary-subtle text-primary">
+                        ID: @Model.Id
+                    </span>
                 </div>
+
                 <div class="card-body">
-                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")"></div>
+                    @* Validation Summary *@
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label asp-for="Name" class="form-label">
-                                <i class="bi bi-geo-alt me-1"></i>Tên vị trí <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger small"></span>
+                    @* ==================== Section 1: Thông tin cơ bản ==================== *@
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title text-primary mb-3">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Thông tin cơ bản
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Name" class="form-label">
+                                    Tên vị trí <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </span>
+                                    <input asp-for="Name" class="form-control" required />
+                                </div>
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="LocationTypeId" class="form-label">
+                                    Loại vị trí <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="LocationTypeId"
+                                        class="form-select"
+                                        required
+                                        asp-items="@(new SelectList(ViewBag.Types, "Id", "Name"))">
+                                    <option value="">-- Chọn loại vị trí --</option>
+                                </select>
+                                <span asp-validation-for="LocationTypeId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="LocationStatusId" class="form-label">
+                                    Trạng thái <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="LocationStatusId"
+                                        class="form-select"
+                                        required
+                                        asp-items="@(new SelectList(ViewBag.Statuses, "Id", "Name"))">
+                                    <option value="">-- Chọn trạng thái --</option>
+                                </select>
+                                <span asp-validation-for="LocationStatusId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label">
+                                    Địa chỉ
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-pin-map"></i>
+                                    </span>
+                                    <input asp-for="Address" class="form-control" />
+                                </div>
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Description" class="form-label">
+                                    Mô tả
+                                </label>
+                                <textarea asp-for="Description"
+                                          rows="3"
+                                          class="form-control"></textarea>
+                                <span asp-validation-for="Description" class="text-danger small"></span>
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">
-                                <i class="bi bi-tag me-1"></i>Loại vị trí <span class="text-danger">*</span>
-                            </label>
-                            <select asp-for="LocationTypeId" class="form-select"
-                                    asp-items="@(new SelectList(ViewBag.Types, "Id", "Name"))">
-                            </select>
+                    <hr class="my-4" />
+
+                    @* ==================== Section 2: Thông tin chi tiết ==================== *@
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title text-primary mb-3">
+                            <i class="bi bi-rulers me-2"></i>
+                            Thông tin chi tiết
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label asp-for="Area" class="form-label">
+                                    Diện tích
+                                </label>
+                                <div class="input-group">
+                                    <input asp-for="Area"
+                                           type="number"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control" />
+                                    <span class="input-group-text">m²</span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Capacity" class="form-label">
+                                    Sức chứa
+                                </label>
+                                <input asp-for="Capacity"
+                                       type="number"
+                                       step="0.01"
+                                       min="0"
+                                       class="form-control" />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="CapacityUnit" class="form-label">
+                                    Đơn vị sức chứa
+                                </label>
+                                <input asp-for="CapacityUnit" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="StartDate" class="form-label">
+                                    Ngày bắt đầu sử dụng
+                                </label>
+                                <input asp-for="StartDate"
+                                       type="date"
+                                       class="form-control" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="EndDate" class="form-label">
+                                    Ngày kết thúc
+                                </label>
+                                <input asp-for="EndDate"
+                                       type="date"
+                                       class="form-control" />
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">
-                                <i class="bi bi-toggle-on me-1"></i>Trạng thái <span class="text-danger">*</span>
-                            </label>
-                            <select asp-for="LocationStatusId" class="form-select"
-                                    asp-items="@(new SelectList(ViewBag.Statuses, "Id", "Name"))">
-                            </select>
+                    <hr class="my-4" />
+
+                    @* ==================== Section 3: Ghi chú ==================== *@
+                    <div class="form-section">
+                        <h6 class="form-section-title text-primary mb-3">
+                            <i class="bi bi-sticky me-2"></i>
+                            Ghi chú
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Note" class="form-label">
+                                    Ghi chú bổ sung
+                                </label>
+                                <textarea asp-for="Note"
+                                          rows="3"
+                                          class="form-control"></textarea>
+                            </div>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="col-12">
-                            <label asp-for="Address" class="form-label">
-                                <i class="bi bi-pin-map me-1"></i>Địa chỉ <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="Address" class="form-control" />
-                            <span asp-validation-for="Address" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-12">
-                            <label asp-for="Description" class="form-label">
-                                <i class="bi bi-text-paragraph me-1"></i>Mô tả <span class="text-danger">*</span>
-                            </label>
-                            <textarea asp-for="Description" rows="3" class="form-control"></textarea>
-                            <span asp-validation-for="Description" class="text-danger small"></span>
+                @* ==================== Form Actions ==================== *@
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Các trường có dấu <span class="text-danger">*</span> là bắt buộc
+                        </span>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>
+                                Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>
+                                Cập nhật
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+        </form>
 
-            <!-- Chi tiết bổ sung -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-rulers me-2"></i>Thông tin chi tiết
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label asp-for="Area" class="form-label">
-                                <i class="bi bi-bounding-box me-1"></i>Diện tích (m²)
-                            </label>
-                            <input asp-for="Area" type="number" step="0.01" class="form-control" />
+        @* ==================== Info Card ==================== *@
+        <div class="card mt-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock-history text-info me-2"></i>
+                    Lịch sử
+                </h6>
+            </div>
+            <div class="card-body py-3">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success-subtle text-success rounded p-2">
+                                <i class="bi bi-calendar-plus"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Ngày tạo</small>
+                                <strong>
+                                    @(Model.CreatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                                </strong>
+                            </div>
                         </div>
+                    </div>
 
-                        <div class="col-md-4">
-                            <label asp-for="Capacity" class="form-label">
-                                <i class="bi bi-box me-1"></i>Sức chứa
-                            </label>
-                            <input asp-for="Capacity" type="number" step="0.01" class="form-control" />
-                        </div>
-
-                        <div class="col-md-4">
-                            <label asp-for="CapacityUnit" class="form-label">
-                                <i class="bi bi-hash me-1"></i>Đơn vị
-                            </label>
-                            <input asp-for="CapacityUnit" class="form-control" />
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="StartDate" class="form-label">
-                                <i class="bi bi-calendar-event me-1"></i>Ngày bắt đầu
-                            </label>
-                            <input asp-for="StartDate" type="date" class="form-control" />
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="EndDate" class="form-label">
-                                <i class="bi bi-calendar-x me-1"></i>Ngày kết thúc
-                            </label>
-                            <input asp-for="EndDate" type="date" class="form-control" />
-                        </div>
-
-                        <div class="col-12">
-                            <label asp-for="Note" class="form-label">
-                                <i class="bi bi-sticky me-1"></i>Ghi chú
-                            </label>
-                            <textarea asp-for="Note" rows="2" class="form-control"></textarea>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-info-subtle text-info rounded p-2">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Cập nhật lần cuối</small>
+                                <strong>
+                                    @(Model.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                                </strong>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="card sticky-top" style="top: 80px;">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-lightning-charge me-2"></i>Thao tác
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Cập nhật
-                        </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-lg me-1"></i>Hủy
-                        </a>
-                    </div>
-                </div>
+        @* ==================== Danger Zone ==================== *@
+        <div class="card mt-3 border-danger">
+            <div class="card-header bg-danger-subtle border-danger">
+                <h6 class="mb-0 text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Vùng nguy hiểm
+                </h6>
             </div>
-
-            <!-- Info card -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-info-circle me-2"></i>Thông tin
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <small class="text-muted d-block">ID</small>
-                        <strong>@Model.Id</strong>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-1 fw-medium">Xóa vị trí này</p>
+                        <p class="text-muted small mb-0">
+                            Hành động này không thể hoàn tác
+                        </p>
                     </div>
-                    @if (Model.CreatedDate.HasValue)
-                    {
-                        <div class="mb-3">
-                            <small class="text-muted d-block">Ngày tạo</small>
-                            <strong>@Model.CreatedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
-                        </div>
-                    }
-                    @if (Model.UpdatedDate.HasValue)
-                    {
-                        <div>
-                            <small class="text-muted d-block">Cập nhật lần cuối</small>
-                            <strong>@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Danger Zone -->
-            <div class="card border-danger mt-3">
-                <div class="card-header bg-danger bg-opacity-10 border-danger">
-                    <h5 class="card-title mb-0 text-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>Vùng nguy hiểm
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">Các thao tác không thể hoàn tác</p>
-                    <a asp-action="Delete" asp-route-id="@Model.Id"
-                       class="btn btn-outline-danger btn-sm w-100"
-                       onclick="return confirm('Bạn có chắc chắn muốn xóa vị trí này?');">
-                        <i class="bi bi-trash me-1"></i>Xóa vị trí này
-                    </a>
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            data-entity-id="@Model.Id"
+                            data-entity-name="@Model.Name">
+                        <i class="bi bi-trash me-1"></i>
+                        Xóa vị trí
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-</form>
+</div>
+
+@* ==================== Delete Modal ==================== *@
+<partial name="_DeleteModal" model="deleteModal" />
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            FarmApp.UI.initTooltips();
+        });
+    </script>
 }
+
+<style>
+    .form-section-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-bottom: 2px solid var(--bs-primary);
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .bg-primary-subtle {
+        background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+</style>

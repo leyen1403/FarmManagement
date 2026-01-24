@@ -1,0 +1,85 @@
+﻿@*
+    _EmptyState.cshtml
+    Partial view hiển thị khi không có dữ liệu
+    Sử dụng: @await Html.PartialAsync("_EmptyState", model)
+*@
+
+@model EmptyStateModel
+
+<div class="empty-state text-center py-5 @Model.CssClass">
+    <div class="empty-state-content">
+ @* Icon hoặc Image *@
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+   {
+<div class="empty-state-image mb-4">
+          <img src="@Model.ImageUrl" 
+     alt="@(Model.ImageAlt ?? Model.Title)" 
+  style="max-width: @Model.ImageWidth;"
+  class="img-fluid" />
+  </div>
+      }
+        else
+        {
+   <div class="empty-state-icon mb-3">
+        <i class="@Model.Icon @Model.IconColorClass" style="font-size: @Model.IconSize;"></i>
+    </div>
+        }
+
+        @* Title *@
+        <h5 class="empty-state-title mb-2">@Model.Title</h5>
+
+        @* Description *@
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+     <p class="empty-state-description text-muted mb-4">@Model.Description</p>
+      }
+
+  @* Actions *@
+     @if (Model.PrimaryAction != null || Model.SecondaryAction != null)
+  {
+   <div class="empty-state-actions d-flex justify-content-center gap-2">
+    @if (Model.SecondaryAction != null)
+   {
+        @await Html.PartialAsync("_ActionButton", Model.SecondaryAction)
+     }
+     @if (Model.PrimaryAction != null)
+   {
+       @await Html.PartialAsync("_ActionButton", Model.PrimaryAction)
+      }
+    </div>
+     }
+    </div>
+</div>
+
+<style>
+    .empty-state {
+padding: 3rem 1rem;
+    }
+
+    .empty-state-content {
+      max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .empty-state-icon {
+      opacity: 0.6;
+    }
+
+    .empty-state-title {
+        color: var(--bs-dark);
+        font-weight: 600;
+    }
+
+    .empty-state-description {
+        font-size: 0.9375rem;
+    }
+
+    /* Variants based on type */
+    .empty-state.empty-state-error .empty-state-icon {
+      opacity: 0.8;
+    }
+
+    .empty-state.empty-state-no-permission .empty-state-icon {
+      opacity: 0.8;
+    }
+</style>

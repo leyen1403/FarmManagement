@@ -19,7 +19,7 @@ public class LivestockCareLogApiService
     }
 
     public async Task<LivestockCareLogDto?> GetByIdAsync(int id)
-  => await _http.GetFromJsonAsync<LivestockCareLogDto>($"api/LivestockCareLogs/{id}");
+        => await _http.GetFromJsonAsync<LivestockCareLogDto>($"api/LivestockCareLogs/{id}");
 
     public async Task<int> CreateAsync(CreateLivestockCareLogDto dto)
     {
@@ -52,8 +52,8 @@ public class LivestockCareLogApiService
 
         var error = await response.Content.ReadFromJsonAsync<ApiErrorResponse>();
         throw new ApiException(
-   error?.Message ?? "Lỗi hệ thống",
-    (int)response.StatusCode
-  );
+            error?.Message ?? "Lỗi hệ thống",
+            (int)response.StatusCode
+        );
     }
 }

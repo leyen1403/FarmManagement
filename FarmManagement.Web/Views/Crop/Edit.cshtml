@@ -3,287 +3,305 @@
 @using FarmManagement.Application.DTOs.Locations
 
 @{
-    ViewData["Title"] = "Sửa cây trồng";
-    ViewData["Breadcrumb"] = "Sửa cây trồng";
+    ViewData["Title"] = $"Sửa cây trồng: {Model.Name}";
+
+    // Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        new BreadcrumbItem("Cây trồng", "/Crop", "bi bi-flower2"),
+        BreadcrumbItem.Current("Chỉnh sửa")
+    );
 
     var cropTypes = ViewBag.CropTypes as List<CropTypeDto> ?? new List<CropTypeDto>();
     var cropStatuses = ViewBag.CropStatuses as IEnumerable<CropStatusDto> ?? new List<CropStatusDto>();
     var locations = ViewBag.Locations as List<LocationDto> ?? new List<LocationDto>();
     var cropDto = ViewBag.CropDto as CropDto;
+
+    // Page Header
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Chỉnh sửa cây trồng",
+        Subtitle = $"Cập nhật thông tin cây trồng #{Model.Id}: {Model.Name}",
+        Icon = "bi bi-pencil-square",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            ActionButtonModel.Back("/Crop", "Quay lại"),
+            ActionButtonModel.Details($"/Crop/Details/{Model.Id}", "Xem chi tiết")
+        }
+    };
+
+    // Delete Modal
+    var deleteModal = new DeleteModalModel
+    {
+        ControllerName = "Crop",
+        Title = "Xác nhận xóa cây trồng",
+        Message = $"Bạn có chắc chắn muốn xóa cây trồng \"{Model.Name}\"?",
+        WarningMessage = "Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan (thu hoạch, chăm sóc, chi phí) sẽ bị xóa."
+    };
 }
 
-<div class="page-header mb-4">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a asp-controller="Crop" asp-action="Index">Cây trồng</a>
-            </li>
-            <li class="breadcrumb-item active">Sửa</li>
-        </ol>
-    </nav>
-    <h1 class="page-title">Sửa cây trồng</h1>
-    <p class="page-subtitle">Cập nhật thông tin cây trồng #@Model.Id</p>
-</div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
+@* ==================== Form ==================== *@
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+        <form asp-action="Edit" method="post" data-validate="true">
+            <input type="hidden" asp-for="Id" />
 
-<form asp-action="Edit" method="post">
-    <input type="hidden" asp-for="Id" />
-
-    <div class="row">
-        <div class="col-lg-8">
-            <!-- Thông tin cơ bản -->
-            <div class="card mb-4">
-                <div class="card-header">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-flower2 me-2"></i>Thông tin cơ bản
+                        <i class="bi bi-pencil text-success me-2"></i>Thông tin cây trồng
                     </h5>
+                    <span class="badge bg-success-subtle text-success">ID: @Model.Id</span>
                 </div>
                 <div class="card-body">
+                    @* Validation Summary *@
                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label asp-for="Name" class="form-label">
-                                <i class="bi bi-tag me-1"></i>Tên cây trồng <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="Name" class="form-control" />
-                            <span asp-validation-for="Name" class="text-danger small"></span>
-                        </div>
+                    @* ==================== Section 1: Thông tin cơ bản ==================== *@
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title text-success mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+                        </h6>
 
-                        <div class="col-md-6">
-                            <label asp-for="CropTypeId" class="form-label">
-                                <i class="bi bi-flower1 me-1"></i>Loại cây trồng <span class="text-danger">*</span>
-                            </label>
-                            <select asp-for="CropTypeId" class="form-select">
-                                <option value="">-- Chọn loại cây --</option>
-                                @foreach (var ct in cropTypes)
-                                {
-                                    <option value="@ct.Id">@ct.Name</option>
-                                }
-                            </select>
-                            <span asp-validation-for="CropTypeId" class="text-danger small"></span>
-                        </div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Name" class="form-label">
+                                    Tên cây trồng <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-flower2"></i></span>
+                                    <input asp-for="Name" class="form-control" required />
+                                </div>
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="LocationId" class="form-label">
-                                <i class="bi bi-geo-alt me-1"></i>Vị trí trồng <span class="text-danger">*</span>
-                            </label>
-                            <select asp-for="LocationId" class="form-select">
-                                <option value="">-- Chọn vị trí --</option>
-                                @foreach (var loc in locations)
-                                {
-                                    <option value="@loc.Id">@loc.Name</option>
-                                }
-                            </select>
-                            <span asp-validation-for="LocationId" class="text-danger small"></span>
-                        </div>
+                            <div class="col-md-6">
+                                <label asp-for="CropTypeId" class="form-label">
+                                    Loại cây trồng <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="CropTypeId" class="form-select" required>
+                                    <option value="">-- Chọn loại cây trồng --</option>
+                                    @foreach (var ct in cropTypes)
+                                    {
+                                        <option value="@ct.Id">@ct.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CropTypeId" class="text-danger small"></span>
+                            </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="CropStatusId" class="form-label">
-                                <i class="bi bi-heart-pulse me-1"></i>Trạng thái <span class="text-danger">*</span>
-                            </label>
-                            <select asp-for="CropStatusId" class="form-select">
-                                <option value="">-- Chọn trạng thái --</option>
-                                @foreach (var cs in cropStatuses)
-                                {
-                                    <option value="@cs.Id">@cs.Name</option>
-                                }
-                            </select>
-                            <span asp-validation-for="CropStatusId" class="text-danger small"></span>
-                        </div>
+                            <div class="col-md-6">
+                                <label asp-for="LocationId" class="form-label">
+                                    Vị trí trồng <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="LocationId" class="form-select" required>
+                                    <option value="">-- Chọn vị trí --</option>
+                                    @foreach (var loc in locations)
+                                    {
+                                        <option value="@loc.Id">@loc.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="LocationId" class="text-danger small"></span>
+                            </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="PlantDate" class="form-label">
-                                <i class="bi bi-calendar-event me-1"></i>Ngày trồng <span class="text-danger">*</span>
-                            </label>
-                            <input asp-for="PlantDate" type="date" class="form-control" />
-                            <span asp-validation-for="PlantDate" class="text-danger small"></span>
+                            <div class="col-md-6">
+                                <label asp-for="CropStatusId" class="form-label">
+                                    Trạng thái <span class="text-danger">*</span>
+                                </label>
+                                <select asp-for="CropStatusId" class="form-select" required>
+                                    <option value="">-- Chọn trạng thái --</option>
+                                    @foreach (var cs in cropStatuses)
+                                    {
+                                        <option value="@cs.Id">@cs.Name</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="CropStatusId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PlantDate" class="form-label">
+                                    Ngày trồng <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="PlantDate" type="date" class="form-control" required />
+                                <span asp-validation-for="PlantDate" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    @* ==================== Section 2: Năng suất & Thu hoạch ==================== *@
+                    <div class="form-section mb-4">
+                        <h6 class="form-section-title text-success mb-3">
+                            <i class="bi bi-graph-up me-2"></i>Năng suất & Thu hoạch
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="ExpectedHarvestDate" class="form-label">Ngày dự kiến thu hoạch</label>
+                                <input asp-for="ExpectedHarvestDate" type="date" class="form-control" />
+                                <span asp-validation-for="ExpectedHarvestDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="ActualHarvestDate" class="form-label">Ngày thu hoạch thực tế</label>
+                                <input asp-for="ActualHarvestDate" type="date" class="form-control" />
+                                <span asp-validation-for="ActualHarvestDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="EstimatedYield" class="form-label">Năng suất dự kiến</label>
+                                <input asp-for="EstimatedYield" type="number" step="0.01" min="0" class="form-control" />
+                                <span asp-validation-for="EstimatedYield" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label asp-for="Unit" class="form-label">Đơn vị</label>
+                                <input asp-for="Unit" class="form-control" />
+                                <span asp-validation-for="Unit" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Giá hiện tại</label>
+                                <input type="text" class="form-control" readonly
+                                       value="@(cropDto?.CurrentPrice?.ToString("N0") ?? "Chưa có") VNĐ" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    @* ==================== Section 3: Ghi chú ==================== *@
+                    <div class="form-section">
+                        <h6 class="form-section-title text-success mb-3">
+                            <i class="bi bi-sticky me-2"></i>Ghi chú
+                        </h6>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Note" class="form-label">Ghi chú bổ sung</label>
+                                <textarea asp-for="Note" class="form-control" rows="3"></textarea>
+                                <span asp-validation-for="Note" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @* ==================== Form Actions ==================== *@
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Các trường có dấu <span class="text-danger">*</span> là bắt buộc
+                        </span>
+                        <div class="d-flex gap-2">
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-lg me-1"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-lg me-1"></i>Cập nhật
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
+        </form>
 
-            <!-- Thông tin năng suất & thu hoạch -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-graph-up me-2"></i>Thông tin năng suất & thu hoạch
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label asp-for="ExpectedHarvestDate" class="form-label">
-                                <i class="bi bi-calendar-check me-1"></i>Ngày dự kiến thu hoạch
-                            </label>
-                            <input asp-for="ExpectedHarvestDate" type="date" class="form-control" />
-                            <span asp-validation-for="ExpectedHarvestDate" class="text-danger small"></span>
+        @* ==================== Info Card ==================== *@
+        <div class="card mt-3">
+            <div class="card-header bg-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock-history text-info me-2"></i>Lịch sử
+                </h6>
+            </div>
+            <div class="card-body py-3">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success-subtle text-success rounded p-2">
+                                <i class="bi bi-calendar-plus"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Ngày tạo</small>
+                                <strong>@(cropDto?.CreatedDate.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong>
+                            </div>
                         </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="ActualHarvestDate" class="form-label">
-                                <i class="bi bi-calendar-heart me-1"></i>Ngày thu hoạch thực tế
-                            </label>
-                            <input asp-for="ActualHarvestDate" type="date" class="form-control" />
-                            <span asp-validation-for="ActualHarvestDate" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label asp-for="EstimatedYield" class="form-label">
-                                <i class="bi bi-basket me-1"></i>Năng suất dự kiến
-                            </label>
-                            <input asp-for="EstimatedYield" type="number" step="0.01" class="form-control" />
-                            <span asp-validation-for="EstimatedYield" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label asp-for="Unit" class="form-label">
-                                <i class="bi bi-rulers me-1"></i>Đơn vị
-                            </label>
-                            <input asp-for="Unit" class="form-control" />
-                            <span asp-validation-for="Unit" class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">
-                                <i class="bi bi-currency-dollar me-1"></i>Giá hiện tại
-                            </label>
-                            <input type="text" class="form-control" readonly
-                                   value="@(cropDto?.CurrentPrice?.ToString("N0") ?? "Chưa có") VNĐ" />
-                        </div>
-
-                        <div class="col-12">
-                            <label asp-for="Note" class="form-label">
-                                <i class="bi bi-sticky me-1"></i>Ghi chú
-                            </label>
-                            <textarea asp-for="Note" class="form-control" rows="3"></textarea>
-                            <span asp-validation-for="Note" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-info-subtle text-info rounded p-2">
+                                <i class="bi bi-calendar-check"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Cập nhật lần cuối</small>
+                                <strong>@(cropDto?.UpdatedDate?.ToString("dd/MM/yyyy HH:mm") ?? "—")</strong>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <!-- Thao tác -->
-            <div class="card sticky-top" style="top: 80px;">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-lightning-charge me-2"></i>Thao tác
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Cập nhật
-                        </button>
-                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info">
-                            <i class="bi bi-eye me-1"></i>Xem chi tiết
-                        </a>
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-lg me-1"></i>Hủy
-                        </a>
-                    </div>
-                </div>
+        @* ==================== Danger Zone ==================== *@
+        <div class="card mt-3 border-danger">
+            <div class="card-header bg-danger-subtle border-danger">
+                <h6 class="mb-0 text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Vùng nguy hiểm
+                </h6>
             </div>
-
-            <!-- Thông tin -->
-            <div class="card mt-3">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="bi bi-info-circle me-2"></i>Thông tin
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <small class="text-muted d-block">ID</small>
-                        <strong>@Model.Id</strong>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-1 fw-medium">Xóa cây trồng này</p>
+                        <p class="text-muted small mb-0">Hành động này không thể hoàn tác</p>
                     </div>
-                    @if (cropDto?.CreatedDate != null)
-                    {
-                        <div class="mb-3">
-                            <small class="text-muted d-block">Ngày tạo</small>
-                            <strong>@cropDto.CreatedDate.ToString("dd/MM/yyyy HH:mm")</strong>
-                        </div>
-                    }
-                    @if (cropDto?.UpdatedDate != null)
-                    {
-                        <div>
-                            <small class="text-muted d-block">Cập nhật lần cuối</small>
-                            <strong>@cropDto.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <!-- Vùng nguy hiểm -->
-            <div class="card border-danger mt-3">
-                <div class="card-header bg-danger bg-opacity-10 border-danger">
-                    <h5 class="card-title mb-0 text-danger">
-                        <i class="bi bi-exclamation-triangle me-2"></i>Vùng nguy hiểm
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <p class="small text-muted mb-3">Các thao tác không thể hoàn tác</p>
-                    <button type="button" class="btn btn-outline-danger btn-sm w-100"
-                            onclick="confirmDelete(@Model.Id, '@Model.Name')">
-                        <i class="bi bi-trash me-1"></i>Xóa cây trồng này
+                    <button type="button" class="btn btn-outline-danger btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal"
+                            data-entity-id="@Model.Id"
+                            data-entity-name="@Model.Name">
+                        <i class="bi bi-trash me-1"></i>Xóa cây trồng
                     </button>
                 </div>
             </div>
         </div>
     </div>
-</form>
-
-<!-- Delete Form (hidden) -->
-<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
-    @Html.AntiForgeryToken()
-    <input type="hidden" name="id" id="deleteId" />
-</form>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa cây trồng <strong id="deleteItemName"></strong>?</p>
-                <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" onclick="submitDelete()">
-                    <i class="bi bi-trash me-1"></i>Xóa
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
+
+@* ==================== Delete Modal ==================== *@
+<partial name="_DeleteModal" model="deleteModal" />
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/modules/form-helper.js"></script>
     <script>
-              function confirmDelete(id, name) {
-                document.getElementById('deleteItemName').textContent = name;
-                  document.getElementById('deleteId').value = id;
-          new bootstrap.Modal(document.getElementById('deleteModal')).show();
-           }
-
-        function submitDelete() {
-                  document.getElementById('deleteForm').submit();
-              }
+        document.addEventListener('DOMContentLoaded', function () {
+            FarmApp.UI.initTooltips();
+        });
     </script>
 }
+
+<style>
+    .form-section-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        border-bottom: 2px solid var(--bs-success);
+        padding-bottom: 0.5rem;
+        display: inline-block;
+    }
+
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+</style>

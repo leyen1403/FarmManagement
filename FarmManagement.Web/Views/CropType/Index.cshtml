@@ -1,189 +1,220 @@
 ﻿@model List<FarmManagement.Application.DTOs.Crops.CropTypeDto>
 
 @{
-    ViewData["Title"] = "Loại cây trồng";
-    ViewData["Breadcrumb"] = "Loại cây trồng";
+    ViewData["Title"] = "Quản lý loại cây trồng";
+
+    // Cấu hình Breadcrumbs
+    ViewData.SetBreadcrumbs(
+        BreadcrumbItem.Home(),
+        BreadcrumbItem.Current("Loại cây trồng", "bi bi-flower1")
+    );
+
+    var totalCount = Model.Count;
+    var activeCount = Model.Count(x => x.IsActive);
+    var inactiveCount = Model.Count(x => !x.IsActive);
+
+    // Cấu hình Page Header Component
+    var pageHeader = new PageHeaderModel
+    {
+        Title = "Quản lý loại cây trồng",
+        Subtitle = "Danh sách các loại cây trồng trong hệ thống",
+        Icon = "bi bi-flower1",
+        ShowBreadcrumb = false,
+        Actions = new List<ActionButtonModel>
+        {
+            ActionButtonModel.Create("/CropType/Create", "Thêm mới")
+        }
+    };
+
+    // Cấu hình Stats Cards
+    var statsCards = new List<StatsCardModel>
+    {
+        new StatsCardModel
+        {
+            Value = totalCount.ToString(),
+            Label = "Tổng số",
+            Icon = "bi bi-flower1",
+            IconBackgroundClass = "bg-success-subtle",
+            ColorClass = "text-success"
+        },
+        new StatsCardModel
+        {
+            Value = activeCount.ToString(),
+            Label = "Đang hoạt động",
+            Icon = "bi bi-check-circle",
+            IconBackgroundClass = "bg-success-subtle",
+            ColorClass = "text-success"
+        },
+        new StatsCardModel
+        {
+            Value = inactiveCount.ToString(),
+            Label = "Không hoạt động",
+            Icon = "bi bi-x-circle",
+            IconBackgroundClass = "bg-secondary-subtle",
+            ColorClass = "text-secondary"
+        }
+    };
+
+    // Cấu hình Delete Modal
+    var deleteModal = DeleteModalModel.ForEntity("loại cây trồng", "CropType");
 }
 
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h1 class="page-title">Loại cây trồng</h1>
-        <p class="page-subtitle mb-0">Quản lý các loại cây trồng trong hệ thống</p>
-    </div>
-    <div class="page-actions">
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i> Thêm mới
-        </a>
-    </div>
+@* ==================== Page Header ==================== *@
+<partial name="_PageHeader" model="pageHeader" />
+
+@* ==================== Stats Cards ==================== *@
+<div class="mb-4">
+    <partial name="_StatsCards" model="statsCards" />
 </div>
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle me-2"></i>
-        @TempData["Error"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-}
-
-<div class="table-container">
-    <div class="table-toolbar">
-        <div class="table-search">
-            <i class="bi bi-search"></i>
-            <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm loại cây...">
+@* ==================== Main Data Table ==================== *@
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <div class="d-flex align-items-center gap-2">
+            <h6 class="card-title mb-0 fw-semibold text-dark">
+                <i class="bi bi-list-ul text-success me-2"></i>Danh sách loại cây trồng
+            </h6>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2">@totalCount bản ghi</span>
         </div>
-        <div class="d-flex gap-2">
-            <span class="badge bg-secondary">Tổng: @Model.Count</span>
-            <span class="badge badge-active">Hoạt động: @Model.Count(x => x.IsActive)</span>
-            <span class="badge badge-inactive">Không hoạt động: @Model.Count(x => !x.IsActive)</span>
+
+        <div class="d-flex align-items-center gap-2">
+            <div class="input-group input-group-sm" style="width: 280px;">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0 bg-light" id="quickSearch" placeholder="Tìm tên, mã loại cây...">
+            </div>
         </div>
     </div>
 
     @if (Model.Any())
     {
-        <table class="table data-table mb-0" id="dataTable">
-            <thead>
-                <tr>
-                    <th width="60">#</th>
-                    <th>Mã</th>
-                    <th>Tên loại cây</th>
-                    <th>Mô tả</th>
-                    <th width="120">Trạng thái</th>
-                    <th width="180">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="dataTable">
+                <thead class="table-light text-secondary small uppercase fw-bold">
                     <tr>
-                        <td class="text-muted">@item.Id</td>
-                        <td>
-                            <code class="bg-light px-2 py-1 rounded">@item.Code</code>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="bg-success bg-opacity-10 text-success rounded p-2 me-2">
-                                    <i class="bi bi-flower1"></i>
-                                </div>
-                                <span class="fw-medium">@item.Name</span>
-                            </div>
-                        </td>
-                        <td class="text-muted text-truncate-2" style="max-width: 200px;">
-                            @(item.Description ?? "-")
-                        </td>
-                        <td>
-                            @if (item.IsActive)
-                            {
-                                <span class="badge badge-status badge-active">
-                                    <i class="bi bi-check-circle me-1"></i>Hoạt động
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="badge badge-status badge-inactive">
-                                    <i class="bi bi-x-circle me-1"></i>Tắt
-                                </span>
-                            }
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <a asp-action="Edit" asp-route-id="@item.Id"
-                                   class="btn btn-sm btn-outline-primary" title="Sửa">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline">
-                                    <button type="submit"
-                                            class="btn btn-sm @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")"
-                                            title="@(item.IsActive ? "Tắt" : "Bật")">
-                                        <i class="bi @(item.IsActive ? "bi-toggle-off" : "bi-toggle-on")"></i>
-                                    </button>
-                                </form>
-                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                        title="Xóa"
-                                        onclick="confirmDelete(@item.Id, '@item.Name')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
+                        <th width="60" class="text-center ps-3">#</th>
+                        <th width="120">Mã định danh</th>
+                        <th>Tên loại cây</th>
+                        <th>Mô tả</th>
+                        <th width="140" class="text-center">Trạng thái</th>
+                        <th width="160" class="text-center pe-3">Thao tác</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @{
+                        var index = 0;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        index++;
+                        <tr>
+                            <td class="text-center text-muted small ps-3">@index</td>
+                            <td>
+                                <code class="bg-light px-2 py-1 rounded text-primary fw-medium small">@item.Code</code>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width: 38px; height: 38px;">
+                                        <i class="bi bi-flower1"></i>
+                                    </div>
+                                    <span class="fw-semibold text-dark">@item.Name</span>
+                                </div>
+                            </td>
+                            <td class="text-muted small">
+                                <div class="text-truncate" style="max-width: 250px;" title="@item.Description">
+                                    @(item.Description ?? "—")
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                                        <i class="bi bi-check-circle me-1"></i>Hoạt động
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">
+                                        <i class="bi bi-x-circle me-1"></i>Đã tắt
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-center pe-3">
+                                <div class="btn-group shadow-sm">
+                                    <a asp-action="Edit" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-primary" title="Chỉnh sửa thông tin">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    <form asp-action="ToggleActive" asp-route-id="@item.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-sm @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                                title="@(item.IsActive ? "Ngừng kích hoạt" : "Kích hoạt")">
+                                            <i class="bi @(item.IsActive ? "bi-toggle-off" : "bi-toggle-on")"></i>
+                                        </button>
+                                    </form>
+
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            title="Xóa vĩnh viễn"
+                                            onclick="FarmApp.UI.confirmDelete(@item.Id, '@item.Name')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     }
     else
     {
-        <div class="empty-state">
-            <div class="empty-state-icon">
-                <i class="bi bi-flower1"></i>
-            </div>
-            <div class="empty-state-title">Chưa có loại cây trồng</div>
-            <p class="text-muted">Bắt đầu bằng cách thêm loại cây trồng đầu tiên</p>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-1"></i> Thêm mới
-            </a>
+        <div class="py-5">
+            <partial name="_EmptyState" model="@(EmptyStateModel.NoData("loại cây trồng", "/CropType/Create"))" />
         </div>
     }
 </div>
 
-<!-- Delete Form (hidden) -->
-<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
-    <input type="hidden" name="id" id="deleteId" />
-</form>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Bạn có chắc chắn muốn xóa loại cây <strong id="deleteItemName"></strong>?</p>
-                <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-danger" onclick="submitDelete()">
-                    <i class="bi bi-trash me-1"></i>Xóa
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+@* ==================== Modals ==================== *@
+<partial name="_DeleteModal" model="deleteModal" />
 
 @section Scripts {
     <script>
-           // Search functionality
-           document.getElementById('searchInput').addEventListener('keyup', function() {
-               const filter = this.value.toLowerCase();
-             const rows = document.querySelectorAll('#dataTable tbody tr');
-               rows.forEach(row => {
-               const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-               });
-           });
+        document.addEventListener('DOMContentLoaded', function () {
+            // Khởi tạo tính năng tìm kiếm và sắp xếp cho DataTable
+            if (document.getElementById('dataTable')) {
+                FarmApp.DataTable.init('#dataTable', {
+                    searchInput: '#quickSearch',
+                    sortable: true,
+                    highlightMatches: true,
+                    searchableColumns: [1, 2, 3] // Tìm theo Mã, Tên và Mô tả
+                });
+            }
 
-           // Delete confirmation
-           function confirmDelete(id, name) {
-               document.getElementById('deleteItemName').textContent = name;
-        document.getElementById('deleteId').value = id;
-               new bootstrap.Modal(document.getElementById('deleteModal')).show();
-           }
-
-           function submitDelete() {
-               document.getElementById('deleteForm').submit();
-           }
+            // Khởi tạo tooltips từ Bootstrap
+            FarmApp.UI.initTooltips();
+        });
     </script>
 }
+
+<style>
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.08) !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: rgba(108, 117, 125, 0.08) !important;
+    }
+
+    /* Hiệu ứng hover cho bảng */
+    .table-hover tbody tr:hover {
+        background-color: rgba(25, 135, 84, 0.02);
+        transition: background-color 0.2s ease;
+    }
+
+    /* Style cho các nút trong nhóm */
+    .btn-group-sm > .btn {
+        padding: 0.4rem 0.6rem;
+    }
+</style>

@@ -1,79 +1,83 @@
 ﻿@model int
 @* Model = CropId để redirect về sau khi tạo *@
 
-<!-- Modal thêm loại chi phí mới -->
 <div class="modal fade" id="addCostTypeModal" tabindex="-1">
     <div class="modal-dialog">
-    <div class="modal-content">
-         <form asp-controller="Crop" asp-action="CreateCostType" method="post">
-       @Html.AntiForgeryToken()
-       <input type="hidden" name="cropId" value="@Model" />
-       <div class="modal-header bg-success bg-opacity-10">
-               <h5 class="modal-title text-success">
-              <i class="bi bi-plus-circle me-2"></i>Thêm loại chi phí mới
-          </h5>
-     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-       <div class="modal-body">
-             <div class="mb-3">
-        <label class="form-label">Mã loại chi phí <span class="text-danger">*</span></label>
-              <input type="text" name="Code" class="form-control" required placeholder="VD: LABOR, SEED...">
-       <div class="form-text">Mã ngắn gọn để phân biệt loại chi phí</div>
-     </div>
-             <div class="mb-3">
-    <label class="form-label">Tên loại chi phí <span class="text-danger">*</span></label>
-       <input type="text" name="Name" class="form-control" required placeholder="VD: Nhân công, Giống...">
-        </div>
-        <div class="mb-3">
-         <label class="form-label">Mô tả</label>
-     <textarea name="Description" class="form-control" rows="2" placeholder="Mô tả chi tiết về loại chi phí..."></textarea>
-           </div>
-    </div>
-        <div class="modal-footer">
-         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-  <button type="submit" class="btn btn-success">
-             <i class="bi bi-check-lg me-1"></i>Thêm loại chi phí
-               </button>
-   </div>
- </form>
+        <div class="modal-content">
+            <form asp-controller="Crop" asp-action="CreateCostType" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="cropId" value="@Model" />
+
+                <div class="modal-header bg-success bg-opacity-10">
+                    <h5 class="modal-title text-success">
+                        <i class="bi bi-plus-circle me-2"></i>Thêm loại chi phí mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã loại chi phí <span class="text-danger">*</span></label>
+                        <input type="text" name="Code" class="form-control" required placeholder="VD: LABOR, SEED...">
+                        <div class="form-text">Mã ngắn gọn để phân biệt loại chi phí</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên loại chi phí <span class="text-danger">*</span></label>
+                        <input type="text" name="Name" class="form-control" required placeholder="VD: Nhân công, Giống...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea name="Description" class="form-control" rows="2" placeholder="Mô tả chi tiết về loại chi phí..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Thêm loại chi phí
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Modal thêm loại chăm sóc mới -->
 <div class="modal fade" id="addCropCareTypeModal" tabindex="-1">
     <div class="modal-dialog">
- <div class="modal-content">
+        <div class="modal-content">
             <form asp-controller="Crop" asp-action="CreateCropCareType" method="post">
- @Html.AntiForgeryToken()
- <input type="hidden" name="cropId" value="@Model" />
-    <div class="modal-header bg-info bg-opacity-10">
-   <h5 class="modal-title text-info">
-         <i class="bi bi-plus-circle me-2"></i>Thêm loại chăm sóc mới
-            </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-       </div>
-      <div class="modal-body">
-    <div class="mb-3">
-    <label class="form-label">Mã loại chăm sóc <span class="text-danger">*</span></label>
-   <input type="text" name="Code" class="form-control" required placeholder="VD: WATER, FERT...">
-     <div class="form-text">Mã ngắn gọn để phân biệt loại chăm sóc</div>
-         </div>
-        <div class="mb-3">
-     <label class="form-label">Tên loại chăm sóc <span class="text-danger">*</span></label>
-     <input type="text" name="Name" class="form-control" required placeholder="VD: Tưới nước, Bón phân...">
-   </div>
-  <div class="mb-3">
-    <label class="form-label">Mô tả</label>
-     <textarea name="Description" class="form-control" rows="2" placeholder="Mô tả chi tiết về loại chăm sóc..."></textarea>
-          </div>
-  </div>
-        <div class="modal-footer">
-         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-    <button type="submit" class="btn btn-info">
-     <i class="bi bi-check-lg me-1"></i>Thêm loại chăm sóc
-            </button>
-             </div>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="cropId" value="@Model" />
+
+                <div class="modal-header bg-info bg-opacity-10">
+                    <h5 class="modal-title text-info">
+                        <i class="bi bi-plus-circle me-2"></i>Thêm loại chăm sóc mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã loại chăm sóc <span class="text-danger">*</span></label>
+                        <input type="text" name="Code" class="form-control" required placeholder="VD: WATER, FERT...">
+                        <div class="form-text">Mã ngắn gọn để phân biệt loại chăm sóc</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên loại chăm sóc <span class="text-danger">*</span></label>
+                        <input type="text" name="Name" class="form-control" required placeholder="VD: Tưới nước, Bón phân...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea name="Description" class="form-control" rows="2" placeholder="Mô tả chi tiết về loại chăm sóc..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="bi bi-check-lg me-1"></i>Thêm loại chăm sóc
+                    </button>
+                </div>
             </form>
         </div>
     </div>
