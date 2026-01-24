@@ -44,6 +44,6 @@ namespace FarmManagement.Application.Interfaces.Locations
         /// Xóa Location theo ID.
         /// </summary>
         /// <param name="id">ID của Location cần xóa.</param>
-     Task DeleteAsync(int id);
+        Task DeleteAsync(int id);
     }
 }

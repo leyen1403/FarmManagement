@@ -1,0 +1,364 @@
+﻿@model List<FarmManagement.Application.DTOs.Livestocks.LivestockDto>
+@using FarmManagement.Application.DTOs.Livestocks
+@using FarmManagement.Application.DTOs.Locations
+
+@{
+    ViewData["Title"] = "Quản lý vật nuôi";
+    ViewData["Breadcrumb"] = "Vật nuôi";
+
+    var livestockTypes = ViewBag.LivestockTypes as List<LivestockTypeDto> ?? new List<LivestockTypeDto>();
+    var livestockStatuses = ViewBag.LivestockStatuses as List<LivestockStatusDto> ?? new List<LivestockStatusDto>();
+    var locations = ViewBag.Locations as List<LocationDto> ?? new List<LocationDto>();
+
+    int? selectedLivestockTypeId = ViewBag.SelectedLivestockTypeId;
+    int? selectedLivestockStatusId = ViewBag.SelectedLivestockStatusId;
+    int? selectedLocationId = ViewBag.SelectedLocationId;
+
+    // Calculate totals
+    var totalQuantity = Model.Sum(x => x.Quantity);
+    var totalMale = Model.Sum(x => x.MaleCount);
+    var totalFemale = Model.Sum(x => x.FemaleCount);
+    var totalWeight = Model.Sum(x => x.TotalImportWeight);
+    var totalPrice = Model.Sum(x => x.TotalImportPrice);
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">Quản lý vật nuôi</h1>
+        <p class="page-subtitle mb-0">Theo dõi và quản lý vật nuôi trong trang trại</p>
+    </div>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Thêm vật nuôi
+        </a>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@totalQuantity.ToString("N0")</div>
+                    <div class="stats-card-label">Tổng số con</div>
+                    <small class="text-muted">
+                        <i class="bi bi-gender-male text-primary"></i> @totalMale đực |
+                        <i class="bi bi-gender-female text-danger"></i> @totalFemale cái
+                    </small>
+                </div>
+                <div class="stats-card-icon primary">
+                    <i class="bi bi-bug"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@Model.Count</div>
+                    <div class="stats-card-label">Đàn/Lô vật nuôi</div>
+                </div>
+                <div class="stats-card-icon info">
+                    <i class="bi bi-collection"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@totalWeight.ToString("N0")</div>
+                    <div class="stats-card-label">Tổng trọng lượng (kg)</div>
+                </div>
+                <div class="stats-card-icon success">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@totalPrice.ToString("N0")</div>
+                    <div class="stats-card-label">Tổng giá trị (VNĐ)</div>
+                </div>
+                <div class="stats-card-icon warning">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Card -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-funnel me-2"></i>Bộ lọc
+        </h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Index" method="get">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Loại vật nuôi</label>
+                    <select name="livestockTypeId" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        @foreach (var lt in livestockTypes)
+                        {
+                            <option value="@lt.Id" selected="@(selectedLivestockTypeId == lt.Id)">@lt.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="livestockStatusId" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        @foreach (var ls in livestockStatuses)
+                        {
+                            <option value="@ls.Id" selected="@(selectedLivestockStatusId == ls.Id)">@ls.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Vị trí</label>
+                    <select name="locationId" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        @foreach (var loc in locations)
+                        {
+                            <option value="@loc.Id" selected="@(selectedLocationId == loc.Id)">@loc.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search me-1"></i>Lọc
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i>Xóa lọc
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="table-container">
+    <div class="table-toolbar">
+        <div class="table-search">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" id="searchInput" placeholder="Tìm kiếm vật nuôi...">
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-secondary">Hiển thị: @Model.Count lô</span>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table data-table mb-0" id="dataTable">
+                <thead>
+                    <tr>
+                        <th width="50">#</th>
+                        <th>Tên/Mã thẻ</th>
+                        <th>Loại</th>
+                        <th>Số lượng</th>
+                        <th>Vị trí</th>
+                        <th>Ngày nhập</th>
+                        <th>Trọng lượng</th>
+                        <th>Giá trị</th>
+                        <th>Trạng thái</th>
+                        <th width="150">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="text-muted">@item.Id</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 text-primary rounded p-2 me-2">
+                                        <i class="bi bi-bug"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-medium">@(item.Name ?? item.TagCode ?? $"VN-{item.Id:D4}")</span>
+                                        @if (!string.IsNullOrEmpty(item.TagCode) && !string.IsNullOrEmpty(item.Name))
+                                        {
+                                            <small class="d-block text-muted">Mã: @item.TagCode</small>
+                                        }
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info bg-opacity-10 text-info">
+                                    @item.LivestockTypeName
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    <span class="fw-medium">@item.Quantity con</span>
+                                    @if (item.MaleCount > 0 || item.FemaleCount > 0)
+                                    {
+                                        <small class="d-block text-muted">
+                                            <i class="bi bi-gender-male text-primary"></i> @item.MaleCount |
+                                            <i class="bi bi-gender-female text-danger"></i> @item.FemaleCount
+                                        </small>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <i class="bi bi-geo-alt text-muted me-1"></i>
+                                @item.LocationName
+                            </td>
+                            <td>
+                                <i class="bi bi-calendar3 text-muted me-1"></i>
+                                @item.ImportDate.ToString("dd/MM/yyyy")
+                            </td>
+                            <td>
+                                <div>
+                                    <span class="fw-medium">@item.TotalImportWeight.ToString("N1") kg</span>
+                                    @if (item.Quantity > 1)
+                                    {
+                                        <small class="d-block text-muted">~@item.ImportWeight.ToString("N1") kg/con</small>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <span class="fw-medium text-success">@item.TotalImportPrice.ToString("N0")₫</span>
+                                    @if (item.Quantity > 1)
+                                    {
+                                        <small class="d-block text-muted">~@item.ImportPrice.ToString("N0")₫/con</small>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                @{
+                                    var statusClass = item.LivestockStatusName switch
+                                    {
+                                        var s when s?.Contains("nuôi") == true => "badge-active",
+                                        var s when s?.Contains("Bán") == true => "bg-warning text-dark",
+                                        var s when s?.Contains("Chết") == true || s?.Contains("mổ") == true => "bg-danger",
+                                        var s when s?.Contains("Bệnh") == true || s?.Contains("Cách ly") == true => "bg-warning text-dark",
+                                        _ => "badge-inactive"
+                                    };
+                                }
+                                <span class="badge badge-status @statusClass">
+                                    @item.LivestockStatusName
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a asp-action="Details" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-info" title="Chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.Id"
+                                       class="btn btn-sm btn-outline-primary" title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                            title="Xóa"
+                                            onclick="confirmDelete(@item.Id, '@(item.Name ?? item.TagCode ?? $"VN-{item.Id:D4}")')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-bug"></i>
+            </div>
+            <div class="empty-state-title">Chưa có vật nuôi</div>
+            <p class="text-muted">Bắt đầu bằng cách thêm vật nuôi đầu tiên</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i> Thêm vật nuôi
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Delete Form (hidden) -->
+<form id="deleteForm" asp-action="Delete" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" id="deleteId" />
+</form>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle text-danger me-2"></i>Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa vật nuôi <strong id="deleteItemName"></strong>?</p>
+                <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="submitDelete()">
+                    <i class="bi bi-trash me-1"></i>Xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+              document.getElementById('searchInput').addEventListener('keyup', function() {
+                  const filter = this.value.toLowerCase();
+           const rows = document.querySelectorAll('#dataTable tbody tr');
+                  rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(filter) ? '' : 'none';
+            });
+              });
+
+              function confirmDelete(id, name) {
+        document.getElementById('deleteItemName').textContent = name;
+         document.getElementById('deleteId').value = id;
+         new bootstrap.Modal(document.getElementById('deleteModal')).show();
+              }
+
+              function submitDelete() {
+                  document.getElementById('deleteForm').submit();
+            }
+    </script>
+}

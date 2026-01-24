@@ -479,34 +479,34 @@ namespace FarmManagement.Infrastructure.Migrations
                         {
                             Id = 1,
                             Code = "PLANTED",
-                            CreatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 436, DateTimeKind.Utc).AddTicks(5027),
+                            CreatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 533, DateTimeKind.Utc).AddTicks(770),
                             Description = "Cây đang trong giai đoạn sinh trưởng",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Đang trồng",
-                            UpdatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 436, DateTimeKind.Utc).AddTicks(5032)
+                            UpdatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 533, DateTimeKind.Utc).AddTicks(776)
                         },
                         new
                         {
                             Id = 2,
                             Code = "HARVESTED",
-                            CreatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 436, DateTimeKind.Utc).AddTicks(5040),
+                            CreatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 533, DateTimeKind.Utc).AddTicks(784),
                             Description = "Cây đã thu hoạch",
                             IsActive = true,
                             IsDeleted = false,
                             Name = "Đã thu hoạch",
-                            UpdatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 436, DateTimeKind.Utc).AddTicks(5041)
+                            UpdatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 533, DateTimeKind.Utc).AddTicks(784)
                         },
                         new
                         {
                             Id = 3,
                             Code = "INACTIVE",
-                            CreatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 436, DateTimeKind.Utc).AddTicks(5043),
+                            CreatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 533, DateTimeKind.Utc).AddTicks(787),
                             Description = "Trạng thái không còn sử dụng",
                             IsActive = false,
                             IsDeleted = false,
                             Name = "Ngừng hoạt động",
-                            UpdatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 436, DateTimeKind.Utc).AddTicks(5043)
+                            UpdatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 533, DateTimeKind.Utc).AddTicks(788)
                         });
                 });
 
@@ -569,13 +569,20 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.Property<DateTime?>("DeletedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("FemaleCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTime>("ImportDate")
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("ImportPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<decimal>("ImportWeight")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<bool>("IsDeleted")
@@ -590,13 +597,35 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
+                    b.Property<int>("MaleCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<string>("Note")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("Quantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("TagCode")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("TotalImportPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalImportWeight")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
@@ -622,6 +651,7 @@ namespace FarmManagement.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Cost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("LivestockCareTypeId")
@@ -631,15 +661,16 @@ namespace FarmManagement.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<decimal>("Quantity")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("Unit")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -660,17 +691,67 @@ namespace FarmManagement.Infrastructure.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
                     b.ToTable("LivestockCareTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "FEED",
+                            Name = "Cho ăn"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "VACCINE",
+                            Name = "Tiêm vaccine"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "MEDICINE",
+                            Name = "Cho uống thuốc"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "CLEAN",
+                            Name = "Vệ sinh"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "WEIGH",
+                            Name = "Cân trọng lượng"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "CHECKUP",
+                            Name = "Khám sức khỏe"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "DEWORMING",
+                            Name = "Tẩy giun"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Code = "MOVE",
+                            Name = "Di chuyển"
+                        });
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockHealthLog", b =>
@@ -691,19 +772,20 @@ namespace FarmManagement.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("MedicineCost")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("Symptom")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Treatment")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("VetName")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -724,17 +806,107 @@ namespace FarmManagement.Infrastructure.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
                     b.ToTable("LivestockHealthStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "HEALTHY",
+                            Name = "Khỏe mạnh"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "SICK",
+                            Name = "Ốm/Bệnh"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "RECOVERING",
+                            Name = "Đang hồi phục"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "WEAK",
+                            Name = "Yếu"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "PREGNANT",
+                            Name = "Mang thai"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "NURSING",
+                            Name = "Đang cho con bú"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "INJURED",
+                            Name = "Bị thương"
+                        });
+                });
+
+            modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockPrice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EffectiveFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("LivestockId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LivestockId", "Gender", "EffectiveFrom");
+
+                    b.ToTable("LivestockPrice");
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockSale", b =>
@@ -746,15 +918,26 @@ namespace FarmManagement.Infrastructure.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Buyer")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("BuyerPhone")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("LivestockId")
                         .HasColumnType("int");
 
                     b.Property<string>("Note")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("OrderCode")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("SaleDate")
                         .HasColumnType("datetime2");
@@ -762,22 +945,90 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.Property<int>("SaleTypeId")
                         .HasColumnType("int");
 
+                    b.Property<int>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(10,2)");
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<int>("TotalQuantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
-                    b.Property<decimal>("Weight")
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<decimal>("TotalWeight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.HasKey("Id");
 
                     b.HasIndex("LivestockId");
 
+                    b.HasIndex("OrderCode")
+                        .IsUnique()
+                        .HasFilter("[OrderCode] IS NOT NULL");
+
+                    b.HasIndex("SaleDate");
+
                     b.HasIndex("SaleTypeId");
 
                     b.ToTable("LivestockSales");
+                });
+
+            modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockSaleDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LineNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("LivestockSaleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Quantity")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("Weight")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LivestockSaleId", "LineNumber");
+
+                    b.ToTable("LivestockSaleDetails");
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockStatus", b =>
@@ -813,6 +1064,71 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("LivestockStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "RAISING",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Name = "Đang nuôi",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "SOLD",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Name = "Đã bán",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "BREEDING",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Name = "Đang sinh sản",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "SICK",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Name = "Đang bệnh",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "QUARANTINE",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Name = "Cách ly",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "DEAD",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Name = "Đã chết",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "SLAUGHTERED",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsDeleted = false,
+                            Name = "Đã giết mổ",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockType", b =>
@@ -852,6 +1168,78 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("LivestockTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "PIG",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Heo thịt, heo nái, heo giống",
+                            IsDeleted = false,
+                            Name = "Heo",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "COW",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Bò thịt, bò sữa, bò giống",
+                            IsDeleted = false,
+                            Name = "Bò",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "CHICKEN",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Gà thịt, gà đẻ, gà giống",
+                            IsDeleted = false,
+                            Name = "Gà",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "DUCK",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Vịt thịt, vịt đẻ",
+                            IsDeleted = false,
+                            Name = "Vịt",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "GOAT",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Dê thịt, dê sữa",
+                            IsDeleted = false,
+                            Name = "Dê",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Code = "SHEEP",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Cừu lấy lông, cừu thịt",
+                            IsDeleted = false,
+                            Name = "Cừu",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Code = "FISH",
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Cá nuôi ao, hồ, bè",
+                            IsDeleted = false,
+                            Name = "Cá",
+                            UpdatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.SaleType", b =>
@@ -872,9 +1260,44 @@ namespace FarmManagement.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("SaleMethod")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(2);
+
                     b.HasKey("Id");
 
                     b.ToTable("SaleTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "PER_HEAD",
+                            Name = "Bán theo con",
+                            SaleMethod = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "PER_KG",
+                            Name = "Bán theo kg",
+                            SaleMethod = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "PER_LOT",
+                            Name = "Bán theo lô/đàn",
+                            SaleMethod = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "PER_SET",
+                            Name = "Bán theo bộ/cặp",
+                            SaleMethod = 4
+                        });
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Locations.Location", b =>
@@ -989,19 +1412,19 @@ namespace FarmManagement.Infrastructure.Migrations
                         {
                             Id = 1,
                             Code = "ACTIVE",
-                            CreatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(3016),
+                            CreatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 538, DateTimeKind.Utc).AddTicks(8273),
                             IsDeleted = false,
                             Name = "Đang hoạt động",
-                            UpdatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(3019)
+                            UpdatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 538, DateTimeKind.Utc).AddTicks(8276)
                         },
                         new
                         {
                             Id = 2,
                             Code = "INACTIVE",
-                            CreatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(3023),
+                            CreatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 538, DateTimeKind.Utc).AddTicks(8281),
                             IsDeleted = false,
                             Name = "Ngừng hoạt động",
-                            UpdatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(3023)
+                            UpdatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 538, DateTimeKind.Utc).AddTicks(8281)
                         });
                 });
 
@@ -1044,19 +1467,19 @@ namespace FarmManagement.Infrastructure.Migrations
                         {
                             Id = 1,
                             Code = "FARM",
-                            CreatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(4701),
+                            CreatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 539, DateTimeKind.Utc).AddTicks(218),
                             IsDeleted = false,
                             Name = "Nông trại",
-                            UpdatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(4704)
+                            UpdatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 539, DateTimeKind.Utc).AddTicks(218)
                         },
                         new
                         {
                             Id = 2,
                             Code = "WAREHOUSE",
-                            CreatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(4707),
+                            CreatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 539, DateTimeKind.Utc).AddTicks(221),
                             IsDeleted = false,
                             Name = "Kho",
-                            UpdatedDate = new DateTime(2026, 1, 23, 3, 56, 1, 439, DateTimeKind.Utc).AddTicks(4708)
+                            UpdatedDate = new DateTime(2026, 1, 23, 10, 1, 20, 539, DateTimeKind.Utc).AddTicks(221)
                         });
                 });
 
@@ -1262,13 +1685,13 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.HasOne("FarmManagement.Domain.Entities.Livestocks.LivestockStatus", "LivestockStatus")
                         .WithMany("Livestocks")
                         .HasForeignKey("LivestockStatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("FarmManagement.Domain.Entities.Livestocks.LivestockType", "LivestockType")
                         .WithMany("Livestocks")
                         .HasForeignKey("LivestockTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("LivestockStatus");
@@ -1281,7 +1704,7 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.HasOne("FarmManagement.Domain.Entities.Livestocks.LivestockCareType", "LivestockCareType")
                         .WithMany("LivestockCareLogs")
                         .HasForeignKey("LivestockCareTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("FarmManagement.Domain.Entities.Livestocks.Livestock", "Livestock")
@@ -1300,7 +1723,7 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.HasOne("FarmManagement.Domain.Entities.Livestocks.LivestockHealthStatus", "HealthStatus")
                         .WithMany("LivestockHealthLogs")
                         .HasForeignKey("HealthStatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("FarmManagement.Domain.Entities.Livestocks.Livestock", "Livestock")
@@ -1310,6 +1733,17 @@ namespace FarmManagement.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("HealthStatus");
+
+                    b.Navigation("Livestock");
+                });
+
+            modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockPrice", b =>
+                {
+                    b.HasOne("FarmManagement.Domain.Entities.Livestocks.Livestock", "Livestock")
+                        .WithMany("LivestockPrices")
+                        .HasForeignKey("LivestockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Livestock");
                 });
@@ -1325,12 +1759,23 @@ namespace FarmManagement.Infrastructure.Migrations
                     b.HasOne("FarmManagement.Domain.Entities.Livestocks.SaleType", "SaleType")
                         .WithMany("LivestockSales")
                         .HasForeignKey("SaleTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Livestock");
 
                     b.Navigation("SaleType");
+                });
+
+            modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockSaleDetail", b =>
+                {
+                    b.HasOne("FarmManagement.Domain.Entities.Livestocks.LivestockSale", "LivestockSale")
+                        .WithMany("Details")
+                        .HasForeignKey("LivestockSaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LivestockSale");
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Locations.Location", b =>
@@ -1420,6 +1865,8 @@ namespace FarmManagement.Infrastructure.Migrations
 
                     b.Navigation("LivestockHealthLogs");
 
+                    b.Navigation("LivestockPrices");
+
                     b.Navigation("LivestockSales");
                 });
 
@@ -1431,6 +1878,11 @@ namespace FarmManagement.Infrastructure.Migrations
             modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockHealthStatus", b =>
                 {
                     b.Navigation("LivestockHealthLogs");
+                });
+
+            modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockSale", b =>
+                {
+                    b.Navigation("Details");
                 });
 
             modelBuilder.Entity("FarmManagement.Domain.Entities.Livestocks.LivestockStatus", b =>

@@ -3,7 +3,6 @@
 // Description: Configures dependency injection for the Application layer.
 // ***********************************************************************
 
-using FarmManagement.Application.Mapping;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -24,7 +23,8 @@ public static class DependencyInjection
         // Register AutoMapper
         services.AddAutoMapper(cfg =>
         {
-            cfg.AddMaps(typeof(LocationProfile).Assembly);
+            // register all mapping profiles from this assembly
+            cfg.AddMaps(Assembly.GetExecutingAssembly());
         });
 
         // Register MediatR and all handlers from this assembly

@@ -1,0 +1,71 @@
+﻿@model FarmManagement.Application.DTOs.Livestocks.UpdateSaleTypeDto
+
+@{
+    ViewData["Title"] = "Sửa loại bán";
+    ViewData["Breadcrumb"] = "Sửa loại bán";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+<h1 class="page-title">Sửa loại bán</h1>
+        <p class="page-subtitle mb-0">Cập nhật thông tin loại bán vật nuôi</p>
+    </div>
+    <div class="page-actions">
+  <a asp-action="Index" class="btn btn-outline-secondary">
+ <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+ <i class="bi bi-exclamation-triangle me-2"></i>
+  @TempData["Error"]
+     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header">
+  <h5 class="card-title mb-0">
+    <i class="bi bi-cash-coin me-2"></i>Thông tin loại bán
+     </h5>
+    </div>
+    <div class="card-body">
+   <form asp-action="Edit" method="post">
+@Html.AntiForgeryToken()
+   <input type="hidden" asp-for="Id" />
+ <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+  <div class="row g-3">
+    <div class="col-md-6">
+  <label asp-for="Code" class="form-label">Mã loại bán <span class="text-danger">*</span></label>
+   <input asp-for="Code" class="form-control" />
+  <span asp-validation-for="Code" class="text-danger"></span>
+          </div>
+
+   <div class="col-md-6">
+        <label asp-for="Name" class="form-label">Tên loại bán <span class="text-danger">*</span></label>
+      <input asp-for="Name" class="form-control" />
+      <span asp-validation-for="Name" class="text-danger"></span>
+   </div>
+  </div>
+
+     <hr class="my-4" />
+
+            <div class="d-flex justify-content-end gap-2">
+    <a asp-action="Index" class="btn btn-secondary">
+         <i class="bi bi-x-lg me-1"></i>Hủy
+        </a>
+  <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-lg me-1"></i>Cập nhật
+     </button>
+      </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

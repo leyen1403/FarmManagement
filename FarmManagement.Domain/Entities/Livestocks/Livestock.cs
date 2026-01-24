@@ -33,19 +33,49 @@ public class Livestock : AuditableEntity
     public string? TagCode { get; set; }
 
     /// <summary>
+    /// Tên/Mô tả đàn vật nuôi.
+    /// </summary>
+    public string? Name { get; set; }
+
+    /// <summary>
+    /// Tổng số lượng vật nuôi.
+    /// </summary>
+    public int Quantity { get; set; } = 1;
+
+    /// <summary>
+    /// Số lượng con đực.
+    /// </summary>
+    public int MaleCount { get; set; }
+
+    /// <summary>
+    /// Số lượng con cái.
+    /// </summary>
+    public int FemaleCount { get; set; }
+
+    /// <summary>
     /// Ngày nhập vật nuôi.
     /// </summary>
     public DateTime ImportDate { get; set; }
 
     /// <summary>
-    /// Trọng lượng nhập vật nuôi.
+    /// Trọng lượng trung bình khi nhập (kg).
     /// </summary>
     public decimal ImportWeight { get; set; }
 
     /// <summary>
-    /// Giá nhập vật nuôi.
+    /// Tổng trọng lượng khi nhập (kg).
+    /// </summary>
+    public decimal TotalImportWeight { get; set; }
+
+    /// <summary>
+    /// Giá nhập đơn vị (VND/con).
     /// </summary>
     public decimal ImportPrice { get; set; }
+
+    /// <summary>
+    /// Tổng giá trị nhập (VND).
+    /// </summary>
+    public decimal TotalImportPrice { get; set; }
 
     /// <summary>
     /// Ghi chú về vật nuôi (nếu có).
@@ -65,15 +95,20 @@ public class Livestock : AuditableEntity
     /// <summary>
     /// Nhật ký chăm sóc vật nuôi.
     /// </summary>
-    public ICollection<LivestockCareLog> LivestockCareLogs { get; set; }
+    public ICollection<LivestockCareLog> LivestockCareLogs { get; set; } = new List<LivestockCareLog>();
 
     /// <summary>
     /// Nhật ký sức khỏe vật nuôi.
     /// </summary>
-    public ICollection<LivestockHealthLog> LivestockHealthLogs { get; set; }
+    public ICollection<LivestockHealthLog> LivestockHealthLogs { get; set; } = new List<LivestockHealthLog>();
 
     /// <summary>
     /// Danh sách bán vật nuôi.
     /// </summary>
-    public ICollection<LivestockSale> LivestockSales { get; set; }
+    public ICollection<LivestockSale> LivestockSales { get; set; } = new List<LivestockSale>();
+
+    /// <summary>
+    /// Bảng giá bán vật nuôi.
+    /// </summary>
+    public ICollection<LivestockPrice> LivestockPrices { get; set; } = new List<LivestockPrice>();
 }

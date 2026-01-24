@@ -1,6 +1,7 @@
 ﻿using FarmManagement.Web.Services.Crops;
 using FarmManagement.Web.Services.Locations;
 using FarmManagement.Web.Services.Common;
+using FarmManagement.Web.Services.Livestocks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +14,12 @@ builder.Services.AddHttpClient("FarmApi", client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]);
 });
 
-// Register API clients
+// Register API clients - Locations
 builder.Services.AddScoped<LocationTypeApiClient>();
 builder.Services.AddScoped<LocationStatusApiClient>();
 builder.Services.AddScoped<LocationApiClient>();
+
+// Register API clients - Crops
 builder.Services.AddScoped<CropTypeApiService>();
 builder.Services.AddScoped<CropStatusApiService>();
 builder.Services.AddScoped<CropApiService>();
@@ -26,6 +29,20 @@ builder.Services.AddScoped<CropCostApiService>();
 builder.Services.AddScoped<CropCareLogApiService>();
 builder.Services.AddScoped<CostTypeApiService>();
 builder.Services.AddScoped<CropCareTypeApiService>();
+
+// Register API clients - Livestocks
+builder.Services.AddScoped<LivestockApiService>();
+builder.Services.AddScoped<LivestockTypeApiService>();
+builder.Services.AddScoped<LivestockStatusApiService>();
+builder.Services.AddScoped<LivestockCareTypeApiService>();
+builder.Services.AddScoped<LivestockCareLogApiService>();
+builder.Services.AddScoped<LivestockHealthStatusApiService>();
+builder.Services.AddScoped<LivestockHealthLogApiService>();
+builder.Services.AddScoped<SaleTypeApiService>();
+builder.Services.AddScoped<LivestockSaleApiService>();
+builder.Services.AddScoped<LivestockPriceApiService>();
+
+// Register API clients - Common
 builder.Services.AddScoped<ActivityLogApiService>();
 
 var app = builder.Build();

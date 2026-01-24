@@ -1,10 +1,12 @@
 using FarmManagement.Application.Interfaces.Crops;
 using FarmManagement.Application.Interfaces.Locations;
 using FarmManagement.Application.Interfaces.Common;
+using FarmManagement.Application.Interfaces.Livestocks;
 using FarmManagement.Infrastructure.Persistence.DbContext;
 using FarmManagement.Infrastructure.Services.Crops;
 using FarmManagement.Infrastructure.Services.Locations;
 using FarmManagement.Infrastructure.Services.Common;
+using FarmManagement.Infrastructure.Services.Livestocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,6 +38,18 @@ namespace FarmManagement.Infrastructure
             services.AddScoped<ICropCareLogService, CropCareLogService>();
             services.AddScoped<ICostTypeService, CostTypeService>();
             services.AddScoped<ICropCareTypeService, CropCareTypeService>();
+
+            // Livestock Service implementations
+            services.AddScoped<ILivestockService, LivestockService>();
+            services.AddScoped<ILivestockTypeService, LivestockTypeService>();
+            services.AddScoped<ILivestockStatusService, LivestockStatusService>();
+            services.AddScoped<ILivestockCareTypeService, LivestockCareTypeService>();
+            services.AddScoped<ILivestockCareLogService, LivestockCareLogService>();
+            services.AddScoped<ILivestockHealthStatusService, LivestockHealthStatusService>();
+            services.AddScoped<ILivestockHealthLogService, LivestockHealthLogService>();
+            services.AddScoped<ISaleTypeService, SaleTypeService>();
+            services.AddScoped<ILivestockSaleService, LivestockSaleService>();
+            services.AddScoped<ILivestockPriceService, LivestockPriceService>();
 
             return services;
         }

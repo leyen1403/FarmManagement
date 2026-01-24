@@ -1,0 +1,1472 @@
+﻿@model FarmManagement.Application.DTOs.Livestocks.LivestockDto
+@using FarmManagement.Application.DTOs.Livestocks
+@using FarmManagement.Domain.Entities.Livestocks
+
+@{
+    ViewData["Title"] = $"Chi tiết vật nuôi - {Model.Name ?? Model.TagCode ?? $"VN-{Model.Id:D4}"}";
+    ViewData["Breadcrumb"] = "Chi tiết";
+
+    var careLogs = ViewBag.CareLogs as List<LivestockCareLogDto> ?? new List<LivestockCareLogDto>();
+    var healthLogs = ViewBag.HealthLogs as List<LivestockHealthLogDto> ?? new List<LivestockHealthLogDto>();
+    var sales = ViewBag.Sales as List<LivestockSaleDto> ?? new List<LivestockSaleDto>();
+    var prices = ViewBag.Prices as List<LivestockPriceDto> ?? new List<LivestockPriceDto>();
+
+    var careTypes = ViewBag.CareTypes as List<LivestockCareTypeDto> ?? new List<LivestockCareTypeDto>();
+    var healthStatuses = ViewBag.HealthStatuses as List<LivestockHealthStatusDto> ?? new List<LivestockHealthStatusDto>();
+    var saleTypes = ViewBag.SaleTypes as List<SaleTypeDto> ?? new List<SaleTypeDto>();
+
+    // Lấy loại bán theo kg (SaleMethod = PerKilogram)
+    var perKgSaleType = saleTypes.FirstOrDefault(x => x.SaleMethod == SaleMethod.PerKilogram);
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title">@(Model.Name ?? Model.TagCode ?? $"VN-{Model.Id:D4}")</h1>
+        <p class="page-subtitle mb-0">
+            <span class="badge bg-info me-2">@Model.LivestockTypeName</span>
+            <i class="bi bi-geo-alt"></i> @Model.LocationName
+        </p>
+    </div>
+    <div class="page-actions d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i> Sửa
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Quay lại
+        </a>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@Model.Quantity</div>
+                    <div class="stats-card-label">Số lượng (con)</div>
+                    <small class="text-muted">
+                        <i class="bi bi-gender-male text-primary"></i> @Model.MaleCount đực |
+                        <i class="bi bi-gender-female text-danger"></i> @Model.FemaleCount cái
+                    </small>
+                </div>
+                <div class="stats-card-icon primary">
+                    <i class="bi bi-bug"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@Model.TotalImportWeight.ToString("N1")</div>
+                    <div class="stats-card-label">Tổng trọng lượng (kg)</div>
+                    <small class="text-muted">~@Model.ImportWeight.ToString("N1") kg/con</small>
+                </div>
+                <div class="stats-card-icon success">
+                    <i class="bi bi-speedometer2"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@Model.TotalImportPrice.ToString("N0")</div>
+                    <div class="stats-card-label">Tổng giá nhập (VNĐ)</div>
+                    <small class="text-muted">~@Model.ImportPrice.ToString("N0")₫/con</small>
+                </div>
+                <div class="stats-card-icon warning">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stats-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="stats-card-value">@sales.Sum(s => s.TotalAmount).ToString("N0")</div>
+                    <div class="stats-card-label">Doanh thu bán</div>
+                    <small class="text-muted">@sales.Count đơn hàng</small>
+                </div>
+                <div class="stats-card-icon danger">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Basic Info Card -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            @if (!string.IsNullOrEmpty(Model.Name))
+            {
+                <div class="col-md-4">
+                    <strong>Tên đàn:</strong>
+                    <span class="ms-2 fw-medium">@Model.Name</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.TagCode))
+            {
+                <div class="col-md-4">
+                    <strong>Mã thẻ/Mã lô:</strong>
+                    <span class="ms-2"><code>@Model.TagCode</code></span>
+                </div>
+            }
+            <div class="col-md-4">
+                <strong>Loại vật nuôi:</strong>
+                <span class="badge bg-info ms-2">@Model.LivestockTypeName</span>
+            </div>
+            <div class="col-md-4">
+                <strong>Vị trí:</strong>
+                <span class="ms-2"><i class="bi bi-geo-alt"></i> @Model.LocationName</span>
+            </div>
+            <div class="col-md-4">
+                <strong>Trạng thái:</strong>
+                @{
+                    var statusClass = Model.LivestockStatusName switch
+                    {
+                        var s when s?.Contains("nuôi") == true => "badge-active",
+                        var s when s?.Contains("Bán") == true => "bg-warning text-dark",
+                        var s when s?.Contains("Chết") == true || s?.Contains("mổ") == true => "bg-danger",
+                        _ => "badge-inactive"
+                    };
+                }
+                <span class="badge badge-status @statusClass ms-2">@Model.LivestockStatusName</span>
+            </div>
+            <div class="col-md-4">
+                <strong>Số lượng:</strong>
+                <span class="ms-2 fw-medium">@Model.QuantityDisplay</span>
+            </div>
+            <div class="col-md-4">
+                <strong>Ngày nhập:</strong>
+                <span class="ms-2">@Model.ImportDate.ToString("dd/MM/yyyy")</span>
+            </div>
+            <div class="col-md-4">
+                <strong>Ngày tạo:</strong>
+                <span class="ms-2">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</span>
+            </div>
+            @if (Model.UpdatedDate.HasValue)
+            {
+                <div class="col-md-4">
+                    <strong>Cập nhật:</strong>
+                    <span class="ms-2">@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(Model.Note))
+            {
+                <div class="col-12">
+                    <strong>Ghi chú:</strong>
+                    <p class="mb-0 mt-1 text-muted">@Model.Note</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="livestockTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="care-tab" data-bs-toggle="tab" data-bs-target="#care" type="button" role="tab">
+            <i class="bi bi-heart me-1"></i> Chăm sóc (@careLogs.Count)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="health-tab" data-bs-toggle="tab" data-bs-target="#health" type="button" role="tab">
+            <i class="bi bi-activity me-1"></i> Sức khỏe (@healthLogs.Count)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button" role="tab">
+            <i class="bi bi-cash me-1"></i> Bán hàng (@sales.Count đơn)
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="prices-tab" data-bs-toggle="tab" data-bs-target="#prices" type="button" role="tab">
+            <i class="bi bi-tags me-1"></i> Giá (@prices.Count)
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="livestockTabsContent">
+    <!-- Care Logs Tab -->
+    <div class="tab-pane fade show active" id="care" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Nhật ký chăm sóc</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCareLogModal">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm
+                </button>
+            </div>
+            <div class="card-body p-0">
+                @if (careLogs.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Loại chăm sóc</th>
+                                    <th>Số lượng</th>
+                                    <th>Chi phí</th>
+                                    <th>Ghi chú</th>
+                                    <th width="80"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var log in careLogs)
+                                {
+                                    <tr>
+                                        <td>@log.CareDate.ToString("dd/MM/yyyy")</td>
+                                        <td><span class="badge bg-info">@log.LivestockCareTypeName</span></td>
+                                        <td>@log.Quantity @log.Unit</td>
+                                        <td class="text-success fw-medium">@log.Cost.ToString("N0") đ</td>
+                                        <td class="text-muted">@log.Note</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                                onclick="openEditCareLogModal(@log.Id, @log.LivestockCareTypeId, '@log.CareDate.ToString("yyyy-MM-dd")', @log.Quantity, '@(log.Unit ?? "")', @log.Cost, '@(log.Note ?? "")')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form asp-action="DeleteCareLog" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@log.Id" />
+                                                <input type="hidden" name="livestockId" value="@Model.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa nhật ký này?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-heart fs-1 d-block mb-2"></i>
+                        Chưa có nhật ký chăm sóc
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Health Logs Tab -->
+    <div class="tab-pane fade" id="health" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Nhật ký sức khỏe</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addHealthLogModal">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm
+                </button>
+            </div>
+            <div class="card-body p-0">
+                @if (healthLogs.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Ngày kiểm tra</th>
+                                    <th>Trạng thái</th>
+                                    <th>Triệu chứng</th>
+                                    <th>Điều trị</th>
+                                    <th>Chi phí thuốc</th>
+                                    <th>Bác sĩ</th>
+                                    <th width="80"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var log in healthLogs)
+                                {
+                                    <tr>
+                                        <td>@log.CheckDate.ToString("dd/MM/yyyy")</td>
+                                        <td><span class="badge bg-warning text-dark">@log.HealthStatusName</span></td>
+                                        <td>@log.Symptom</td>
+                                        <td>@log.Treatment</td>
+                                        <td class="text-danger fw-medium">@log.MedicineCost.ToString("N0") đ</td>
+                                        <td>@log.VetName</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                                onclick="openEditHealthLogModal(@log.Id, @log.HealthStatusId, '@log.CheckDate.ToString("yyyy-MM-dd")', '@(log.Symptom ?? "")', '@(log.Treatment ?? "")', @log.MedicineCost, '@(log.VetName ?? "")')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form asp-action="DeleteHealthLog" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@log.Id" />
+                                                <input type="hidden" name="livestockId" value="@Model.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa nhật ký này?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-activity fs-1 d-block mb-2"></i>
+                        Chưa có nhật ký sức khỏe
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Tab -->
+    <div class="tab-pane fade" id="sales" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Đơn hàng bán (Theo kg)</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addSaleModal">
+                    <i class="bi bi-plus-lg me-1"></i> Tạo đơn hàng
+                </button>
+            </div>
+            <div class="card-body p-0">
+                @if (sales.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn</th>
+                                    <th>Ngày bán</th>
+                                    <th>Số dòng</th>
+                                    <th>Tổng kg</th>
+                                    <th>Tổng con</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Người mua</th>
+                                    <th width="100"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sale in sales)
+                                {
+                                    <tr>
+                                        <td><code>@sale.OrderCode</code></td>
+                                        <td>@sale.SaleDate.ToString("dd/MM/yyyy")</td>
+                                        <td><span class="badge bg-info">@sale.DetailCount dòng</span></td>
+                                        <td class="fw-medium">@sale.TotalWeight.ToString("N2") kg</td>
+                                        <td>@sale.TotalQuantity con</td>
+                                        <td class="text-success fw-bold">@sale.TotalAmount.ToString("N0") đ</td>
+                                        <td>@sale.Buyer</td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-info" title="Xem chi tiết" onclick="viewSaleDetails(@sale.Id)">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary" title="Sửa đơn hàng" 
+         onclick="openEditSaleModal(@sale.Id, '@sale.SaleDate.ToString("yyyy-MM-dd")', '@(sale.Buyer ?? "")', '@(sale.BuyerPhone ?? "")', '@(sale.Note ?? "")')">
+        <i class="bi bi-pencil"></i>
+              </button>
+                                                <form asp-action="DeleteSale" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@sale.Id" />
+                                                    <input type="hidden" name="livestockId" value="@Model.Id" />
+                                                    <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Xóa đơn hàng này?')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <!-- Expandable detail row -->
+                                    <tr class="sale-detail-row d-none" id="sale-detail-@sale.Id">
+                                        <td colspan="8" class="bg-light p-3">
+                                            <strong class="d-block mb-2">Chi tiết đơn hàng @sale.OrderCode:</strong>
+                                            <table class="table table-sm table-bordered mb-0">
+                                                <thead class="table-secondary">
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Giới tính</th>
+                                                        <th>Số con</th>
+                                                        <th>Trọng lượng</th>
+                                                        <th>Đơn giá</th>
+                                                        <th>Thành tiền</th>
+                                                        <th>Ghi chú</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var detail in sale.Details)
+                                                    {
+                                                        <tr>
+                                                            <td>@detail.LineNumber</td>
+                                                            <td>
+                                                                @if (detail.Gender == GenderType.Male)
+                                                                {
+                                                                    <span class="badge bg-primary">Đực</span>
+                                                                }
+                                                                else if (detail.Gender == GenderType.Female)
+                                                                {
+                                                                    <span class="badge bg-danger">Cái</span>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <span class="badge bg-secondary">Hỗn hợp</span>
+                                                                }
+                                                            </td>
+                                                            <td>@detail.Quantity con</td>
+                                                            <td>@detail.Weight.ToString("N2") kg</td>
+                                                            <td>@detail.UnitPrice.ToString("N0") đ/kg</td>
+                                                            <td class="fw-bold text-success">@detail.Amount.ToString("N0") đ</td>
+                                                            <td class="text-muted">@detail.Note</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-cash fs-1 d-block mb-2"></i>
+                        Chưa có đơn hàng bán
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Prices Tab -->
+    <div class="tab-pane fade" id="prices" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Bảng giá</h6>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addPriceModal">
+                    <i class="bi bi-plus-lg me-1"></i> Thêm
+                </button>
+            </div>
+            <div class="card-body p-0">
+                @if (prices.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Giới tính</th>
+                                    <th>Đơn giá (đ/kg)</th>
+                                    <th>Ngày bắt đầu</th>
+                                    <th>Ngày kết thúc</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ghi chú</th>
+                                    <th width="100"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var price in prices)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (price.Gender == GenderType.Male)
+                                            {
+                                                <span class="badge bg-primary">Đực</span>
+                                            }
+                                            else if (price.Gender == GenderType.Female)
+                                            {
+                                                <span class="badge bg-danger">Cái</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Hỗn hợp</span>
+                                            }
+                                        </td>
+                                        <td class="text-success fw-medium">@price.UnitPrice.ToString("N0") đ</td>
+                                        <td>@price.EffectiveFrom.ToString("dd/MM/yyyy")</td>
+                                        <td>@(price.EffectiveTo.HasValue? price.EffectiveTo.Value.ToString("dd/MM/yyyy") : "Vô thời hạn")</td>
+                                        <td>
+                                            @if (price.IsActive)
+                                            {
+                                                <span class="badge bg-success">Hoạt động</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Không hoạt động</span>
+                                            }
+                                        </td>
+                                        <td class="text-muted">@price.Note</td>
+                                        <td>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                                                    onclick="openEditPriceModal(@price.Id, @((int)price.Gender), @price.UnitPrice, '@price.EffectiveFrom.ToString("yyyy-MM-dd")', '@(price.EffectiveTo?.ToString("yyyy-MM-dd") ?? "")', @price.IsActive.ToString().ToLower(), '@(price.Note ?? "")')">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form asp-action="DeletePrice" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@price.Id" />
+                                                <input type="hidden" name="livestockId" value="@Model.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa giá này?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-tags fs-1 d-block mb-2"></i>
+                        Chưa có cấu hình giá
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Care Log Modal -->
+<div class="modal fade" id="addCareLogModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateCareLog" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="LivestockId" value="@Model.Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm nhật ký chăm sóc</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Loại chăm sóc <span class="text-danger">*</span></label>
+                        <select name="LivestockCareTypeId" class="form-select" required>
+                            <option value="">-- Chọn loại --</option>
+                            @foreach (var ct in careTypes)
+                            {
+                                <option value="@ct.Id">@ct.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày chăm sóc <span class="text-danger">*</span></label>
+                        <input type="date" name="CareDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Số lượng</label>
+                            <input type="number" name="Quantity" step="0.01" class="form-control" value="0" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Đơn vị</label>
+                            <input type="text" name="Unit" class="form-control" placeholder="kg, lít..." />
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Chi phí (VNĐ)</label>
+                        <input type="number" name="Cost" class="form-control" value="0" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea name="Note" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Care Log Modal -->
+<div class="modal fade" id="editCareLogModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+   <form asp-action="UpdateCareLog" method="post">
+            @Html.AntiForgeryToken()
+     <input type="hidden" name="Id" id="editCareLogId" />
+  <input type="hidden" name="livestockId" value="@Model.Id" />
+      <div class="modal-header">
+   <h5 class="modal-title">Sửa nhật ký chăm sóc</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+       <div class="modal-body">
+         <div class="mb-3">
+        <label class="form-label">Loại chăm sóc <span class="text-danger">*</span></label>
+   <select name="LivestockCareTypeId" id="editCareLogTypeId" class="form-select" required>
+  <option value="">-- Chọn loại --</option>
+     @foreach (var ct in careTypes)
+    {
+  <option value="@ct.Id">@ct.Name</option>
+       }
+   </select>
+        </div>
+         <div class="mb-3">
+      <label class="form-label">Ngày chăm sóc <span class="text-danger">*</span></label>
+   <input type="date" name="CareDate" id="editCareLogDate" class="form-control" required />
+          </div>
+   <div class="row g-3">
+        <div class="col-6">
+      <label class="form-label">Số lượng</label>
+   <input type="number" name="Quantity" id="editCareLogQuantity" step="0.01" class="form-control" />
+     </div>
+          <div class="col-6">
+    <label class="form-label">Đơn vị</label>
+            <input type="text" name="Unit" id="editCareLogUnit" class="form-control" placeholder="kg, lít..." />
+      </div>
+    </div>
+         <div class="mb-3 mt-3">
+            <label class="form-label">Chi phí (VNĐ)</label>
+   <input type="number" name="Cost" id="editCareLogCost" class="form-control" />
+         </div>
+           <div class="mb-3">
+             <label class="form-label">Ghi chú</label>
+          <textarea name="Note" id="editCareLogNote" class="form-control" rows="2"></textarea>
+   </div>
+                </div>
+         <div class="modal-footer">
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+       <button type="submit" class="btn btn-primary">Cập nhật</button>
+  </div>
+       </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Health Log Modal -->
+<div class="modal fade" id="addHealthLogModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateHealthLog" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="LivestockId" value="@Model.Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm nhật ký sức khỏe</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái sức khỏe <span class="text-danger">*</span></label>
+                        <select name="HealthStatusId" class="form-select" required>
+                            <option value="">-- Chọn trạng thái --</option>
+                            @foreach (var hs in healthStatuses)
+                            {
+                                <option value="@hs.Id">@hs.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày kiểm tra <span class="text-danger">*</span></label>
+                        <input type="date" name="CheckDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Triệu chứng</label>
+                        <textarea name="Symptom" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Điều trị</label>
+                        <textarea name="Treatment" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Chi phí thuốc (VNĐ)</label>
+                            <input type="number" name="MedicineCost" class="form-control" value="0" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Bác sĩ thú y</label>
+                            <input type="text" name="VetName" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Health Log Modal -->
+<div class="modal fade" id="editHealthLogModal" tabindex="-1">
+    <div class="modal-dialog">
+    <div class="modal-content">
+     <form asp-action="UpdateHealthLog" method="post">
+   @Html.AntiForgeryToken()
+ <input type="hidden" name="Id" id="editHealthLogId" />
+   <input type="hidden" name="livestockId" value="@Model.Id" />
+        <div class="modal-header">
+        <h5 class="modal-title">Sửa nhật ký sức khỏe</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+ <div class="modal-body">
+         <div class="mb-3">
+  <label class="form-label">Trạng thái sức khỏe <span class="text-danger">*</span></label>
+      <select name="HealthStatusId" id="editHealthLogStatusId" class="form-select" required>
+            <option value="">-- Chọn trạng thái --</option>
+        @foreach (var hs in healthStatuses)
+         {
+ <option value="@hs.Id">@hs.Name</option>
+         }
+    </select>
+       </div>
+  <div class="mb-3">
+      <label class="form-label">Ngày kiểm tra <span class="text-danger">*</span></label>
+      <input type="date" name="CheckDate" id="editHealthLogCheckDate" class="form-control" required />
+       </div>
+    <div class="mb-3">
+      <label class="form-label">Triệu chứng</label>
+  <textarea name="Symptom" id="editHealthLogSymptom" class="form-control" rows="2"></textarea>
+            </div>
+  <div class="mb-3">
+    <label class="form-label">Điều trị</label>
+     <textarea name="Treatment" id="editHealthLogTreatment" class="form-control" rows="2"></textarea>
+       </div>
+     <div class="row g-3">
+    <div class="col-6">
+        <label class="form-label">Chi phí thuốc (VNĐ)</label>
+            <input type="number" name="MedicineCost" id="editHealthLogMedicineCost" class="form-control" />
+        </div>
+            <div class="col-6">
+      <label class="form-label">Bác sĩ thú y</label>
+        <input type="text" name="VetName" id="editHealthLogVetName" class="form-control" />
+  </div>
+   </div>
+        </div>
+    <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="submit" class="btn btn-primary">Cập nhật</button>
+       </div>
+     </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Price Modal -->
+<div class="modal fade" id="addPriceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreatePrice" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="LivestockId" value="@Model.Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Thêm giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Giới tính <span class="text-danger">*</span></label>
+                        <select name="Gender" class="form-select" required>
+                            <option value="1">Đực</option>
+                            <option value="2">Cái</option>
+                            <option value="3">Hỗn hợp</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Đơn giá (đ/kg) <span class="text-danger">*</span></label>
+                        <input type="number" name="UnitPrice" class="form-control" required min="0" />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                            <input type="date" name="EffectiveFrom" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Ngày kết thúc</label>
+                            <input type="date" name="EffectiveTo" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="IsActive" value="true" checked id="priceIsActive" />
+                            <label class="form-check-label" for="priceIsActive">Hoạt động</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea name="Note" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Price Modal -->
+<div class="modal fade" id="editPriceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdatePrice" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editPriceId" />
+                <input type="hidden" name="LivestockId" value="@Model.Id" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Sửa giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Giới tính <span class="text-danger">*</span></label>
+                        <select name="Gender" id="editPriceGender" class="form-select" required>
+                            <option value="1">Đực</option>
+                            <option value="2">Cái</option>
+                            <option value="3">Hỗn hợp</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Đơn giá (đ/kg) <span class="text-danger">*</span></label>
+                        <input type="number" name="UnitPrice" id="editPriceUnitPrice" class="form-control" required min="0" />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Ngày bắt đầu <span class="text-danger">*</span></label>
+                            <input type="date" name="EffectiveFrom" id="editPriceEffectiveFrom" class="form-control" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Ngày kết thúc</label>
+                            <input type="date" name="EffectiveTo" id="editPriceEffectiveTo" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="IsActive" value="true" id="editPriceIsActive" />
+                            <label class="form-check-label" for="editPriceIsActive">Hoạt động</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú</label>
+                        <textarea name="Note" id="editPriceNote" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Sale Modal (Per Kilogram with multiple details) -->
+<div class="modal fade" id="addSaleModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+     <form asp-action="CreateSale" method="post" id="saleForm">
+   @Html.AntiForgeryToken()
+<input type="hidden" name="LivestockId" value="@Model.Id" />
+      <input type="hidden" name="SaleTypeId" value="@(perKgSaleType?.Id ?? 2)" />
+
+        <div class="modal-header bg-success text-white">
+       <h5 class="modal-title"><i class="bi bi-cart-plus me-2"></i>Tạo đơn hàng bán (Theo kg)</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+     </div>
+
+       <div class="modal-body">
+       <!-- Order Header -->
+     <div class="row g-3 mb-4">
+        <div class="col-md-3">
+         <label class="form-label">Ngày bán <span class="text-danger">*</span></label>
+        <input type="date" name="SaleDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Người mua</label>
+ <input type="text" name="Buyer" class="form-control" placeholder="Tên người mua..." />
+        </div>
+     <div class="col-md-3">
+ <label class="form-label">Số điện thoại</label>
+   <input type="text" name="BuyerPhone" class="form-control" placeholder="SĐT..." />
+  </div>
+  <div class="col-md-2">
+       <label class="form-label">&nbsp;</label>
+ <button type="button" class="btn btn-outline-primary w-100" onclick="addSaleDetailRow()">
+      <i class="bi bi-plus-lg me-1"></i> Thêm dòng
+   </button>
+           </div>
+       </div>
+
+        <!-- Order Details Table -->
+  <div class="table-responsive">
+ <table class="table table-bordered" id="saleDetailsTable">
+        <thead class="table-success">
+   <tr>
+    <th width="50">#</th>
+     <th width="120">Giới tính <span class="text-danger">*</span></th>
+     <th width="100">Số con</th>
+     <th width="130">Trọng lượng (kg) <span class="text-danger">*</span></th>
+ <th width="150">Đơn giá (đ/kg) <span class="text-danger">*</span></th>
+     <th width="150">Thành tiền</th>
+  <th>Ghi chú</th>
+       <th width="50"></th>
+ </tr>
+  </thead>
+ <tbody id="saleDetailsBody">
+        <!-- Dynamic rows will be added here -->
+  </tbody>
+   <tfoot class="table-light">
+       <tr>
+        <td colspan="2" class="text-end fw-bold">Tổng cộng:</td>
+      <td class="fw-bold" id="totalQuantity">0 con</td>
+       <td class="fw-bold" id="totalWeight">0.00 kg</td>
+  <td></td>
+     <td class="fw-bold text-success" id="totalAmount">0 đ</td>
+   <td colspan="2"></td>
+      </tr>
+      </tfoot>
+      </table>
+   </div>
+
+      <div class="mb-3">
+     <label class="form-label">Ghi chú đơn hàng</label>
+       <textarea name="Note" class="form-control" rows="2" placeholder="Ghi chú chung cho đơn hàng..."></textarea>
+       </div>
+ </div>
+
+   <div class="modal-footer">
+       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-success">
+         <i class="bi bi-check-lg me-1"></i>Tạo đơn hàng
+ </button>
+      </div>
+       </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Sale Modal -->
+<div class="modal fade" id="editSaleModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+  <form asp-action="UpdateSale" method="post" id="editSaleForm">
+                @Html.AntiForgeryToken()
+           <input type="hidden" name="Id" id="editSaleId" />
+             <input type="hidden" name="livestockId" value="@Model.Id" />
+        <input type="hidden" name="SaleTypeId" value="@(perKgSaleType?.Id ?? 2)" />
+
+     <div class="modal-header bg-warning">
+        <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Sửa đơn hàng bán</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+          <div class="modal-body">
+     <!-- Order Header -->
+<div class="row g-3 mb-4">
+            <div class="col-md-3">
+                  <label class="form-label">Ngày bán <span class="text-danger">*</span></label>
+    <input type="date" name="SaleDate" id="editSaleDate" class="form-control" required />
+      </div>
+    <div class="col-md-4">
+     <label class="form-label">Người mua</label>
+      <input type="text" name="Buyer" id="editSaleBuyer" class="form-control" placeholder="Tên người mua..." />
+          </div>
+     <div class="col-md-3">
+          <label class="form-label">Số điện thoại</label>
+   <input type="text" name="BuyerPhone" id="editSaleBuyerPhone" class="form-control" placeholder="SĐT..." />
+    </div>
+       <div class="col-md-2">
+              <label class="form-label">&nbsp;</label>
+           <button type="button" class="btn btn-outline-primary w-100" onclick="addEditSaleDetailRow()">
+ <i class="bi bi-plus-lg me-1"></i> Thêm dòng
+                 </button>
+  </div>
+      </div>
+
+       <!-- Order Details Table -->
+  <div class="table-responsive">
+      <table class="table table-bordered" id="editSaleDetailsTable">
+          <thead class="table-warning">
+                <tr>
+            <th width="50">#</th>
+     <th width="120">Giới tính <span class="text-danger">*</span></th>
+    <th width="100">Số con</th>
+        <th width="130">Trọng lượng (kg) <span class="text-danger">*</span></th>
+            <th width="150">Đơn giá (đ/kg) <span class="text-danger">*</span></th>
+       <th width="150">Thành tiền</th>
+     <th>Ghi chú</th>
+      <th width="50"></th>
+      </tr>
+       </thead>
+           <tbody id="editSaleDetailsBody">
+     <!-- Dynamic rows will be added here -->
+           </tbody>
+      <tfoot class="table-light">
+           <tr>
+           <td colspan="2" class="text-end fw-bold">Tổng cộng:</td>
+          <td class="fw-bold" id="editTotalQuantity">0 con</td>
+     <td class="fw-bold" id="editTotalWeight">0.00 kg</td>
+     <td></td>
+            <td class="fw-bold text-success" id="editTotalAmount">0 đ</td>
+       <td colspan="2"></td>
+          </tr>
+  </tfoot>
+      </table>
+            </div>
+
+        <div class="mb-3">
+           <label class="form-label">Ghi chú đơn hàng</label>
+        <textarea name="Note" id="editSaleNote" class="form-control" rows="2" placeholder="Ghi chú chung cho đơn hàng..."></textarea>
+             </div>
+      </div>
+
+           <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+    <button type="submit" class="btn btn-warning">
+            <i class="bi bi-check-lg me-1"></i>Cập nhật đơn hàng
+         </button>
+    </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden data for sales details (for edit modal) -->
+<script id="salesDetailsData" type="application/json">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(sales.Select(s => new {
+        id = s.Id,
+        details = s.Details.Select(d => new {
+            id = d.Id,
+     gender = (int)d.Gender,
+  quantity = d.Quantity,
+   weight = d.Weight,
+            unitPrice = d.UnitPrice,
+      note = d.Note
+        })
+    })))
+</script>
+
+@section Scripts {
+    <script>
+        let rowIndex = 0;
+        let editRowIndex = 0;
+   const livestockId = @Model.Id;
+
+// Preload prices for quick lookup
+        const pricesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(prices.Select(p => new { gender = (int)p.Gender, unitPrice = p.UnitPrice, isActive = p.IsActive })));
+
+        // Load sales details data
+   const salesDetailsData = JSON.parse(document.getElementById('salesDetailsData').textContent);
+
+        // Helper to get price from preloaded data
+        function getPreloadedPrice(gender) {
+       const price = pricesData.find(p => p.gender == gender && p.isActive);
+         return price ? price.unitPrice : 0;
+   }
+
+        // Helper to fetch active price from API (fallback)
+        async function fetchActivePrice(livestockId, gender, atDate) {
+            try {
+ const params = new URLSearchParams({ livestockId: livestockId, gender: gender });
+        if (atDate) params.append('at', new Date(atDate).toISOString());
+    const res = await fetch(`/api/LivestockPrices/active?${params.toString()}`);
+   if (!res.ok) return null;
+      return await res.json();
+      } catch (e) {
+          console.error('Fetch price error', e);
+         return null;
+       }
+        }
+
+      // Open Edit Price Modal
+        function openEditPriceModal(id, gender, unitPrice, effectiveFrom, effectiveTo, isActive, note) {
+            document.getElementById('editPriceId').value = id;
+            document.getElementById('editPriceGender').value = gender;
+      document.getElementById('editPriceUnitPrice').value = unitPrice;
+   document.getElementById('editPriceEffectiveFrom').value = effectiveFrom;
+          document.getElementById('editPriceEffectiveTo').value = effectiveTo || '';
+            document.getElementById('editPriceIsActive').checked = isActive;
+ document.getElementById('editPriceNote').value = note || '';
+
+   var modal = new bootstrap.Modal(document.getElementById('editPriceModal'));
+        modal.show();
+        }
+
+        // Open Edit Care Log Modal
+        function openEditCareLogModal(id, typeId, careDate, quantity, unit, cost, note) {
+          document.getElementById('editCareLogId').value = id;
+document.getElementById('editCareLogTypeId').value = typeId;
+            document.getElementById('editCareLogDate').value = careDate;
+            document.getElementById('editCareLogQuantity').value = quantity;
+    document.getElementById('editCareLogUnit').value = unit || '';
+  document.getElementById('editCareLogCost').value = cost;
+     document.getElementById('editCareLogNote').value = note || '';
+
+     var modal = new bootstrap.Modal(document.getElementById('editCareLogModal'));
+   modal.show();
+        }
+
+ // Open Edit Health Log Modal
+        function openEditHealthLogModal(id, statusId, checkDate, symptom, treatment, medicineCost, vetName) {
+      document.getElementById('editHealthLogId').value = id;
+  document.getElementById('editHealthLogStatusId').value = statusId;
+     document.getElementById('editHealthLogCheckDate').value = checkDate;
+    document.getElementById('editHealthLogSymptom').value = symptom || '';
+      document.getElementById('editHealthLogTreatment').value = treatment || '';
+            document.getElementById('editHealthLogMedicineCost').value = medicineCost;
+  document.getElementById('editHealthLogVetName').value = vetName || '';
+
+      var modal = new bootstrap.Modal(document.getElementById('editHealthLogModal'));
+ modal.show();
+        }
+
+        // Open Edit Sale Modal
+        function openEditSaleModal(id, saleDate, buyer, buyerPhone, note) {
+    document.getElementById('editSaleId').value = id;
+     document.getElementById('editSaleDate').value = saleDate;
+          document.getElementById('editSaleBuyer').value = buyer || '';
+   document.getElementById('editSaleBuyerPhone').value = buyerPhone || '';
+    document.getElementById('editSaleNote').value = note || '';
+
+            // Load existing sale details
+        const saleData = salesDetailsData.find(s => s.id == id);
+            const tbody = document.getElementById('editSaleDetailsBody');
+ tbody.innerHTML = '';
+      editRowIndex = 0;
+
+  if (saleData && saleData.details) {
+              saleData.details.forEach(detail => {
+                addEditSaleDetailRow(detail);
+            });
+            } else {
+ addEditSaleDetailRow();
+       }
+
+    var modal = new bootstrap.Modal(document.getElementById('editSaleModal'));
+  modal.show();
+    }
+
+   // Add initial row when modal opens
+        document.getElementById('addSaleModal').addEventListener('shown.bs.modal', function () {
+      if (document.querySelectorAll('#saleDetailsBody tr').length === 0) {
+       addSaleDetailRow();
+        }
+        });
+
+      // Reset form when modal closes
+        document.getElementById('addSaleModal').addEventListener('hidden.bs.modal', function () {
+      document.getElementById('saleDetailsBody').innerHTML = '';
+         rowIndex = 0;
+     updateTotals();
+        });
+
+        document.getElementById('editSaleModal').addEventListener('hidden.bs.modal', function () {
+  document.getElementById('editSaleDetailsBody').innerHTML = '';
+     editRowIndex = 0;
+   updateEditTotals();
+        });
+
+    // When sale date changes, refresh unit prices for rows
+        document.querySelector('input[name="SaleDate"]').addEventListener('change', async function () {
+          const saleDate = this.value;
+       const rows = document.querySelectorAll('#saleDetailsBody tr');
+    for (const row of rows) {
+        const genderSelect = row.querySelector('select[name$=".Gender"]');
+          if (!genderSelect) continue;
+        const gender = genderSelect.value;
+
+       let unitPrice = getPreloadedPrice(gender);
+          if (!unitPrice) {
+        const priceDto = await fetchActivePrice(livestockId, gender, saleDate);
+         unitPrice = priceDto?.unitPrice ?? priceDto?.UnitPrice ?? 0;
+        }
+
+    if (row.querySelector('.price-input')) {
+      row.querySelector('.price-input').value = unitPrice;
+     updateRowAmount(row.querySelector('.price-input'));
+    }
+        }
+      updateTotals();
+        });
+
+     function addSaleDetailRow() {
+     const tbody = document.getElementById('saleDetailsBody');
+ const row = document.createElement('tr');
+ row.innerHTML = `
+                <td class="text-center">${rowIndex + 1}</td>
+       <td>
+       <select name="Details[${rowIndex}].Gender" class="form-select form-select-sm gender-select" required>
+             <option value="1">Đực</option>
+    <option value="2">Cái</option>
+     <option value="3">Hỗn hợp</option>
+   </select>
+</td>
+                <td>
+        <input type="number" name="Details[${rowIndex}].Quantity" class="form-control form-control-sm" value="0" min="0" onchange="updateTotals()" />
+      </td>
+        <td>
+      <input type="number" name="Details[${rowIndex}].Weight" class="form-control form-control-sm weight-input" step="0.01" value="0" min="0" required onchange="updateRowAmount(this); updateTotals()" />
+  </td>
+        <td>
+        <input type="number" name="Details[${rowIndex}].UnitPrice" class="form-control form-control-sm price-input" value="0" min="0" required onchange="updateRowAmount(this); updateTotals()" />
+    </td>
+         <td class="row-amount fw-bold text-success">0 đ</td>
+         <td>
+         <input type="text" name="Details[${rowIndex}].Note" class="form-control form-control-sm" placeholder="Ghi chú..." />
+</td>
+<td>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)" ${rowIndex === 0 ? 'disabled' : ''}>
+ <i class="bi bi-trash"></i>
+       </button>
+    </td>
+     `;
+     tbody.appendChild(row);
+
+     const genderSelect = row.querySelector('.gender-select');
+ const priceInput = row.querySelector('.price-input');
+
+ // Wire up gender change to auto-fill price
+   genderSelect.addEventListener('change', async function () {
+       const gender = this.value;
+         const saleDateInput = document.querySelector('input[name="SaleDate"]');
+
+  let unitPrice = getPreloadedPrice(gender);
+
+           if (!unitPrice) {
+  const priceDto = await fetchActivePrice(livestockId, gender, saleDateInput.value);
+               unitPrice = priceDto?.unitPrice ?? priceDto?.UnitPrice ?? 0;
+       }
+
+     if (priceInput) {
+        priceInput.value = unitPrice;
+           updateRowAmount(priceInput);
+      updateTotals();
+        }
+ });
+
+       // Trigger initial auto-fill for the newly added row
+            const initialGender = genderSelect.value;
+   let initialPrice = getPreloadedPrice(initialGender);
+        if (initialPrice && priceInput) {
+     priceInput.value = initialPrice;
+ updateRowAmount(priceInput);
+            } else {
+    (async () => {
+     const saleDateInput = document.querySelector('input[name="SaleDate"]');
+                  const priceDto = await fetchActivePrice(livestockId, initialGender, saleDateInput.value);
+    if (priceDto && priceInput) {
+         priceInput.value = priceDto.unitPrice ?? priceDto.UnitPrice ?? 0;
+       updateRowAmount(priceInput);
+   }
+       updateTotals();
+ })();
+     }
+
+            rowIndex++;
+ updateRowNumbers();
+     updateTotals();
+        }
+
+        function addEditSaleDetailRow(detail = null) {
+            const tbody = document.getElementById('editSaleDetailsBody');
+      const row = document.createElement('tr');
+  
+            const detailId = detail?.id || 0;
+            const gender = detail?.gender || 1;
+  const quantity = detail?.quantity || 0;
+         const weight = detail?.weight || 0;
+  const unitPrice = detail?.unitPrice || 0;
+ const note = detail?.note || '';
+            const amount = weight * unitPrice;
+
+            row.innerHTML = `
+     <td class="text-center">${editRowIndex + 1}</td>
+       <td>
+                  <input type="hidden" name="Details[${editRowIndex}].Id" value="${detailId}" />
+                    <select name="Details[${editRowIndex}].Gender" class="form-select form-select-sm edit-gender-select" required>
+               <option value="1" ${gender == 1 ? 'selected' : ''}>Đực</option>
+     <option value="2" ${gender == 2 ? 'selected' : ''}>Cái</option>
+          <option value="3" ${gender == 3 ? 'selected' : ''}>Hỗn hợp</option>
+                 </select>
+    </td>
+     <td>
+        <input type="number" name="Details[${editRowIndex}].Quantity" class="form-control form-control-sm" value="${quantity}" min="0" onchange="updateEditTotals()" />
+       </td>
+   <td>
+         <input type="number" name="Details[${editRowIndex}].Weight" class="form-control form-control-sm edit-weight-input" step="0.01" value="${weight}" min="0" required onchange="updateEditRowAmount(this); updateEditTotals()" />
+       </td>
+  <td>
+               <input type="number" name="Details[${editRowIndex}].UnitPrice" class="form-control form-control-sm edit-price-input" value="${unitPrice}" min="0" required onchange="updateEditRowAmount(this); updateEditTotals()" />
+         </td>
+  <td class="edit-row-amount fw-bold text-success">${amount.toLocaleString('vi-VN')} đ</td>
+           <td>
+       <input type="text" name="Details[${editRowIndex}].Note" class="form-control form-control-sm" placeholder="Ghi chú..." value="${note}" />
+   </td>
+      <td>
+    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeEditRow(this)" ${editRowIndex === 0 ? 'disabled' : ''}>
+          <i class="bi bi-trash"></i>
+   </button>
+     </td>
+   `;
+            tbody.appendChild(row);
+
+         const genderSelect = row.querySelector('.edit-gender-select');
+         const priceInput = row.querySelector('.edit-price-input');
+
+     genderSelect.addEventListener('change', async function () {
+          const gender = this.value;
+  const saleDateInput = document.getElementById('editSaleDate');
+
+                let unitPrice = getPreloadedPrice(gender);
+
+            if (!unitPrice) {
+         const priceDto = await fetchActivePrice(livestockId, gender, saleDateInput.value);
+                    unitPrice = priceDto?.unitPrice ?? priceDto?.UnitPrice ?? 0;
+                }
+
+      if (priceInput) {
+           priceInput.value = unitPrice;
+             updateEditRowAmount(priceInput);
+          updateEditTotals();
+          }
+            });
+
+editRowIndex++;
+            updateEditRowNumbers();
+   updateEditTotals();
+        }
+
+        function removeRow(btn) {
+      const row = btn.closest('tr');
+         row.remove();
+      updateRowNumbers();
+            updateTotals();
+        }
+
+        function removeEditRow(btn) {
+            const row = btn.closest('tr');
+     row.remove();
+          updateEditRowNumbers();
+        updateEditTotals();
+        }
+
+      function updateRowNumbers() {
+            const rows = document.querySelectorAll('#saleDetailsBody tr');
+            rows.forEach((row, index) => {
+  row.querySelector('td:first-child').textContent = index + 1;
+        row.querySelectorAll('[name]').forEach(input => {
+  const name = input.getAttribute('name');
+        input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+      });
+            });
+            rows.forEach((row, index) => {
+                const deleteBtn = row.querySelector('button[onclick="removeRow(this)"]');
+       if (deleteBtn) {
+           deleteBtn.disabled = rows.length === 1;
+        }
+            });
+        }
+
+  function updateEditRowNumbers() {
+   const rows = document.querySelectorAll('#editSaleDetailsBody tr');
+            rows.forEach((row, index) => {
+     row.querySelector('td:first-child').textContent = index + 1;
+                row.querySelectorAll('[name]').forEach(input => {
+           const name = input.getAttribute('name');
+      input.setAttribute('name', name.replace(/\[\d+\]/, `[${index}]`));
+  });
+            });
+            rows.forEach((row, index) => {
+         const deleteBtn = row.querySelector('button[onclick="removeEditRow(this)"]');
+         if (deleteBtn) {
+     deleteBtn.disabled = rows.length === 1;
+  }
+      });
+        }
+
+        function updateRowAmount(input) {
+  const row = input.closest('tr');
+            const weight = parseFloat(row.querySelector('.weight-input').value) || 0;
+      const price = parseFloat(row.querySelector('.price-input').value) || 0;
+    const amount = weight * price;
+        row.querySelector('.row-amount').textContent = amount.toLocaleString('vi-VN') + ' đ';
+  }
+
+        function updateEditRowAmount(input) {
+            const row = input.closest('tr');
+            const weight = parseFloat(row.querySelector('.edit-weight-input').value) || 0;
+            const price = parseFloat(row.querySelector('.edit-price-input').value) || 0;
+      const amount = weight * price;
+row.querySelector('.edit-row-amount').textContent = amount.toLocaleString('vi-VN') + ' đ';
+        }
+
+      function updateTotals() {
+         let totalQuantity = 0;
+            let totalWeight = 0;
+            let totalAmount = 0;
+
+         document.querySelectorAll('#saleDetailsBody tr').forEach(row => {
+         const quantity = parseInt(row.querySelector('[name$=".Quantity"]').value) || 0;
+      const weight = parseFloat(row.querySelector('.weight-input').value) || 0;
+         const price = parseFloat(row.querySelector('.price-input').value) || 0;
+
+                totalQuantity += quantity;
+   totalWeight += weight;
+                totalAmount += weight * price;
+            });
+
+            document.getElementById('totalQuantity').textContent = totalQuantity + ' con';
+     document.getElementById('totalWeight').textContent = totalWeight.toFixed(2) + ' kg';
+  document.getElementById('totalAmount').textContent = totalAmount.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function updateEditTotals() {
+   let totalQuantity = 0;
+            let totalWeight = 0;
+            let totalAmount = 0;
+
+        document.querySelectorAll('#editSaleDetailsBody tr').forEach(row => {
+     const quantity = parseInt(row.querySelector('[name$=".Quantity"]').value) || 0;
+     const weight = parseFloat(row.querySelector('.edit-weight-input').value) || 0;
+    const price = parseFloat(row.querySelector('.edit-price-input').value) || 0;
+
+              totalQuantity += quantity;
+                totalWeight += weight;
+       totalAmount += weight * price;
+    });
+
+ document.getElementById('editTotalQuantity').textContent = totalQuantity + ' con';
+            document.getElementById('editTotalWeight').textContent = totalWeight.toFixed(2) + ' kg';
+     document.getElementById('editTotalAmount').textContent = totalAmount.toLocaleString('vi-VN') + ' đ';
+        }
+
+        function viewSaleDetails(saleId) {
+      const detailRow = document.getElementById('sale-detail-' + saleId);
+            if (detailRow) {
+        detailRow.classList.toggle('d-none');
+      }
+        }
+    </script>
+}

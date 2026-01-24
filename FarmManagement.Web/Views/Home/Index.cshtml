@@ -6,6 +6,8 @@
     var locationCount = ViewBag.LocationCount ?? 0;
     var cropTypeCount = ViewBag.CropTypeCount ?? 0;
     var cropStatusCount = ViewBag.CropStatusCount ?? 0;
+    var livestockCount = ViewBag.LivestockCount ?? 0;
+    var livestockTypeCount = ViewBag.LivestockTypeCount ?? 0;
     var activityCountToday = ViewBag.ActivityCountToday ?? 0;
     var recentActivities = ViewBag.RecentActivities as List<ActivityLogDto> ?? new List<ActivityLogDto>();
 }
@@ -22,7 +24,7 @@
     </div>
 </div>
 
-<!-- Stats Cards -->
+<!-- Stats Cards Row 1 -->
 <div class="row g-4 mb-4">
     <div class="col-sm-6 col-xl-3">
         <div class="stats-card">
@@ -56,11 +58,11 @@
         <div class="stats-card">
             <div class="d-flex align-items-center justify-content-between">
                 <div>
-                    <div class="stats-card-value">@cropStatusCount</div>
-                    <div class="stats-card-label">Trạng thái cây trồng</div>
+                    <div class="stats-card-value">@livestockCount</div>
+                    <div class="stats-card-label">Vật nuôi</div>
                 </div>
                 <div class="stats-card-icon warning">
-                    <i class="bi bi-heart-pulse"></i>
+                    <i class="bi bi-bug"></i>
                 </div>
             </div>
         </div>
@@ -99,21 +101,21 @@
                         </a>
                     </div>
                     <div class="col-6">
-                        <a asp-controller="CropType" asp-action="Create" class="btn btn-outline-success w-100 py-3">
-                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
-                            Thêm loại cây trồng
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a asp-controller="LocationTypes" asp-action="Create" class="btn btn-outline-info w-100 py-3">
-                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
-                            Thêm loại vị trí
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a asp-controller="Crop" asp-action="Create" class="btn btn-outline-warning w-100 py-3">
+                        <a asp-controller="Crop" asp-action="Create" class="btn btn-outline-success w-100 py-3">
                             <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
                             Thêm cây trồng
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Livestock" asp-action="Create" class="btn btn-outline-warning w-100 py-3">
+                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
+                            Thêm vật nuôi
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="CropType" asp-action="Create" class="btn btn-outline-info w-100 py-3">
+                            <i class="bi bi-plus-circle d-block mb-2 fs-4"></i>
+                            Thêm loại cây trồng
                         </a>
                     </div>
                 </div>
@@ -153,6 +155,70 @@
                         <p class="mt-2 mb-0">Chưa có hoạt động nào</p>
                     </div>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Section -->
+<div class="row g-4 mt-2">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-geo-alt text-primary me-2"></i>Quản lý vị trí
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Quản lý các vị trí, chuồng trại trong nông trại</p>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Location" asp-action="Index" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-list me-1"></i>Danh sách
+                    </a>
+                    <a asp-controller="Location" asp-action="Create" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus me-1"></i>Thêm mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-flower2 text-success me-2"></i>Quản lý cây trồng
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Theo dõi cây trồng, thu hoạch và chi phí</p>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Crop" asp-action="Index" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-list me-1"></i>Danh sách
+                    </a>
+                    <a asp-controller="Crop" asp-action="Create" class="btn btn-sm btn-success">
+                        <i class="bi bi-plus me-1"></i>Thêm mới
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i class="bi bi-bug text-warning me-2"></i>Quản lý vật nuôi
+                </h6>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-3">Theo dõi vật nuôi, sức khỏe và giao dịch bán</p>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Livestock" asp-action="Index" class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-list me-1"></i>Danh sách
+                    </a>
+                    <a asp-controller="Livestock" asp-action="Create" class="btn btn-sm btn-warning">
+                        <i class="bi bi-plus me-1"></i>Thêm mới
+                    </a>
+                </div>
             </div>
         </div>
     </div>

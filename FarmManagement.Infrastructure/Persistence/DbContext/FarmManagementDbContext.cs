@@ -12,7 +12,7 @@ namespace FarmManagement.Infrastructure.Persistence.DbContext;
 public class FarmManagementDbContext : Microsoft.EntityFrameworkCore.DbContext
 {
     public FarmManagementDbContext(DbContextOptions<FarmManagementDbContext> options)
-    : base(options)
+        : base(options)
     {
     }
 
@@ -47,6 +47,7 @@ public class FarmManagementDbContext : Microsoft.EntityFrameworkCore.DbContext
     public DbSet<LivestockCareLog> LivestockCareLogs { get; set; } = null!;
     public DbSet<SaleType> SaleTypes { get; set; } = null!;
     public DbSet<LivestockSale> LivestockSales { get; set; } = null!;
+    public DbSet<LivestockSaleDetail> LivestockSaleDetails { get; set; } = null!;
 
     public override int SaveChanges()
     {
