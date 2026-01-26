@@ -1,7 +1,9 @@
 ﻿using FarmManagement.Application.DTOs.Livestocks;
 using FarmManagement.Web.Services.Livestocks;
 using FarmManagement.Web.Services.Locations;
+using FarmManagement.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace FarmManagement.Web.Controllers.Livestocks;
 
@@ -58,9 +60,36 @@ public class LivestockController : Controller
             return NotFound();
 
         // Load related data
+        var sales = await _saleService.GetByLivestockIdAsync(id);
         ViewBag.CareLogs = await _careLogService.GetByLivestockIdAsync(id);
         ViewBag.HealthLogs = await _healthLogService.GetByLivestockIdAsync(id);
-        ViewBag.Sales = await _saleService.GetByLivestockIdAsync(id);
+        ViewBag.Sales = sales;
+
+        // Aggregations: sold by date and sold by gender
+        var soldByDate = sales
+            .SelectMany(s => s.Details.Select(d => new { s.SaleDate, d.Gender, d.Quantity, d.Weight }))
+            .GroupBy(x => x.SaleDate.Date)
+            .Select(g => new SoldByDateDto
+            {
+                Date = g.Key,
+                TotalQuantity = g.Sum(x => x.Quantity),
+                TotalWeight = g.Sum(x => x.Weight),
+                MaleQuantity = g.Where(x => x.Gender == FarmManagement.Domain.Entities.Livestocks.GenderType.Male).Sum(x => x.Quantity),
+                FemaleQuantity = g.Where(x => x.Gender == FarmManagement.Domain.Entities.Livestocks.GenderType.Female).Sum(x => x.Quantity),
+                MixedQuantity = g.Where(x => x.Gender == FarmManagement.Domain.Entities.Livestocks.GenderType.Mixed).Sum(x => x.Quantity)
+            })
+            .OrderBy(x => x.Date)
+            .ToList();
+
+        var soldByGender = new SoldByGenderDto
+        {
+            Male = soldByDate.Sum(x => x.MaleQuantity),
+            Female = soldByDate.Sum(x => x.FemaleQuantity),
+            Mixed = soldByDate.Sum(x => x.MixedQuantity)
+        };
+
+        ViewBag.SoldByDate = soldByDate;
+        ViewBag.SoldByGender = soldByGender;
 
         // Load dropdowns for modals
         ViewBag.CareTypes = await _careLogService.GetCareTypesAsync();
@@ -406,5 +435,34 @@ public class LivestockController : Controller
         ViewBag.LivestockTypes = await _livestockTypeService.GetAllAsync(false);
         ViewBag.LivestockStatuses = await _livestockStatusService.GetAllAsync(false);
         ViewBag.Locations = await _locationService.GetAllAsync(activeOnly: true);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetSalesAggregations(int id)
+    {
+        var sales = await _saleService.GetByLivestockIdAsync(id);
+        var soldByDate = sales
+            .SelectMany(s => s.Details.Select(d => new { s.SaleDate, d.Gender, d.Quantity, d.Weight }))
+            .GroupBy(x => x.SaleDate.Date)
+            .Select(g => new SoldByDateDto
+            {
+                Date = g.Key,
+                TotalQuantity = g.Sum(x => x.Quantity),
+                TotalWeight = g.Sum(x => x.Weight),
+                MaleQuantity = g.Where(x => x.Gender == FarmManagement.Domain.Entities.Livestocks.GenderType.Male).Sum(x => x.Quantity),
+                FemaleQuantity = g.Where(x => x.Gender == FarmManagement.Domain.Entities.Livestocks.GenderType.Female).Sum(x => x.Quantity),
+                MixedQuantity = g.Where(x => x.Gender == FarmManagement.Domain.Entities.Livestocks.GenderType.Mixed).Sum(x => x.Quantity)
+            })
+            .OrderBy(x => x.Date)
+            .ToList();
+
+        var soldByGender = new SoldByGenderDto
+        {
+            Male = soldByDate.Sum(x => x.MaleQuantity),
+            Female = soldByDate.Sum(x => x.FemaleQuantity),
+            Mixed = soldByDate.Sum(x => x.MixedQuantity)
+        };
+
+        return Json(new { soldByDate, soldByGender });
     }
 }

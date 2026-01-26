@@ -6,83 +6,88 @@
     var displayName = Model.Name ?? Model.TagCode ?? $"VN-{Model.Id:D4}";
     ViewData["Title"] = $"Chi tiết: {displayName}";
 
-  // Breadcrumbs
+    // Breadcrumbs
     ViewData.SetBreadcrumbs(
         BreadcrumbItem.Home(),
         new BreadcrumbItem("Vật nuôi", "/Livestock", "bi bi-bug"),
         BreadcrumbItem.Current("Chi tiết")
     );
 
-    var careLogs = ViewBag.CareLogs as List<LivestockCareLogDto> ?? new List<LivestockCareLogDto>();
-    var healthLogs = ViewBag.HealthLogs as List<LivestockHealthLogDto> ?? new List<LivestockHealthLogDto>();
-    var sales = ViewBag.Sales as List<LivestockSaleDto> ?? new List<LivestockSaleDto>();
-    var prices = ViewBag.Prices as List<LivestockPriceDto> ?? new List<LivestockPriceDto>();
+    var careLogs       = ViewBag.CareLogs     as List<LivestockCareLogDto>   ?? new List<LivestockCareLogDto>();
+    var healthLogs     = ViewBag.HealthLogs   as List<LivestockHealthLogDto> ?? new List<LivestockHealthLogDto>();
+    var sales          = ViewBag.Sales        as List<LivestockSaleDto>      ?? new List<LivestockSaleDto>();
+    var prices         = ViewBag.Prices       as List<LivestockPriceDto>     ?? new List<LivestockPriceDto>();
 
-    var careTypes = ViewBag.CareTypes as List<LivestockCareTypeDto> ?? new List<LivestockCareTypeDto>();
+    var careTypes      = ViewBag.CareTypes    as List<LivestockCareTypeDto>     ?? new List<LivestockCareTypeDto>();
     var healthStatuses = ViewBag.HealthStatuses as List<LivestockHealthStatusDto> ?? new List<LivestockHealthStatusDto>();
-    var saleTypes = ViewBag.SaleTypes as List<SaleTypeDto> ?? new List<SaleTypeDto>();
+    var saleTypes      = ViewBag.SaleTypes    as List<SaleTypeDto>              ?? new List<SaleTypeDto>();
 
-    var perKgSaleType = saleTypes.FirstOrDefault(x => x.SaleMethod == SaleMethod.PerKilogram);
-    var totalSales = sales.Sum(s => s.TotalAmount);
-    var totalCareCost = careLogs.Sum(c => c.Cost);
+    var perKgSaleType   = saleTypes.FirstOrDefault(x => x.SaleMethod == SaleMethod.PerKilogram);
+    var totalSales      = sales.Sum(s => s.TotalAmount);
+    var totalCareCost   = careLogs.Sum(c => c.Cost);
     var totalHealthCost = healthLogs.Sum(h => h.MedicineCost);
 
     // Page Header
     var pageHeader = new PageHeaderModel
-  {
-   Title = displayName,
-        Subtitle = $"{Model.LivestockTypeName} • {Model.LocationName}",
-        Icon = "bi bi-bug",
+    {
+        Title          = displayName,
+        Subtitle       = $"{Model.LivestockTypeName} • {Model.LocationName}",
+        Icon           = "bi bi-bug",
         ShowBreadcrumb = false,
-    Actions = new List<ActionButtonModel>
+        Actions = new List<ActionButtonModel>
         {
-    ActionButtonModel.Back("/Livestock", "Quay lại"),
-            new ActionButtonModel("Sửa", $"/Livestock/Edit/{Model.Id}", "bi bi-pencil", "btn-primary") { Size = ButtonSize.Default }
- }
+            ActionButtonModel.Back("/Livestock", "Quay lại"),
+            new ActionButtonModel(
+                "Sửa",
+                $"/Livestock/Edit/{Model.Id}",
+                "bi bi-pencil",
+                "btn-primary"
+            ) { Size = ButtonSize.Default }
+        }
     };
 
     // Stats Cards
     var statsCards = new List<StatsCardModel>
     {
         new StatsCardModel
-   {
-     Value = Model.Quantity.ToString(),
-            Label = "Số lượng (con)",
-Icon = "bi bi-bug",
+        {
+            Value               = Model.Quantity.ToString(),
+            Label               = "Số lượng (con)",
+            Icon                = "bi bi-bug",
             IconBackgroundClass = "bg-primary-subtle",
-         ColorClass = "text-primary",
-            TrendDescription = $"♂ {Model.MaleCount} đực | ♀ {Model.FemaleCount} cái"
+            ColorClass          = "text-primary",
+            TrendDescription    = $"♂ {Model.MaleCount} đực | ♀ {Model.FemaleCount} cái"
         },
         new StatsCardModel
         {
-     Value = Model.TotalImportWeight.ToString("N1"),
-          Label = "Tổng trọng lượng (kg)",
-            Icon = "bi bi-speedometer2",
-       IconBackgroundClass = "bg-success-subtle",
-  ColorClass = "text-success",
-            TrendDescription = $"~{Model.ImportWeight:N1} kg/con"
+            Value               = Model.TotalImportWeight.ToString("N1"),
+            Label               = "Tổng trọng lượng (kg)",
+            Icon                = "bi bi-speedometer2",
+            IconBackgroundClass = "bg-success-subtle",
+            ColorClass          = "text-success",
+            TrendDescription    = $"~{Model.ImportWeight:N1} kg/con"
         },
-    new StatsCardModel
+        new StatsCardModel
         {
-            Value = Model.TotalImportPrice.ToString("N0"),
-            Label = "Tổng giá nhập (VNĐ)",
-            Icon = "bi bi-currency-dollar",
+            Value               = Model.TotalImportPrice.ToString("N0"),
+            Label               = "Tổng giá nhập (VNĐ)",
+            Icon                = "bi bi-currency-dollar",
             IconBackgroundClass = "bg-warning-subtle",
-          ColorClass = "text-warning",
-      TrendDescription = $"~{Model.ImportPrice:N0}₫/con"
+            ColorClass          = "text-warning",
+            TrendDescription    = $"~{Model.ImportPrice:N0}₫/con"
         },
         new StatsCardModel
         {
- Value = totalSales.ToString("N0"),
-Label = "Doanh thu bán",
-            Icon = "bi bi-cash-stack",
-      IconBackgroundClass = "bg-danger-subtle",
-        ColorClass = "text-danger",
-          TrendDescription = $"{sales.Count} đơn hàng"
-     }
+            Value               = totalSales.ToString("N0"),
+            Label               = "Doanh thu bán",
+            Icon                = "bi bi-cash-stack",
+            IconBackgroundClass = "bg-danger-subtle",
+            ColorClass          = "text-danger",
+            TrendDescription    = $"{sales.Count} đơn hàng"
+        }
     };
 
-  // Empty states
+    // Empty states
     var emptyCare = EmptyStateModel.NoData("nhật ký chăm sóc");
     emptyCare.Icon = "bi bi-heart";
     emptyCare.IconSize = "2rem";
@@ -112,603 +117,691 @@ Label = "Doanh thu bán",
 
 <div class="row g-4">
     @* ==================== Left Column - Main Content ==================== *@
-<div class="col-lg-8">
-  @* Basic Info Card *@
-        <div class="card mb-4">
-         <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-semibold">
-             <i class="bi bi-info-circle text-primary me-2"></i>Thông tin cơ bản
-     </h6>
-@{
-    var statusClass = Model.LivestockStatusName switch
-        {
-           var s when s?.Contains("nuôi") == true => "success",
-  var s when s?.Contains("Bán") == true => "warning",
-     var s when s?.Contains("Chết") == true || s?.Contains("mổ") == true => "danger",
-   _ => "secondary"
-          };
-                }
-   <span class="badge bg-@statusClass-subtle text-@statusClass">@Model.LivestockStatusName</span>
-         </div>
-            <div class="card-body">
-     <div class="row g-3">
-     @if (!string.IsNullOrEmpty(Model.Name))
-        {
-     <div class="col-md-6">
-   <div class="info-box border rounded p-3">
-        <div class="d-flex align-items-center gap-3">
-        <div class="bg-primary-subtle text-primary rounded p-2">
-        <i class="bi bi-tag"></i>
-           </div>
-          <div>
-  <small class="text-muted d-block">Tên đàn</small>
-           <strong>@Model.Name</strong>
-                 </div>
-                  </div>
- </div>
-       </div>
-    }
-    @if (!string.IsNullOrEmpty(Model.TagCode))
-              {
-            <div class="col-md-6">
-             <div class="info-box border rounded p-3">
-          <div class="d-flex align-items-center gap-3">
-            <div class="bg-secondary-subtle text-secondary rounded p-2">
-                 <i class="bi bi-upc-scan"></i>
-          </div>
-     <div>
-       <small class="text-muted d-block">Mã thẻ/Mã lô</small>
-                     <strong><code>@Model.TagCode</code></strong>
-      </div>
-             </div>
-          </div>
-         </div>
-         }
-           <div class="col-md-6">
-        <div class="info-box border rounded p-3">
-           <div class="d-flex align-items-center gap-3">
-          <div class="bg-info-subtle text-info rounded p-2">
-   <i class="bi bi-collection"></i>
-          </div>
-          <div>
-              <small class="text-muted d-block">Loại vật nuôi</small>
-     <strong>@Model.LivestockTypeName</strong>
- </div>
-</div>
-             </div>
-  </div>
-                    <div class="col-md-6">
-       <div class="info-box border rounded p-3">
-    <div class="d-flex align-items-center gap-3">
-   <div class="bg-success-subtle text-success rounded p-2">
-      <i class="bi bi-geo-alt"></i>
-    </div>
-              <div>
-           <small class="text-muted d-block">Vị trí</small>
-      <strong>@Model.LocationName</strong>
-     </div>
-            </div>
-          </div>
-    </div>
-            <div class="col-md-6">
-      <div class="info-box border rounded p-3">
-         <div class="d-flex align-items-center gap-3">
-          <div class="bg-warning-subtle text-warning rounded p-2">
-    <i class="bi bi-calendar-event"></i>
-          </div>
-    <div>
- <small class="text-muted d-block">Ngày nhập</small>
-     <strong>@Model.ImportDate.ToString("dd/MM/yyyy")</strong>
-  </div>
-  </div>
-            </div>
-        </div>
- <div class="col-md-6">
-    <div class="info-box border rounded p-3">
-          <div class="d-flex align-items-center gap-3">
-        <div class="bg-primary-subtle text-primary rounded p-2">
-     <i class="bi bi-people"></i>
-        </div>
-<div>
-     <small class="text-muted d-block">Số lượng</small>
-           <strong>@Model.QuantityDisplay</strong>
-    </div>
-       </div>
-         </div>
-             </div>
-     </div>
+    <div class="col-lg-8">
+      @* Basic Info Card *@
+      <div class="card mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-info-circle text-primary me-2"></i>
+                Thông tin cơ bản
+            </h6>
 
-       @if (!string.IsNullOrEmpty(Model.Note))
-     {
+            @{ var statusClass = Model.LivestockStatusName switch
+               {
+                   var s when s?.Contains("nuôi") == true => "success",
+                   var s when s?.Contains("Bán") == true => "warning",
+                   var s when s?.Contains("Chết") == true || s?.Contains("mổ") == true => "danger",
+                   _ => "secondary"
+               };
+            }
+
+            <span class="badge bg-@statusClass-subtle text-@statusClass">
+                @Model.LivestockStatusName
+            </span>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+                @if (!string.IsNullOrEmpty(Model.Name))
+                {
+                    <div class="col-md-6">
+                        <div class="info-box border rounded p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-primary-subtle text-primary rounded p-2">
+                                    <i class="bi bi-tag"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Tên đàn</small>
+                                    <strong>@Model.Name</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.TagCode))
+                {
+                    <div class="col-md-6">
+                        <div class="info-box border rounded p-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-secondary-subtle text-secondary rounded p-2">
+                                    <i class="bi bi-upc-scan"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Mã thẻ/Mã lô</small>
+                                    <strong><code>@Model.TagCode</code></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="col-md-6">
+                    <div class="info-box border rounded p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-info-subtle text-info rounded p-2">
+                                <i class="bi bi-collection"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Loại vật nuôi</small>
+                                <strong>@Model.LivestockTypeName</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-box border rounded p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-success-subtle text-success rounded p-2">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Vị trí</small>
+                                <strong>@Model.LocationName</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-box border rounded p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-warning-subtle text-warning rounded p-2">
+                                <i class="bi bi-calendar-event"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Ngày nhập</small>
+                                <strong>@Model.ImportDate.ToString("dd/MM/yyyy")</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="info-box border rounded p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="bg-primary-subtle text-primary rounded p-2">
+                                <i class="bi bi-people"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Số lượng</small>
+                                <strong>@Model.QuantityDisplay</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Note))
+            {
                 <div class="mt-4 p-3 bg-light rounded">
-    <h6 class="mb-2"><i class="bi bi-sticky me-2"></i>Ghi chú</h6>
-  <p class="mb-0 text-muted">@Model.Note</p>
+                    <h6 class="mb-2">
+                        <i class="bi bi-sticky me-2"></i>
+                        Ghi chú
+                    </h6>
+                    <p class="mb-0 text-muted">@Model.Note</p>
+                </div>
+            }
         </div>
-       }
-      </div>
-        </div>
+    </div>
 
         @* ==================== Tabs Management ==================== *@
         <div class="card">
-     <div class="card-header bg-white p-0">
-     <ul class="nav nav-tabs card-header-tabs" id="livestockTabs" role="tablist">
- <li class="nav-item" role="presentation">
-             <button class="nav-link active px-4 py-3" id="care-tab" data-bs-toggle="tab" data-bs-target="#care" type="button">
-        <i class="bi bi-heart me-2"></i>Chăm sóc
-       <span class="badge bg-primary ms-2">@careLogs.Count</span>
-      </button>
-          </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link px-4 py-3" id="health-tab" data-bs-toggle="tab" data-bs-target="#health" type="button">
-    <i class="bi bi-activity me-2"></i>Sức khỏe
-     <span class="badge bg-warning text-dark ms-2">@healthLogs.Count</span>
-   </button>
-       </li>
-                  <li class="nav-item" role="presentation">
-      <button class="nav-link px-4 py-3" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales" type="button">
-        <i class="bi bi-cash me-2"></i>Bán hàng
- <span class="badge bg-success ms-2">@sales.Count</span>
-      </button>
-       </li>
- <li class="nav-item" role="presentation">
-          <button class="nav-link px-4 py-3" id="prices-tab" data-bs-toggle="tab" data-bs-target="#prices" type="button">
-         <i class="bi bi-tags me-2"></i>Giá
-              <span class="badge bg-info ms-2">@prices.Count</span>
-   </button>
-        </li>
-        </ul>
-   </div>
+            <div class="card-header bg-white p-0">
+                <ul class="nav nav-tabs card-header-tabs" id="livestockTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link active px-4 py-3"
+                            id="care-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#care"
+                            type="button">
+                            <i class="bi bi-heart me-2"></i>
+                            Chăm sóc
+                            <span class="badge bg-primary ms-2">@careLogs.Count</span>
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link px-4 py-3"
+                            id="health-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#health"
+                            type="button">
+                            <i class="bi bi-activity me-2"></i>
+                            Sức khỏe
+                            <span class="badge bg-warning text-dark ms-2">@healthLogs.Count</span>
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link px-4 py-3"
+                            id="sales-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#sales"
+                            type="button">
+                            <i class="bi bi-cash me-2"></i>
+                            Bán hàng
+                            <span class="badge bg-success ms-2">@sales.Count</span>
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button
+                            class="nav-link px-4 py-3"
+                            id="prices-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#prices"
+                            type="button">
+                            <i class="bi bi-tags me-2"></i>
+                            Giá
+                            <span class="badge bg-info ms-2">@prices.Count</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
             <div class="card-body">
                 <div class="tab-content" id="livestockTabsContent">
-        @* ==================== Tab: Chăm sóc ==================== *@
-          <div class="tab-pane fade show active" id="care" role="tabpanel">
-  <div class="d-flex justify-content-between align-items-center mb-3">
- <h6 class="mb-0"><i class="bi bi-heart text-primary me-2"></i>Nhật ký chăm sóc</h6>
-   <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCareLogModal">
-           <i class="bi bi-plus-lg me-1"></i>Thêm
-    </button>
-      </div>
-             @if (careLogs.Any())
-         {
-   <div class="table-responsive">
-    <table class="table table-hover mb-0">
-    <thead class="table-light">
-          <tr>
-         <th>Ngày</th>
-      <th>Loại chăm sóc</th>
-       <th>Số lượng</th>
-              <th>Chi phí</th>
-   <th>Ghi chú</th>
-      <th width="80"></th>
-        </tr>
-           </thead>
-  <tbody>
-           @foreach (var log in careLogs.OrderByDescending(x => x.CareDate))
-        {
-    <tr class="hover-shadow">
-      <td>@log.CareDate.ToString("dd/MM/yyyy")</td>
-     <td><span class="badge bg-info-subtle text-info">@log.LivestockCareTypeName</span></td>
-     <td>@log.Quantity @log.Unit</td>
-      <td class="text-success fw-medium">@log.Cost.ToString("N0") đ</td>
-  <td class="text-muted">@log.Note</td>
-     <td>
-          <div class="btn-group btn-group-sm">
-     <button type="button" class="btn btn-outline-primary btn-sm"
-    onclick="openEditCareLogModal(@log.Id, @log.LivestockCareTypeId, '@log.CareDate.ToString("yyyy-MM-dd")', @log.Quantity, '@(log.Unit ?? "")', @log.Cost, '@(log.Note?.Replace("'", "\\'") ?? "")')">
-     <i class="bi bi-pencil"></i>
-   </button>
-   <form asp-action="DeleteCareLog" method="post" class="d-inline">
-           @Html.AntiForgeryToken()
-   <input type="hidden" name="id" value="@log.Id" />
-           <input type="hidden" name="livestockId" value="@Model.Id" />
+                    @* ==================== Tab: Chăm sóc ==================== *@
+                    <div class="tab-pane fade show active" id="care" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-heart text-primary me-2"></i>Nhật ký chăm sóc</h6>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addCareLogModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm
+                            </button>
+                        </div>
+                        @if (careLogs.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Ngày</th>
+                                            <th>Loại chăm sóc</th>
+                                            <th>Số lượng</th>
+                                            <th>Chi phí</th>
+                                            <th>Ghi chú</th>
+                                            <th width="80"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var log in careLogs.OrderByDescending(x => x.CareDate))
+                                        {
+                                            <tr class="hover-shadow">
+                                                <td>@log.CareDate.ToString("dd/MM/yyyy")</td>
+                                                <td><span class="badge bg-info-subtle text-info">@log.LivestockCareTypeName</span></td>
+                                                <td>@log.Quantity @log.Unit</td>
+                                                <td class="text-success fw-medium">@log.Cost.ToString("N0") đ</td>
+                                                <td class="text-muted">@log.Note</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                onclick="openEditCareLogModal(@log.Id, @log.LivestockCareTypeId, '@log.CareDate.ToString("yyyy-MM-dd")', @log.Quantity, '@(log.Unit ?? "")', @log.Cost, '@(log.Note?.Replace("'", "\\'") ?? "")')">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <form asp-action="DeleteCareLog" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@log.Id" />
+                                                            <input type="hidden" name="livestockId" value="@Model.Id" />
 
- <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
- <i class="bi bi-trash"></i>
- </button>
- </form>
- </div>
- </td>
- </tr>
-    }
-               </tbody>
-       <tfoot class="table-light">
-          <tr>
- <td colspan="3" class="text-end"><strong>Tổng chi phí:</strong></td>
-       <td colspan="3"><strong class="text-success">@totalCareCost.ToString("N0") đ</strong></td>
-     </tr>
-    </tfoot>
-            </table>
-     </div>
-     }
-  else
- {
-        <partial name="_EmptyState" model="emptyCare" />
-       }
-    </div>
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>Tổng chi phí:</strong></td>
+                                            <td colspan="3"><strong class="text-success">@totalCareCost.ToString("N0") đ</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptyCare" />
+                        }
+                    </div>
 
-    @* ==================== Tab: Sức khỏe ==================== *@
-   <div class="tab-pane fade" id="health" role="tabpanel">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-         <h6 class="mb-0"><i class="bi bi-activity text-warning me-2"></i>Nhật ký sức khỏe</h6>
-   <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#addHealthLogModal">
-              <i class="bi bi-plus-lg me-1"></i>Thêm
-  </button>
-              </div>
-              @if (healthLogs.Any())
-       {
-     <div class="table-responsive">
-       <table class="table table-hover mb-0">
-      <thead class="table-light">
-           <tr>
-          <th>Ngày kiểm tra</th>
-         <th>Trạng thái</th>
-     <th>Triệu chứng</th>
-               <th>Điều trị</th>
-  <th>Chi phí thuốc</th>
-        <th>Bác sĩ</th>
-  <th width="80"></th>
-        </tr>
- </thead>
-         <tbody>
-           @foreach (var log in healthLogs.OrderByDescending(x => x.CheckDate))
-        {
-         <tr class="hover-shadow">
-       <td>@log.CheckDate.ToString("dd/MM/yyyy")</td>
- <td><span class="badge bg-warning-subtle text-warning">@log.HealthStatusName</span></td>
-    <td>@log.Symptom</td>
-    <td>@log.Treatment</td>
-              <td class="text-danger fw-medium">@log.MedicineCost.ToString("N0") đ</td>
-            <td>@log.VetName</td>
-              <td>
-  <div class="btn-group btn-group-sm">
-            <button type="button" class="btn btn-outline-primary btn-sm"
-        onclick="openEditHealthLogModal(@log.Id, @log.HealthStatusId, '@log.CheckDate.ToString("yyyy-MM-dd")', '@(log.Symptom?.Replace("'", "\\'") ?? "")', '@(log.Treatment?.Replace("'", "\\'") ?? "")', @log.MedicineCost, '@(log.VetName?.Replace("'", "\\'") ?? "")')">
-        <i class="bi bi-pencil"></i>
-          </button>
-           <form asp-action="DeleteHealthLog" method="post" class="d-inline">
-                 @Html.AntiForgeryToken()
-              <input type="hidden" name="id" value="@log.Id" />
-       <input type="hidden" name="livestockId" value="@Model.Id" />
-      <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
-       <i class="bi bi-trash"></i>
-         </button>
-  </form>
+                    @* ==================== Tab: Sức khỏe ==================== *@
+                    <div class="tab-pane fade" id="health" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-activity text-warning me-2"></i>Nhật ký sức khỏe</h6>
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#addHealthLogModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm
+                            </button>
+                        </div>
+                        @if (healthLogs.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Ngày kiểm tra</th>
+                                            <th>Trạng thái</th>
+                                            <th>Triệu chứng</th>
+                                            <th>Điều trị</th>
+                                            <th>Chi phí thuốc</th>
+                                            <th>Bác sĩ</th>
+                                            <th width="80"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var log in healthLogs.OrderByDescending(x => x.CheckDate))
+                                        {
+                                            <tr class="hover-shadow">
+                                                <td>@log.CheckDate.ToString("dd/MM/yyyy")</td>
+                                                <td><span class="badge bg-warning-subtle text-warning">@log.HealthStatusName</span></td>
+                                                <td>@log.Symptom</td>
+                                                <td>@log.Treatment</td>
+                                                <td class="text-danger fw-medium">@log.MedicineCost.ToString("N0") đ</td>
+                                                <td>@log.VetName</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                onclick="openEditHealthLogModal(@log.Id, @log.HealthStatusId, '@log.CheckDate.ToString("yyyy-MM-dd")', '@(log.Symptom?.Replace("'", "\\'") ?? "")', '@(log.Treatment?.Replace("'", "\\'") ?? "")', @log.MedicineCost, '@(log.VetName?.Replace("'", "\\'") ?? "")')">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <form asp-action="DeleteHealthLog" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@log.Id" />
+                                                            <input type="hidden" name="livestockId" value="@Model.Id" />
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="4" class="text-end"><strong>Tổng chi phí thuốc:</strong></td>
+                                            <td colspan="3"><strong class="text-danger">@totalHealthCost.ToString("N0") đ</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptyHealth" />
+                        }
+                    </div>
+
+                    @* ==================== Tab: Bán hàng ==================== *@
+                    <div class="tab-pane fade" id="sales" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-cash text-success me-2"></i>Đơn hàng bán (Theo kg)</h6>
+                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addSaleModal">
+                                <i class="bi bi-plus-lg me-1"></i>Tạo đơn hàng
+                            </button>
+                        </div>
+                        @if (sales.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Mã đơn</th>
+                                            <th>Ngày bán</th>
+                                            <th>Số dòng</th>
+                                            <th>Tổng kg</th>
+                                            <th>Tổng con</th>
+                                            <th>Tổng tiền</th>
+                                            <th>Người mua</th>
+                                            <th width="100"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var sale in sales.OrderByDescending(x => x.SaleDate))
+                                        {
+                                            <tr>
+                                                <td><code>@sale.OrderCode</code></td>
+                                                <td>@sale.SaleDate.ToString("dd/MM/yyyy")</td>
+                                                <td><span class="badge bg-info-subtle text-info">@sale.DetailCount dòng</span></td>
+                                                <td class="fw-medium">@sale.TotalWeight.ToString("N2") kg</td>
+                                                <td>@sale.TotalQuantity con</td>
+                                                <td class="text-success fw-bold">@sale.TotalAmount.ToString("N0") đ</td>
+                                                <td>@sale.Buyer</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-info btn-sm" title="Xem chi tiết" onclick="viewSaleDetails(@sale.Id)">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Sửa"
+                                                                onclick="openEditSaleModal(@sale.Id, '@sale.SaleDate.ToString("yyyy-MM-dd")', '@(sale.Buyer?.Replace("'", "\\'") ?? "")', '@(sale.BuyerPhone?.Replace("'", "\\'") ?? "")', '@(sale.Note?.Replace("'", "\\'") ?? "")')">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <form asp-action="DeleteSale" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@sale.Id" />
+                                                            <input type="hidden" name="livestockId" value="@Model.Id" />
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa đơn hàng này?')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            @* Expandable detail row *@
+                                            <tr class="sale-detail-row d-none" id="sale-detail-@sale.Id">
+                                                <td colspan="8" class="bg-light p-3">
+                                                    <strong class="d-block mb-2">Chi tiết đơn hàng @sale.OrderCode:</strong>
+                                                    <table class="table table-sm table-bordered mb-0">
+                                                        <thead class="table-secondary">
+                                                            <tr>
+                                                                <th>#</th>
+                                                                <th>Giới tính</th>
+                                                                <th>Số con</th>
+                                                                <th>Trọng lượng</th>
+                                                                <th>Đơn giá</th>
+                                                                <th>Thành tiền</th>
+                                                                <th>Ghi chú</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var detail in sale.Details)
+                                                            {
+                                                                <tr>
+                                                                    <td>@detail.LineNumber</td>
+                                                                    <td>
+                                                                        @if (detail.Gender == GenderType.Male)
+                                                                        {
+                                                                            <span class="badge bg-primary">Đực</span>
+                                                                        }
+                                                                        else if (detail.Gender == GenderType.Female)
+                                                                        {
+                                                                            <span class="badge bg-danger">Cái</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span class="badge bg-secondary">Hỗn hợp</span>
+                                                                        }
+                                                                    </td>
+                                                                    <td>@detail.Quantity con</td>
+                                                                    <td>@detail.Weight.ToString("N2") kg</td>
+                                                                    <td>@detail.UnitPrice.ToString("N0") đ/kg</td>
+                                                                    <td class="fw-bold text-success">@detail.Amount.ToString("N0") đ</td>
+                                                                    <td class="text-muted">@detail.Note</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot class="table-light">
+                                        <tr>
+                                            <td colspan="5" class="text-end"><strong>Tổng doanh thu:</strong></td>
+                                            <td colspan="3"><strong class="text-success">@totalSales.ToString("N0") đ</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptySales" />
+                        }
+                    </div>
+
+                    @* ==================== Tab: Giá ==================== *@
+                    <div class="tab-pane fade" id="prices" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0"><i class="bi bi-tags text-info me-2"></i>Bảng giá</h6>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#addPriceModal">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm giá
+                            </button>
+                        </div>
+
+                        @if (prices.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Giới tính</th>
+                                            <th>Đơn giá (đ/kg)</th>
+                                            <th>Ngày bắt đầu</th>
+                                            <th>Ngày kết thúc</th>
+                                            <th>Trạng thái</th>
+                                            <th>Ghi chú</th>
+                                            <th width="100"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var price in prices.OrderByDescending(p => p.EffectiveFrom))
+                                        {
+                                            <tr class="@(price.IsActive ? "table-success" : "")">
+                                                <td>
+                                                    @if (price.Gender == GenderType.Male)
+                                                    {
+                                                        <span class="badge bg-primary">Đực</span>
+                                                    }
+                                                    else if (price.Gender == GenderType.Female)
+                                                    {
+                                                        <span class="badge bg-danger">Cái</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">Hỗn hợp</span>
+                                                    }
+                                                </td>
+                                                <td class="text-success fw-medium">@price.UnitPrice.ToString("N0") đ</td>
+                                                <td>@price.EffectiveFrom.ToString("dd/MM/yyyy")</td>
+                                                <td>@(price.EffectiveTo?.ToString("dd/MM/yyyy") ?? "Vô thời hạn")</td>
+                                                <td>
+                                                    @if (price.IsActive)
+                                                    {
+                                                        <span class="badge bg-success">Hoạt động</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">Không hoạt động</span>
+                                                    }
+                                                </td>
+                                                <td class="text-muted">@price.Note</td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                onclick="openEditPriceModal(@price.Id, @((int)price.Gender), @price.UnitPrice, '@price.EffectiveFrom.ToString("yyyy-MM-dd")', '@(price.EffectiveTo?.ToString("yyyy-MM-dd") ?? "")', @price.IsActive.ToString().ToLower(), '@(price.Note?.Replace("'", "\\'") ?? "")')">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <form asp-action="DeletePrice" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@price.Id" />
+                                                            <input type="hidden" name="livestockId" value="@Model.Id" />
+                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa giá này?')">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <partial name="_EmptyState" model="emptyPrices" />
+                        }
+                    </div>
+                </div>
             </div>
-    </td>
-         </tr>
-   }
-            </tbody>
-  <tfoot class="table-light">
-           <tr>
-       <td colspan="4" class="text-end"><strong>Tổng chi phí thuốc:</strong></td>
- <td colspan="3"><strong class="text-danger">@totalHealthCost.ToString("N0") đ</strong></td>
-             </tr>
-     </tfoot>
-         </table>
-       </div>
-      }
-     else
-       {
-        <partial name="_EmptyState" model="emptyHealth" />
-                 }
-          </div>
-
-           @* ==================== Tab: Bán hàng ==================== *@
-        <div class="tab-pane fade" id="sales" role="tabpanel">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-      <h6 class="mb-0"><i class="bi bi-cash text-success me-2"></i>Đơn hàng bán (Theo kg)</h6>
-              <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addSaleModal">
- <i class="bi bi-plus-lg me-1"></i>Tạo đơn hàng
-     </button>
-               </div>
-         @if (sales.Any())
-      {
-          <div class="table-responsive">
-       <table class="table table-hover mb-0">
-        <thead class="table-light">
-  <tr>
-      <th>Mã đơn</th>
-        <th>Ngày bán</th>
-           <th>Số dòng</th>
-        <th>Tổng kg</th>
-    <th>Tổng con</th>
-  <th>Tổng tiền</th>
-   <th>Người mua</th>
-       <th width="100"></th>
-              </tr>
-      </thead>
-         <tbody>
-       @foreach (var sale in sales.OrderByDescending(x => x.SaleDate))
-    {
-       <tr>
-       <td><code>@sale.OrderCode</code></td>
-       <td>@sale.SaleDate.ToString("dd/MM/yyyy")</td>
-            <td><span class="badge bg-info-subtle text-info">@sale.DetailCount dòng</span></td>
-      <td class="fw-medium">@sale.TotalWeight.ToString("N2") kg</td>
-          <td>@sale.TotalQuantity con</td>
-  <td class="text-success fw-bold">@sale.TotalAmount.ToString("N0") đ</td>
-        <td>@sale.Buyer</td>
-            <td>
-                 <div class="btn-group btn-group-sm">
-           <button type="button" class="btn btn-outline-info btn-sm" title="Xem chi tiết" onclick="viewSaleDetails(@sale.Id)">
-     <i class="bi bi-eye"></i>
-     </button>
-      <button type="button" class="btn btn-outline-primary btn-sm" title="Sửa"
-             onclick="openEditSaleModal(@sale.Id, '@sale.SaleDate.ToString("yyyy-MM-dd")', '@(sale.Buyer?.Replace("'","\\'") ?? "")', '@(sale.BuyerPhone?.Replace("'","\\'") ?? "")', '@(sale.Note?.Replace("'","\\'") ?? "")')">
-     <i class="bi bi-pencil"></i>
-   </button>
-    <form asp-action="DeleteSale" method="post" class="d-inline">
-             @Html.AntiForgeryToken()
-           <input type="hidden" name="id" value="@sale.Id" />
-      <input type="hidden" name="livestockId" value="@Model.Id" />
- <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa đơn hàng này?')">
- <i class="bi bi-trash"></i>
- </button>
- </form>
- </div>
- </td>
- </tr>
-    @* Expandable detail row *@
-    <tr class="sale-detail-row d-none" id="sale-detail-@sale.Id">
-   <td colspan="8" class="bg-light p-3">
-    <strong class="d-block mb-2">Chi tiết đơn hàng @sale.OrderCode:</strong>
-         <table class="table table-sm table-bordered mb-0">
-      <thead class="table-secondary">
-        <tr>
-         <th>#</th>
-      <th>Giới tính</th>
-          <th>Số con</th>
-           <th>Trọng lượng</th>
-        <th>Đơn giá</th>
-               <th>Thành tiền</th>
-       <th>Ghi chú</th>
-               </tr>
-             </thead>
-   <tbody>
-        @foreach (var detail in sale.Details)
- {
-              <tr>
-       <td>@detail.LineNumber</td>
-  <td>
-          @if (detail.Gender == GenderType.Male)
-             {
-    <span class="badge bg-primary">Đực</span>
-     }
-                 else if (detail.Gender == GenderType.Female)
-         {
-      <span class="badge bg-danger">Cái</span>
-        }
-       else
-    {
-         <span class="badge bg-secondary">Hỗn hợp</span>
-       }
-      </td>
-    <td>@detail.Quantity con</td>
-  <td>@detail.Weight.ToString("N2") kg</td>
-         <td>@detail.UnitPrice.ToString("N0") đ/kg</td>
-      <td class="fw-bold text-success">@detail.Amount.ToString("N0") đ</td>
-          <td class="text-muted">@detail.Note</td>
-    </tr>
-       }
-         </tbody>
-         </table>
-  </td>
- </tr>
-       }
-           </tbody>
- <tfoot class="table-light">
-     <tr>
-        <td colspan="5" class="text-end"><strong>Tổng doanh thu:</strong></td>
-               <td colspan="3"><strong class="text-success">@totalSales.ToString("N0") đ</strong></td>
-     </tr>
-           </tfoot>
-          </table>
- </div>
-        }
-        else
-      {
-              <partial name="_EmptyState" model="emptySales" />
-       }
-          </div>
-
-         @* ==================== Tab: Giá ==================== *@
-  <div class="tab-pane fade" id="prices" role="tabpanel">
-     <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="mb-0"><i class="bi bi-tags text-info me-2"></i>Bảng giá</h6>
-    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#addPriceModal">
-              <i class="bi bi-plus-lg me-1"></i>Thêm giá
-            </button>
-         </div>
-       @if (prices.Any())
-   {
-  <div class="table-responsive">
-          <table class="table table-hover mb-0">
-           <thead class="table-light">
-   <tr>
-            <th>Giới tính</th>
-    <th>Đơn giá (đ/kg)</th>
-        <th>Ngày bắt đầu</th>
-       <th>Ngày kết thúc</th>
-   <th>Trạng thái</th>
-         <th>Ghi chú</th>
-      <th width="100"></th>
-        </tr>
-   </thead>
-            <tbody>
-           @foreach (var price in prices.OrderByDescending(p => p.EffectiveFrom))
-          {
-     <tr class="@(price.IsActive ? "table-success" : "")">
- <td>
-         @if (price.Gender == GenderType.Male)
-       {
-         <span class="badge bg-primary">Đực</span>
-        }
-  else if (price.Gender == GenderType.Female)
-         {
- <span class="badge bg-danger">Cái</span>
-   }
-       else
-       {
-          <span class="badge bg-secondary">Hỗn hợp</span>
-}
-    </td>
-            <td class="text-success fw-medium">@price.UnitPrice.ToString("N0") đ</td>
-    <td>@price.EffectiveFrom.ToString("dd/MM/yyyy")</td>
-        <td>@(price.EffectiveTo?.ToString("dd/MM/yyyy") ?? "Vô thời hạn")</td>
-            <td>
-           @if (price.IsActive)
-        {
-  <span class="badge bg-success">Hoạt động</span>
-    }
-                else
-              {
-       <span class="badge bg-secondary">Không hoạt động</span>
-        }
-          </td>
-    <td class="text-muted">@price.Note</td>
-     <td>
-               <div class="btn-group btn-group-sm">
-        <button type="button" class="btn btn-outline-primary btn-sm"
-    onclick="openEditPriceModal(@price.Id, @((int)price.Gender), @price.UnitPrice, '@price.EffectiveFrom.ToString("yyyy-MM-dd")', '@(price.EffectiveTo?.ToString("yyyy-MM-dd") ?? "")', @price.IsActive.ToString().ToLower(), '@(price.Note?.Replace("'", "\\'") ?? "")')">
-             <i class="bi bi-pencil"></i>
-      </button>
-    <form asp-action="DeletePrice" method="post" class="d-inline">
-        @Html.AntiForgeryToken()
-  <input type="hidden" name="id" value="@price.Id" />
-  <input type="hidden" name="livestockId" value="@Model.Id" />
- <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa giá này?')">
- <i class="bi bi-trash"></i>
- </button>
-               </form>
-           </div>
- </td>
-   </tr>
-}
-     </tbody>
-             </table>
-    </div>
-       }
-        else
-       {
-     <partial name="_EmptyState" model="emptyPrices" />
-              }
-          </div>
-         </div>
-    </div>
-   </div>
+        </div>
     </div>
 
     @* ==================== Right Column - Sidebar ==================== *@
     <div class="col-lg-4">
         @* Status Card *@
-  <div class="card mb-4">
+        <div class="card mb-4">
             <div class="card-header bg-white">
-          <h6 class="mb-0 fw-semibold"><i class="bi bi-speedometer2 text-primary me-2"></i>Trạng thái</h6>
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-speedometer2 text-primary me-2"></i>Trạng thái</h6>
             </div>
-          <div class="card-body text-center">
-  @{
-   var statusIcon = Model.LivestockStatusName switch
-        {
-         var s when s?.Contains("nuôi") == true => "bi-bug text-primary",
-   var s when s?.Contains("Bán") == true => "bi-cart-check text-warning",
-          var s when s?.Contains("Chết") == true || s?.Contains("mổ") == true => "bi-x-circle text-danger",
-  _ => "bi-question-circle text-secondary"
-      };
-          }
-  <i class="bi @statusIcon mb-3" style="font-size: 3rem;"></i>
-         <h5 class="mb-1">@Model.LivestockStatusName</h5>
-         <p class="text-muted mb-0">Nhập từ @Model.ImportDate.ToString("dd/MM/yyyy")</p>
-  </div>
+            <div class="card-body text-center">
+                @{ var statusIcon = Model.LivestockStatusName switch
+                   {
+                       var s when s?.Contains("nuôi") == true => "bi-bug text-primary",
+                       var s when s?.Contains("Bán") == true  => "bi-cart-check text-warning",
+                       var s when s?.Contains("Chết") == true || s?.Contains("mổ") == true => "bi-x-circle text-danger",
+                       _ => "bi-question-circle text-secondary"
+                   };
+                }
+
+                <i class="bi @statusIcon mb-3" style="font-size: 3rem;"></i>
+                <h5 class="mb-1">@Model.LivestockStatusName</h5>
+                <p class="text-muted mb-0">Nhập từ @Model.ImportDate.ToString("dd/MM/yyyy")</p>
+            </div>
         </div>
 
         @* Quantity Card *@
         <div class="card mb-4 border-primary">
-<div class="card-header bg-primary-subtle border-primary">
-          <h6 class="mb-0 fw-semibold text-primary">
-        <i class="bi bi-people me-2"></i>Số lượng
-  </h6>
-       </div>
+            <div class="card-header bg-primary-subtle border-primary">
+                <h6 class="mb-0 fw-semibold text-primary"><i class="bi bi-people me-2"></i>Số lượng</h6>
+            </div>
             <div class="card-body">
-          <div class="text-center mb-3">
-       <div class="display-5 fw-bold text-primary">@Model.Quantity</div>
-       <div class="text-muted">con</div>
-       </div>
-       <div class="row g-2 text-center">
-          <div class="col-6">
-           <div class="border rounded p-2">
-     <i class="bi bi-gender-male text-primary d-block fs-4"></i>
-   <strong>@Model.MaleCount</strong>
-  <small class="text-muted d-block">Đực</small>
-         </div>
-   </div>
-         <div class="col-6">
-    <div class="border rounded p-2">
-             <i class="bi bi-gender-female text-danger d-block fs-4"></i>
-   <strong>@Model.FemaleCount</strong>
-         <small class="text-muted d-block">Cái</small>
-     </div>
-          </div>
-        </div>
-          </div>
+                <div class="text-center mb-3">
+                    <div class="display-5 fw-bold text-primary">@Model.Quantity</div>
+                    <div class="text-muted">con</div>
+                </div>
+                <div class="row g-2 text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <i class="bi bi-gender-male text-primary d-block fs-4"></i>
+                            <strong>@Model.MaleCount</strong>
+                            <small class="text-muted d-block">Đực</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <i class="bi bi-gender-female text-danger d-block fs-4"></i>
+                            <strong>@Model.FemaleCount</strong>
+                            <small class="text-muted d-block">Cái</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         @* Statistics Card *@
         <div class="card mb-4">
-     <div class="card-header bg-white">
-       <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart text-primary me-2"></i>Thống kê</h6>
-      </div>
-      <div class="card-body p-0">
-      <ul class="list-group list-group-flush">
-  <li class="list-group-item d-flex justify-content-between">
-                 <span class="text-muted">Tổng TL nhập</span>
-   <strong>@Model.TotalImportWeight.ToString("N1") kg</strong>
-            </li>
-         <li class="list-group-item d-flex justify-content-between">
-       <span class="text-muted">Tổng giá nhập</span>
-           <strong>@Model.TotalImportPrice.ToString("N0") đ</strong>
-    </li>
-<li class="list-group-item d-flex justify-content-between">
-      <span class="text-muted">Lần chăm sóc</span>
-          <strong>@careLogs.Count</strong>
-          </li>
-           <li class="list-group-item d-flex justify-content-between">
-    <span class="text-muted">Kiểm tra sức khỏe</span>
-        <strong>@healthLogs.Count</strong>
-    </li>
-           <li class="list-group-item d-flex justify-content-between">
-           <span class="text-muted">Đơn hàng bán</span>
-   <strong>@sales.Count</strong>
-       </li>
-            <li class="list-group-item d-flex justify-content-between">
-       <span class="text-muted">Doanh thu bán</span>
-             <strong class="text-success">@totalSales.ToString("N0") đ</strong>
-        </li>
-           </ul>
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-bar-chart text-primary me-2"></i>Thống kê</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Tổng TL nhập</span>
+                        <strong>@Model.TotalImportWeight.ToString("N1") kg</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Tổng giá nhập</span>
+                        <strong>@Model.TotalImportPrice.ToString("N0") đ</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Lần chăm sóc</span>
+                        <strong>@careLogs.Count</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Kiểm tra sức khỏe</span>
+                        <strong>@healthLogs.Count</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Đơn hàng bán</span>
+                        <strong>@sales.Count</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span class="text-muted">Doanh thu bán</span>
+                        <strong class="text-success">@totalSales.ToString("N0") đ</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        @* Sold summary card (charts) *@
+        @{ 
+            var soldByDate   = ViewBag.SoldByDate as List<FarmManagement.Web.Models.SoldByDateDto> ?? new List<FarmManagement.Web.Models.SoldByDateDto>();
+            var soldByGender = ViewBag.SoldByGender as FarmManagement.Web.Models.SoldByGenderDto ?? new FarmManagement.Web.Models.SoldByGenderDto();
+            var totalSoldQty = soldByDate.Sum(x => x.TotalQuantity);
+            var totalSoldWeight = soldByDate.Sum(x => x.TotalWeight);
+        }
+
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-cart-check text-success me-2"></i>Đã bán</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <small class="text-muted d-block">Tổng số con</small>
+                        <strong>@totalSoldQty</strong>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Tổng trọng lượng</small>
+                        <strong>@totalSoldWeight.ToString("N2") kg</strong>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge bg-primary me-2">Đực: @soldByGender.Male</span>
+                    <span class="badge bg-danger me-2">Cái: @soldByGender.Female</span>
+                    <span class="badge bg-secondary">Hỗn hợp: @soldByGender.Mixed</span>
+                </div>
+
+                @if (soldByDate.Any())
+                {
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <canvas id="salesByDateChart" height="160"></canvas>
+                        </div>
+                        <div class="col-12">
+                            <canvas id="salesByGenderChart" height="120"></canvas>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted small">Chưa có dữ liệu bán hàng.</div>
+                }
             </div>
         </div>
 
         @* Metadata Card *@
         <div class="card">
-        <div class="card-header bg-white">
-       <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle text-primary me-2"></i>Metadata</h6>
-      </div>
+            <div class="card-header bg-white">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-info-circle text-primary me-2"></i>Metadata</h6>
+            </div>
             <div class="card-body">
-   <div class="mb-3">
-               <small class="text-muted d-block">ID</small>
-     <strong>@Model.Id</strong>
-        </div>
-   <div class="mb-3">
-           <small class="text-muted d-block">Ngày tạo</small>
-  <strong>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</strong>
-        </div>
-   @if (Model.UpdatedDate.HasValue)
-   {
-    <div>
-      <small class="text-muted d-block">Cập nhật lần cuối</small>
-         <strong>@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
-       </div>
-          }
-          </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">ID</small>
+                    <strong>@Model.Id</strong>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block">Ngày tạo</small>
+                    <strong>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</strong>
+                </div>
+                @if (Model.UpdatedDate.HasValue)
+                {
+                    <div>
+                        <small class="text-muted d-block">Cập nhật lần cuối</small>
+                        <strong>@Model.UpdatedDate.Value.ToString("dd/MM/yyyy HH:mm")</strong>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -1201,77 +1294,40 @@ Label = "Doanh thu bán",
         id = s.Id,
         details = s.Details.Select(d => new {
             id = d.Id,
-        gender = (int)d.Gender,
+            gender = (int)d.Gender,
             quantity = d.Quantity,
-       weight = d.Weight,
+            weight = d.Weight,
             unitPrice = d.UnitPrice,
-     note = d.Note
+            note = d.Note
         })
     })))
 </script>
 
 <style>
-    .info-box {
-        transition: all 0.2s ease;
-    }
-
-    .info-box:hover {
-        background-color: var(--bs-light);
-    }
-
-    .nav-tabs .nav-link {
-      color: var(--bs-secondary);
-        border-bottom: 2px solid transparent;
-    }
-
-    .nav-tabs .nav-link.active {
-        font-weight: 600;
-   border-bottom-color: var(--bs-primary);
-     color: var(--bs-primary);
-    }
-
-    .nav-tabs .nav-link:hover {
-      border-bottom-color: var(--bs-gray-400);
-    }
-
-    .hover-shadow:hover {
-      box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
-    }
-
-    .bg-primary-subtle {
-        background-color: rgba(13, 110, 253, 0.1) !important;
-    }
-
-    .bg-success-subtle {
-        background-color: rgba(25, 135, 84, 0.1) !important;
-    }
-
-    .bg-warning-subtle {
-   background-color: rgba(255, 193, 7, 0.15) !important;
-    }
-
-    .bg-info-subtle {
-      background-color: rgba(13, 202, 240, 0.1) !important;
- }
-
-    .bg-danger-subtle {
-        background-color: rgba(220, 53, 69, 0.1) !important;
-    }
-
-    .bg-secondary-subtle {
-        background-color: rgba(108, 117, 125, 0.1) !important;
-    }
+    .info-box { transition: all 0.2s ease; }
+    .info-box:hover { background-color: var(--bs-light); }
+    .nav-tabs .nav-link { color: var(--bs-secondary); border-bottom: 2px solid transparent; }
+    .nav-tabs .nav-link.active { font-weight: 600; border-bottom-color: var(--bs-primary); color: var(--bs-primary); }
+    .nav-tabs .nav-link:hover { border-bottom-color: var(--bs-gray-400); }
+    .hover-shadow:hover { box-shadow: 0 .125rem .25rem rgba(0,0,0,.075); }
+    .bg-primary-subtle { background-color: rgba(13, 110, 253, 0.1) !important; }
+    .bg-success-subtle { background-color: rgba(25, 135, 84, 0.1) !important; }
+    .bg-warning-subtle { background-color: rgba(255, 193, 7, 0.15) !important; }
+    .bg-info-subtle { background-color: rgba(13, 202, 240, 0.1) !important; }
+    .bg-danger-subtle { background-color: rgba(220, 53, 69, 0.1) !important; }
+    .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
 </style>
 
 @section Scripts {
     <script src="~/js/modules/form-helper.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-    FarmApp.UI.initTooltips();
+            FarmApp.UI.initTooltips();
         });
 
         let rowIndex = 0;
-      let editRowIndex = 0;
+        let editRowIndex = 0;
         const livestockId = @Model.Id;
         const pricesData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(prices.Select(p => new { gender = (int)p.Gender, unitPrice = p.UnitPrice, isActive = p.IsActive })));
         const salesDetailsData = JSON.parse(document.getElementById('salesDetailsData').textContent);
@@ -1279,7 +1335,7 @@ Label = "Doanh thu bán",
         function getPreloadedPrice(gender) {
             const price = pricesData.find(p => p.gender == gender && p.isActive);
             return price ? price.unitPrice : 0;
-     }
+        }
 
         // Open Edit Care Log Modal
         function openEditCareLogModal(id, typeId, careDate, quantity, unit, cost, note) {
@@ -1488,7 +1544,7 @@ updateEditRowNumbers();
 
         function updateEditRowAmount(input) {
    const row = input.closest('tr');
-const weight = parseFloat(row.querySelector('.edit-weight-input').value) || 0;
+const weight = parseFloat(row.querySelector('.edit-weight-input').value) ||  0;
             const price = parseFloat(row.querySelector('.edit-price-input').value) || 0;
     row.querySelector('.edit-row-amount').textContent = (weight * price).toLocaleString('vi-VN') + ' đ';
    }
@@ -1522,5 +1578,63 @@ const weight = parseFloat(row.querySelector('.edit-weight-input').value) || 0;
      document.getElementById('editTotalWeight').textContent = totalWeight.toFixed(2) + ' kg';
             document.getElementById('editTotalAmount').textContent = totalAmount.toLocaleString('vi-VN') + ' đ';
         }
+
+        // ==================== CHARTS ==================== //
+        (function() {
+            function toLocalDateLabels(items) {
+                return items.map(x => new Date(x.date).toLocaleDateString('vi-VN'));
+            }
+
+            function createLineChart(ctx) {
+                return new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [{ label: 'Số lượng bán', data: [], backgroundColor: 'rgba(25, 135, 84, 0.2)', borderColor: '#198754', borderWidth: 2, fill: true }] },
+                    options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { title: { display: true, text: 'Ngày' } }, y: { title: { display: true, text: 'Số lượng' }, beginAtZero: true } } }
+                });
+            }
+
+            function createPieChart(ctx, genderData) {
+                return new Chart(ctx, {
+                    type: 'pie',
+                    data: { labels: ['Đực','Cái','Hỗn hợp'], datasets: [{ data: [genderData.male || 0, genderData.female || 0, genderData.mixed || 0], backgroundColor: ['#0d6efd','#dc3545','#6c757d'], borderColor: '#fff', borderWidth: 2 }] },
+                    options: { responsive: true, plugins: { legend: { position: 'top' } } }
+                });
+            }
+
+            let salesByDateChart = null;
+            let salesByGenderChart = null;
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const dateCanvas = document.getElementById('salesByDateChart');
+                const genderCanvas = document.getElementById('salesByGenderChart');
+
+                if (dateCanvas) salesByDateChart = createLineChart(dateCanvas.getContext('2d'));
+                if (genderCanvas) salesByGenderChart = createPieChart(genderCanvas.getContext('2d'), { male: @soldByGender.Male, female: @soldByGender.Female, mixed: @soldByGender.Mixed });
+
+                loadChartData();
+            });
+
+            function loadChartData() {
+                const url = '@Url.Action("GetSalesAggregations", "Livestock")?id=' + livestockId;
+                fetch(url)
+                    .then(r => r.json())
+                    .then(data => {
+                        const sByDate = data.soldByDate || [];
+                        const sByGender = data.soldByGender || { male: 0, female: 0, mixed: 0 };
+
+                        if (salesByDateChart) {
+                            salesByDateChart.data.labels = toLocalDateLabels(sByDate);
+                            salesByDateChart.data.datasets[0].data = sByDate.map(x => x.totalQuantity);
+                            salesByDateChart.update();
+                        }
+
+                        if (salesByGenderChart) {
+                            salesByGenderChart.data.datasets[0].data = [sByGender.male, sByGender.female, sByGender.mixed];
+                            salesByGenderChart.update();
+                        }
+                    })
+                    .catch(e => console.error('Failed to load sales aggregations', e));
+            }
+        })();
     </script>
 }
