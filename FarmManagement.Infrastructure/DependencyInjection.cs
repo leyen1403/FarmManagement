@@ -9,6 +9,9 @@ using FarmManagement.Infrastructure.Services.Common;
 using FarmManagement.Infrastructure.Services.Livestocks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using FarmManagement.Application.Interfaces.Reports;
+using FarmManagement.Infrastructure.Repositories.Reports;
+using FarmManagement.Infrastructure.Services.Reports;
 
 namespace FarmManagement.Infrastructure
 {
@@ -50,6 +53,10 @@ namespace FarmManagement.Infrastructure
             services.AddScoped<ISaleTypeService, SaleTypeService>();
             services.AddScoped<ILivestockSaleService, LivestockSaleService>();
             services.AddScoped<ILivestockPriceService, LivestockPriceService>();
+
+            // Register reporting repository and service
+            services.AddScoped<ICropCostReportRepository, CropCostReportRepository>();
+            services.AddScoped<ICropCostReportService, CropCostReportService>();
 
             return services;
         }

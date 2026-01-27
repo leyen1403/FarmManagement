@@ -1,4 +1,14 @@
-﻿<!DOCTYPE html>
+﻿@{
+    // Data-driven reports submenu to allow adding a new report by adding one entry here.
+    var reports = new[]
+    {
+        // new { Page = "/Reports/CropCost", Title = "Crop Cost Report", Icon = "bi bi-file-earmark-text" }
+        new { Page = "/Reports/CropCost/Index", Title = "Crop Cost Report", Icon = "bi bi-file-earmark-text" }
+        // Add new reports here: new { Page = "/Reports/YourReport", Title = "Your Report", Icon = "bi bi-file-earmark" }
+    };
+}
+
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -21,204 +31,235 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-     <div class="sidebar-brand-icon">
-   <i class="bi bi-tree"></i>
+                <div class="sidebar-brand-icon">
+                    <i class="bi bi-tree"></i>
                 </div>
                 <a asp-controller="Home" asp-action="Index" class="sidebar-brand-text">
-            FarmMgmt
-       </a>
-    </div>
+                    FarmMgmt
+                </a>
+            </div>
 
-        <nav class="sidebar-nav">
-           <!-- Dashboard -->
+            <nav class="sidebar-nav">
+                <!-- Dashboard -->
                 <a asp-controller="Home" asp-action="Index"
-            class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
-          <i class="bi bi-grid-1x2"></i>
-       <span>Dashboard</span>
-           </a>
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                    <i class="bi bi-grid-1x2"></i>
+                    <span>Dashboard</span>
+                </a>
 
-         <!-- Locations Section -->
-           <div class="nav-section">
-        <div class="nav-section-title">Quản lý vị trí</div>
-         </div>
+                <!-- Locations Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Quản lý vị trí</div>
+                </div>
 
-    <a asp-controller="Location" asp-action="Index"
-          class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Location" ? "active" : "")">
-      <i class="bi bi-geo-alt"></i>
-           <span>Vị trí</span>
-         </a>
+                <a asp-controller="Location" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Location" ? "active" : "")">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>Vị trí</span>
+                </a>
 
-     <a asp-controller="LocationTypes" asp-action="Index"
-  class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LocationTypes" ? "active" : "")">
-         <i class="bi bi-tags"></i>
-             <span>Loại vị trí</span>
-    </a>
+                <a asp-controller="LocationTypes" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LocationTypes" ? "active" : "")">
+                    <i class="bi bi-tags"></i>
+                    <span>Loại vị trí</span>
+                </a>
 
-     <a asp-controller="LocationStatuses" asp-action="Index"
-       class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LocationStatuses" ? "active" : "")">
-     <i class="bi bi-toggle-on"></i>
-       <span>Trạng thái vị trí</span>
-          </a>
+                <a asp-controller="LocationStatuses" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LocationStatuses" ? "active" : "")">
+                    <i class="bi bi-toggle-on"></i>
+                    <span>Trạng thái vị trí</span>
+                </a>
 
-        <!-- Crops Section -->
-        <div class="nav-section">
-  <div class="nav-section-title">Quản lý cây trồng</div>
-     </div>
+                <!-- Crops Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Quản lý cây trồng</div>
+                </div>
 
-        <a asp-controller="Crop" asp-action="Index"
-        class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Crop" ? "active" : "")">
-          <i class="bi bi-flower2"></i>
-  <span>Cây trồng</span>
- </a>
+                <a asp-controller="Crop" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Crop" ? "active" : "")">
+                    <i class="bi bi-flower2"></i>
+                    <span>Cây trồng</span>
+                </a>
 
-    <a asp-controller="CropType" asp-action="Index"
-            class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "CropType" ? "active" : "")">
-   <i class="bi bi-flower1"></i>
-     <span>Loại cây trồng</span>
-     </a>
+                <a asp-controller="CropType" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "CropType" ? "active" : "")">
+                    <i class="bi bi-flower1"></i>
+                    <span>Loại cây trồng</span>
+                </a>
 
-      <a asp-controller="CropStatus" asp-action="Index"
-       class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "CropStatus" ? "active" : "")">
-     <i class="bi bi-heart-pulse"></i>
-              <span>Trạng thái cây trồng</span>
-     </a>
+                <a asp-controller="CropStatus" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "CropStatus" ? "active" : "")">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span>Trạng thái cây trồng</span>
+                </a>
 
-     <!-- Livestock Section -->
-         <div class="nav-section">
-      <div class="nav-section-title">Quản lý vật nuôi</div>
-             </div>
+                <!-- Livestock Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Quản lý vật nuôi</div>
+                </div>
 
                 <a asp-controller="Livestock" asp-action="Index"
-              class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Livestock" ? "active" : "")">
-    <i class="bi bi-bug"></i>
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Livestock" ? "active" : "")">
+                    <i class="bi bi-bug"></i>
                     <span>Vật nuôi</span>
-   </a>
+                </a>
 
-     <a asp-controller="LivestockType" asp-action="Index"
-         class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockType" ? "active" : "")">
-               <i class="bi bi-collection"></i>
-          <span>Loại vật nuôi</span>
-       </a>
+                <a asp-controller="LivestockType" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockType" ? "active" : "")">
+                    <i class="bi bi-collection"></i>
+                    <span>Loại vật nuôi</span>
+                </a>
 
-       <a asp-controller="LivestockStatus" asp-action="Index"
-    class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockStatus" ? "active" : "")">
-         <i class="bi bi-activity"></i>
-   <span>Trạng thái vật nuôi</span>
-        </a>
+                <a asp-controller="LivestockStatus" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockStatus" ? "active" : "")">
+                    <i class="bi bi-activity"></i>
+                    <span>Trạng thái vật nuôi</span>
+                </a>
 
-     <a asp-controller="LivestockCareType" asp-action="Index"
-        class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockCareType" ? "active" : "")">
-    <i class="bi bi-heart"></i>
-    <span>Loại chăm sóc</span>
-    </a>
+                <a asp-controller="LivestockCareType" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockCareType" ? "active" : "")">
+                    <i class="bi bi-heart"></i>
+                    <span>Loại chăm sóc</span>
+                </a>
 
-        <a asp-controller="LivestockHealthStatus" asp-action="Index"
-  class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockHealthStatus" ? "active" : "")">
-           <i class="bi bi-clipboard2-pulse"></i>
-          <span>Trạng thái sức khỏe</span>
-          </a>
+                <a asp-controller="LivestockHealthStatus" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "LivestockHealthStatus" ? "active" : "")">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                    <span>Trạng thái sức khỏe</span>
+                </a>
 
-          <a asp-controller="SaleType" asp-action="Index"
-    class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "SaleType" ? "active" : "")">
-  <i class="bi bi-cash-coin"></i>
-     <span>Loại bán</span>
-         </a>
+                <a asp-controller="SaleType" asp-action="Index"
+                   class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "SaleType" ? "active" : "")">
+                    <i class="bi bi-cash-coin"></i>
+                    <span>Loại bán</span>
+                </a>
 
-<!-- Settings Section -->
+                <!-- Reports Section -->
                 <div class="nav-section">
-       <div class="nav-section-title">Hệ thống</div>
-     </div>
+                    <div class="nav-section-title">Báo cáo</div>
+                </div>
 
-        <a asp-controller="Home" asp-action="Privacy" class="nav-link">
-            <i class="bi bi-shield-lock"></i>
-  <span>Chính sách</span>
-           </a>
-  </nav>
+                @{
+                    // determine active state for reports (if request path starts with /Reports)
+                    var isReportsActive = ViewContext.HttpContext.Request.Path.StartsWithSegments("/Reports", StringComparison.OrdinalIgnoreCase);
+                }
+
+                <div class="nav-reports">
+                    <a class="nav-link @(isReportsActive ? "active" : "")" href="#" aria-expanded="@isReportsActive.ToString().ToLower()">
+                        <i class="bi bi-bar-chart"></i>
+                        <span>Reports</span>
+                    </a>
+
+                    <div class="nav-submenu">
+                        @foreach (var report in reports)
+                        {
+                            /* Kiểm tra Active */
+                            var isActiveReport = ViewContext.HttpContext.Request.Path.StartsWithSegments(report.Page.Replace("/Index", ""), StringComparison.OrdinalIgnoreCase);
+
+                            /* Dùng asp-page thay vì href cứng */
+                            <a asp-page="@report.Page" class="nav-link @(isActiveReport ? "active" : "")">
+                                <i class="@report.Icon"></i>
+                                <span>@report.Title</span>
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Settings Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Hệ thống</div>
+                </div>
+
+                <a asp-controller="Home" asp-action="Privacy" class="nav-link">
+                    <i class="bi bi-shield-lock"></i>
+                    <span>Chính sách</span>
+                </a>
+            </nav>
         </aside>
 
         <!-- Main Content -->
         <div class="main-content">
-       <!-- Header -->
+            <!-- Header -->
             <header class="main-header">
-         <div class="d-flex align-items-center gap-3">
-          <button class="sidebar-toggle" onclick="toggleSidebar()">
- <i class="bi bi-list"></i>
-          </button>
-          <nav aria-label="breadcrumb">
-           <ol class="breadcrumb mb-0">
-   <li class="breadcrumb-item">
-     <a asp-controller="Home" asp-action="Index">
-        <i class="bi bi-house"></i>
-      </a>
-     </li>
-           @{
-        var breadcrumbs = ViewData.GetBreadcrumbs();
-      if (breadcrumbs.Count > 0)
-              {
-            foreach (var item in breadcrumbs.OrderBy(b => b.Order))
-                  {
-          if (item.IsActive)
-       {
-     <li class="breadcrumb-item active" aria-current="page">
-             @if (!string.IsNullOrEmpty(item.Icon))
-        {
-                <i class="@item.Icon me-1"></i>
-     }
-       @item.Title
-    </li>
-         }
-     else
- {
-     <li class="breadcrumb-item">
-    <a href="@item.Url">
-               @if (!string.IsNullOrEmpty(item.Icon))
-      {
-            <i class="@item.Icon me-1"></i>
-            }
-  @item.Title
-     </a>
-                </li>
-              }
- }
-          }
-   else if (ViewData["Breadcrumb"] != null)
-      {
-  <li class="breadcrumb-item active">@ViewData["Breadcrumb"]</li>
-    }
-        }
-</ol>
-  </nav>
-      </div>
+                <div class="d-flex align-items-center gap-3">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item">
+                                <a asp-controller="Home" asp-action="Index">
+                                    <i class="bi bi-house"></i>
+                                </a>
+                            </li>
+                            @{
+                                var breadcrumbs = ViewData.GetBreadcrumbs();
+                                if (breadcrumbs.Count > 0)
+                                {
+                                    foreach (var item in breadcrumbs.OrderBy(b => b.Order))
+                                    {
+                                        if (item.IsActive)
+                                        {
+                                            <li class="breadcrumb-item active" aria-current="page">
+                                                @if (!string.IsNullOrEmpty(item.Icon))
+                                                {
+                                                    <i class="@item.Icon me-1"></i>
+                                                }
+                                                @item.Title
+                                            </li>
+                                        }
+                                        else
+                                        {
+                                            <li class="breadcrumb-item">
+                                                <a href="@item.Url">
+                                                    @if (!string.IsNullOrEmpty(item.Icon))
+                                                    {
+                                                        <i class="@item.Icon me-1"></i>
+                                                    }
+                                                    @item.Title
+                                                </a>
+                                            </li>
+                                        }
+                                    }
+                                }
+                                else if (ViewData["Breadcrumb"] != null)
+                                {
+                                    <li class="breadcrumb-item active">@ViewData["Breadcrumb"]</li>
+                                }
+                            }
+                        </ol>
+                    </nav>
+                </div>
 
-       <div class="d-flex align-items-center gap-3">
-   <div class="dropdown">
-  <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-         <i class="bi bi-person-circle me-1"></i> Admin
-             </button>
-       <ul class="dropdown-menu dropdown-menu-end">
-    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
-   <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Cài đặt</a></li>
-  <li><hr class="dropdown-divider"></li>
-   <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
-             </ul>
-         </div>
-   </div>
-        </header>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-1"></i> Admin
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>Hồ sơ</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Cài đặt</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
 
             <!-- Body -->
-        <main class="main-body">
+            <main class="main-body">
                 @* Alert Messages *@
-           @await Html.PartialAsync("_AlertMessages")
-        
-       @RenderBody()
-    </main>
+                @await Html.PartialAsync("_AlertMessages")
 
-      <!-- Footer -->
-      <footer class="main-footer">
-     &copy; @DateTime.Now.Year Farm Management System. All rights reserved.
+                @RenderBody()
+            </main>
+
+            <!-- Footer -->
+            <footer class="main-footer">
+                &copy; @DateTime.Now.Year Farm Management System. All rights reserved.
             </footer>
         </div>
-</div>
+    </div>
 
     <!-- Overlay for mobile sidebar -->
     <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
@@ -226,7 +267,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

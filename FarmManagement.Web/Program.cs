@@ -2,13 +2,22 @@
 using FarmManagement.Web.Services.Locations;
 using FarmManagement.Web.Services.Common;
 using FarmManagement.Web.Services.Livestocks;
+using FarmManagement.Web.Services.Reports;
+using FarmManagement.Web.Services.Api.Reports;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(); // <-- thay vì AddRazorPages()
+builder.Services.AddRazorPages();
 
-// Add HttpClient for API
+// Register typed HttpClient for report API client
+builder.Services.AddHttpClient<CropCostReportApiService>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]!);
+});
+
+// Add HttpClient for API (legacy clients)
 builder.Services.AddHttpClient("FarmApi", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]);
@@ -25,7 +34,7 @@ builder.Services.AddScoped<CropStatusApiService>();
 builder.Services.AddScoped<CropApiService>();
 builder.Services.AddScoped<CropPriceApiService>();
 builder.Services.AddScoped<CropHarvestApiService>();
-builder.Services.AddScoped<CropCostApiService>();
+builder.Services.AddScoped<FarmManagement.Web.Services.Crops.CropCostApiService>();
 builder.Services.AddScoped<CropCareLogApiService>();
 builder.Services.AddScoped<CostTypeApiService>();
 builder.Services.AddScoped<CropCareTypeApiService>();
@@ -66,4 +75,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+app.MapRazorPages();
 app.Run();

@@ -1,0 +1,180 @@
+﻿@page
+@model FarmManagement.Web.Pages.Reports.CropCost.IndexModel
+@{
+    ViewData["Title"] = "Crop Cost Report";
+}
+
+<main class="container">
+    <h1>Crop Cost Report</h1>
+
+    <!-- Filter panel -->
+    <section id="filter-panel" aria-labelledby="filter-heading">
+        <h2 id="filter-heading">Filters</h2>
+        <form method="get" asp-page=".">
+            <div>
+                <label for="fromDate">From</label>
+                <input id="fromDate" asp-for="Filter.FromDate" type="date" />
+            </div>
+            <div>
+                <label for="toDate">To</label>
+                <input id="toDate" asp-for="Filter.ToDate" type="date" />
+            </div>
+            <div>
+                <label for="pageSize">Page size</label>
+                <input id="pageSize" asp-for="Filter.PageSize" type="number" min="1" max="1000" />
+            </div>
+            <!-- Multi-select filters bound to Filter properties using name attributes -->
+            <div>
+                <label for="costTypes">Cost types</label>
+                <select id="costTypes" name="CostTypeIds" multiple size="6" aria-describedby="costTypes-help">
+                    @foreach (var it in Model.PageVm.CostTypes)
+                    {
+                        var selected = Model.Filter.CostTypeIds != null && Model.Filter.CostTypeIds.Contains(it.Id) ? "selected" : string.Empty;
+                        <option value="@it.Id" @Html.Raw(selected)>@it.Name</option>
+                    }
+                </select>
+                <small id="costTypes-help">Hold Ctrl/Cmd to select multiple.</small>
+            </div>
+
+            <div>
+                <label for="crops">Crops</label>
+                <select id="crops" name="CropIds" multiple size="6">
+                    @foreach (var it in Model.PageVm.Crops)
+                    {
+                        var selected = Model.Filter.CropIds != null && Model.Filter.CropIds.Contains(it.Id) ? "selected" : string.Empty;
+                        <option value="@it.Id" @Html.Raw(selected)>@it.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label for="locations">Locations</label>
+                <select id="locations" name="LocationIds" multiple size="6">
+                    @foreach (var it in Model.PageVm.Locations)
+                    {
+                        var selected = Model.Filter.LocationIds != null && Model.Filter.LocationIds.Contains(it.Id) ? "selected" : string.Empty;
+                        <option value="@it.Id" @Html.Raw(selected)>@it.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn">Apply filters</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Export actions -->
+    <section id="export-actions" aria-labelledby="export-heading">
+        <h2 id="export-heading">Export</h2>
+        <form method="post" asp-page-handler="Export">
+            @* Hidden fields to POST current filter so export handler receives same filter as UI *@
+            <input type="hidden" name="FromDate" value="@Model.Filter.FromDate.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="ToDate" value="@Model.Filter.ToDate.ToString("yyyy-MM-dd")" />
+            <input type="hidden" name="TimeGrain" value="@Model.Filter.TimeGrain" />
+            <input type="hidden" name="IncludeInactive" value="@Model.Filter.IncludeInactive" />
+            <input type="hidden" name="Page" value="@Model.Filter.Page" />
+            <input type="hidden" name="PageSize" value="@Model.Filter.PageSize" />
+            @if (Model.Filter.CostTypeIds != null)
+            {
+                foreach (var id in Model.Filter.CostTypeIds)
+                {
+                    <input type="hidden" name="CostTypeIds" value="@id" />
+                }
+            }
+            @if (Model.Filter.CropIds != null)
+            {
+                foreach (var id in Model.Filter.CropIds)
+                {
+                    <input type="hidden" name="CropIds" value="@id" />
+                }
+            }
+            @if (Model.Filter.LocationIds != null)
+            {
+                foreach (var id in Model.Filter.LocationIds)
+                {
+                    <input type="hidden" name="LocationIds" value="@id" />
+                }
+            }
+            @if (Model.Filter.CropTypeIds != null)
+            {
+                foreach (var id in Model.Filter.CropTypeIds)
+                {
+                    <input type="hidden" name="CropTypeIds" value="@id" />
+                }
+            }
+
+            <div>
+                <button type="submit" class="btn">Export CSV</button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Summary table -->
+    <section id="summary-table" aria-labelledby="summary-heading">
+        <h2 id="summary-heading">Summary</h2>
+
+        @if (Model.PageVm != null && Model.PageVm.Summary != null && Model.PageVm.Summary.Rows != null && Model.PageVm.Summary.Rows.Any())
+        {
+            <table class="table" role="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Time Period</th>
+                        <th scope="col">Cost Type</th>
+                        <th scope="col">Crop</th>
+                        <th scope="col">Location</th>
+                        <th scope="col">Total Amount</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Transactions</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.PageVm.Summary.Rows)
+                    {
+                        <tr>
+                            <td>@row.TimePeriodKey</td>
+                            <td>@row.CostTypeName</td>
+                            <td>@row.CropName</td>
+                            <td>@row.LocationName</td>
+                            <td>@string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:N2}", row.TotalAmount)</td>
+                            <td>@string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0:N2}", row.TotalQuantity)</td>
+                            <td>@row.TransactionCount</td>
+                            <td>
+                                <a class="details-link" href="?handler=Details&timePeriodKey=@Uri.EscapeDataString(row.TimePeriodKey ?? string.Empty)&costTypeId=@(row.CostTypeId ?? 0)">Chi tiết</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <nav aria-label="Summary paging">
+                <p>Page @Model.PageVm.Paging.Page — @Model.PageVm.Paging.TotalCount items</p>
+            </nav>
+        }
+        else
+        {
+            <p>No summary data to display.</p>
+        }
+    </section>
+
+    <!-- Detail panel / modal placeholder -->
+    <section id="detail-panel" aria-labelledby="detail-heading">
+        <h2 id="detail-heading">Details</h2>
+        <div id="detail-container" aria-live="polite">
+            <!-- Drill-down details will be loaded here via AJAX and rendered by client-side code -->
+            @if (Model.PageVm?.DetailPagedResult != null)
+            {
+                <p>Details loaded on server (for progressive enhancement).</p>
+            }
+            else
+            {
+                <p>No detail loaded.</p>
+            }
+        </div>
+    </section>
+</main>
+
+@section Scripts {
+    <script src="/js/reports/cropcost-report.js"></script>
+}
