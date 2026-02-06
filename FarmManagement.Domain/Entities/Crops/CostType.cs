@@ -3,7 +3,7 @@
 namespace FarmManagement.Domain.Entities.Crops;
 
 /// <summary>
-/// Loại chi phí liên quan đến cây trồng.
+/// Đại diện cho loại chi phí liên quan đến cây trồng.
 /// </summary>
 public class CostType : AuditableEntity
 {
@@ -28,7 +28,7 @@ public class CostType : AuditableEntity
     public string? Description { get; set; }
 
     /// <summary>
-    /// Trạng thái hoạt động.
+    /// Trạng thái hoạt động của loại chi phí.
     /// </summary>
     public bool IsActive { get; set; } = true;
 

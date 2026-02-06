@@ -23,8 +23,8 @@ public class LivestockHealthStatusService : ILivestockHealthStatusService
     public async Task<List<LivestockHealthStatusDto>> GetAllAsync()
     {
         var items = await _context.LivestockHealthStatuses
-    .OrderBy(x => x.Name)
-       .ToListAsync();
+            .OrderBy(x => x.Name)
+            .ToListAsync();
 
         return items.Select(x => new LivestockHealthStatusDto
         {
@@ -71,12 +71,12 @@ public class LivestockHealthStatusService : ILivestockHealthStatusService
         await _context.SaveChangesAsync();
 
         _activityLogService.LogActivity(
-           ActivityActionTypes.Create,
-     nameof(LivestockHealthStatus),
-           entity.Id,
-           entity.Name,
-         $"Thêm trạng thái sức khỏe \"{entity.Name}\""
-             );
+            ActivityActionTypes.Create,
+            nameof(LivestockHealthStatus),
+            entity.Id,
+            entity.Name,
+            $"Thêm trạng thái sức khỏe \"{entity.Name}\""
+        );
 
         return entity.Id;
     }
@@ -84,8 +84,8 @@ public class LivestockHealthStatusService : ILivestockHealthStatusService
     public async Task UpdateAsync(int id, UpdateLivestockHealthStatusDto dto)
     {
         var entity = await _context.LivestockHealthStatuses
- .FirstOrDefaultAsync(x => x.Id == id)
-      ?? throw new NotFoundException("Trạng thái sức khỏe không tồn tại");
+            .FirstOrDefaultAsync(x => x.Id == id)
+            ?? throw new NotFoundException("Trạng thái sức khỏe không tồn tại");
 
         if (string.IsNullOrWhiteSpace(dto.Code))
             throw new BusinessException("Mã trạng thái sức khỏe không được để trống");
@@ -102,12 +102,12 @@ public class LivestockHealthStatusService : ILivestockHealthStatusService
         await _context.SaveChangesAsync();
 
         _activityLogService.LogActivity(
-        ActivityActionTypes.Update,
-   nameof(LivestockHealthStatus),
-       entity.Id,
-      entity.Name,
-     $"Cập nhật trạng thái sức khỏe \"{entity.Name}\""
-           );
+            ActivityActionTypes.Update,
+            nameof(LivestockHealthStatus),
+            entity.Id,
+            entity.Name,
+            $"Cập nhật trạng thái sức khỏe \"{entity.Name}\""
+        );
     }
 
     public async Task DeleteAsync(int id)
@@ -123,15 +123,17 @@ public class LivestockHealthStatusService : ILivestockHealthStatusService
 
         var name = entity.Name;
 
-        _context.LivestockHealthStatuses.Remove(entity);
+        entity.IsDeleted = true;
+        entity.DeletedDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
         await _context.SaveChangesAsync();
 
         _activityLogService.LogActivity(
-     ActivityActionTypes.Delete,
-   nameof(LivestockHealthStatus),
+            ActivityActionTypes.Delete,
+            nameof(LivestockHealthStatus),
             id,
- name,
-       $"Xóa trạng thái sức khỏe \"{name}\""
-  );
+            name,
+            $"Xóa trạng thái sức khỏe \"{name}\""
+        );
     }
 }

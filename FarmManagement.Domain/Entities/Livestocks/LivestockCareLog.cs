@@ -1,9 +1,11 @@
-﻿namespace FarmManagement.Domain.Entities.Livestocks;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Livestocks;
 
 /// <summary>
 /// Nhật ký chăm sóc vật nuôi.
 /// </summary>
-public class LivestockCareLog
+public class LivestockCareLog : AuditableEntity
 {
     /// <summary>
     /// Mã định danh của nhật ký chăm sóc.

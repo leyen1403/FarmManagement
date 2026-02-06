@@ -18,7 +18,7 @@ public class ActivityLog : AuditableEntity
     public string ActionType { get; set; } = null!;
 
     /// <summary>
-    /// Tên entity bị ảnh hưởng (Location, Crop, CropType, etc.).
+    /// Tên entity bị ảnh hưởng (Location, Crop, CropType, v.v.).
     /// </summary>
     public string EntityType { get; set; } = null!;
 
@@ -28,7 +28,7 @@ public class ActivityLog : AuditableEntity
     public int EntityId { get; set; }
 
     /// <summary>
-    /// Tên/mô tả của entity bị ảnh hưởng.
+    /// Tên hoặc mô tả của entity bị ảnh hưởng.
     /// </summary>
     public string EntityName { get; set; } = null!;
 
@@ -53,8 +53,17 @@ public class ActivityLog : AuditableEntity
 /// </summary>
 public static class ActivityActionTypes
 {
+    /// <summary>
+    /// Hành động tạo mới.
+    /// </summary>
     public const string Create = "Create";
+    /// <summary>
+    /// Hành động cập nhật.
+    /// </summary>
     public const string Update = "Update";
+    /// <summary>
+    /// Hành động xóa.
+    /// </summary>
     public const string Delete = "Delete";
 }
 
@@ -63,16 +72,52 @@ public static class ActivityActionTypes
 /// </summary>
 public static class ActivityEntityTypes
 {
+    /// <summary>
+    /// Đối tượng Location.
+    /// </summary>
     public const string Location = "Location";
+    /// <summary>
+    /// Đối tượng LocationType.
+    /// </summary>
     public const string LocationType = "LocationType";
+    /// <summary>
+    /// Đối tượng LocationStatus.
+    /// </summary>
     public const string LocationStatus = "LocationStatus";
+    /// <summary>
+    /// Đối tượng Crop.
+    /// </summary>
     public const string Crop = "Crop";
+    /// <summary>
+    /// Đối tượng CropType.
+    /// </summary>
     public const string CropType = "CropType";
+    /// <summary>
+    /// Đối tượng CropStatus.
+    /// </summary>
     public const string CropStatus = "CropStatus";
+    /// <summary>
+    /// Đối tượng CropPrice.
+    /// </summary>
     public const string CropPrice = "CropPrice";
+    /// <summary>
+    /// Đối tượng CropHarvest.
+    /// </summary>
     public const string CropHarvest = "CropHarvest";
+    /// <summary>
+    /// Đối tượng CropCost.
+    /// </summary>
     public const string CropCost = "CropCost";
+    /// <summary>
+    /// Đối tượng CropCareLog.
+    /// </summary>
     public const string CropCareLog = "CropCareLog";
+    /// <summary>
+    /// Đối tượng CostType.
+    /// </summary>
     public const string CostType = "CostType";
+    /// <summary>
+    /// Đối tượng CropCareType.
+    /// </summary>
     public const string CropCareType = "CropCareType";
 }

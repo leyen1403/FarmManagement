@@ -25,8 +25,8 @@ public class LivestockHealthLogService : ILivestockHealthLogService
         var items = await _context.LivestockHealthLogs
         .Include(x => x.HealthStatus)
         .Where(x => x.LivestockId == livestockId)
-                .OrderByDescending(x => x.CheckDate)
-         .ToListAsync();
+        .OrderByDescending(x => x.CheckDate)
+        .ToListAsync();
 
         return items.Select(x => new LivestockHealthLogDto
         {
@@ -45,8 +45,8 @@ public class LivestockHealthLogService : ILivestockHealthLogService
     public async Task<LivestockHealthLogDto?> GetByIdAsync(int id)
     {
         var entity = await _context.LivestockHealthLogs
-       .Include(x => x.HealthStatus)
-          .FirstOrDefaultAsync(x => x.Id == id);
+            .Include(x => x.HealthStatus)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         if (entity == null)
             return null;
@@ -89,11 +89,11 @@ public class LivestockHealthLogService : ILivestockHealthLogService
 
         var livestock = await _context.Livestocks.FirstOrDefaultAsync(x => x.Id == dto.LivestockId);
         _activityLogService.LogActivity(
-         ActivityActionTypes.Create,
-             nameof(LivestockHealthLog),
-           entity.Id,
-         livestock?.TagCode ?? $"Livestock-{dto.LivestockId}",
-       $"Thêm nhật ký sức khỏe cho vật nuôi"
+            ActivityActionTypes.Create,
+            nameof(LivestockHealthLog),
+            entity.Id,
+            livestock?.TagCode ?? $"Livestock-{dto.LivestockId}",
+            $"Thêm nhật ký sức khỏe cho vật nuôi"
         );
 
         return entity.Id;
@@ -102,8 +102,8 @@ public class LivestockHealthLogService : ILivestockHealthLogService
     public async Task UpdateAsync(int id, UpdateLivestockHealthLogDto dto)
     {
         var entity = await _context.LivestockHealthLogs
-          .FirstOrDefaultAsync(x => x.Id == id)
-           ?? throw new NotFoundException("Nhật ký sức khỏe không tồn tại");
+            .FirstOrDefaultAsync(x => x.Id == id)
+            ?? throw new NotFoundException("Nhật ký sức khỏe không tồn tại");
 
         if (!await _context.LivestockHealthStatuses.AnyAsync(x => x.Id == dto.HealthStatusId))
             throw new BusinessException("Trạng thái sức khỏe không tồn tại");
@@ -119,12 +119,12 @@ public class LivestockHealthLogService : ILivestockHealthLogService
 
         var livestock = await _context.Livestocks.FirstOrDefaultAsync(x => x.Id == entity.LivestockId);
         _activityLogService.LogActivity(
-                 ActivityActionTypes.Update,
-         nameof(LivestockHealthLog),
-          entity.Id,
-                 livestock?.TagCode ?? $"Livestock-{entity.LivestockId}",
-                 $"Cập nhật nhật ký sức khỏe"
-             );
+            ActivityActionTypes.Update,
+            nameof(LivestockHealthLog),
+            entity.Id,
+            livestock?.TagCode ?? $"Livestock-{entity.LivestockId}",
+            $"Cập nhật nhật ký sức khỏe"
+        );
     }
 
     public async Task DeleteAsync(int id)
@@ -138,15 +138,17 @@ public class LivestockHealthLogService : ILivestockHealthLogService
         var livestockId = entity.LivestockId;
         var livestock = await _context.Livestocks.FirstOrDefaultAsync(x => x.Id == livestockId);
 
-        _context.LivestockHealthLogs.Remove(entity);
+        entity.IsDeleted = true;
+        entity.DeletedDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
         await _context.SaveChangesAsync();
 
         _activityLogService.LogActivity(
             ActivityActionTypes.Delete,
-  nameof(LivestockHealthLog),
- id,
-     livestock?.TagCode ?? $"Livestock-{livestockId}",
-     $"Xóa nhật ký sức khỏe"
+            nameof(LivestockHealthLog),
+            id,
+            livestock?.TagCode ?? $"Livestock-{livestockId}",
+            $"Xóa nhật ký sức khỏe"
         );
     }
 }

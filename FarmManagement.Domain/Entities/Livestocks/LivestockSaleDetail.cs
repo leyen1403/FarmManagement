@@ -1,9 +1,11 @@
-﻿namespace FarmManagement.Domain.Entities.Livestocks;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Livestocks;
 
 /// <summary>
 /// Chi tiết dòng bán trong đơn hàng (mỗi lượt cân).
 /// </summary>
-public class LivestockSaleDetail
+public class LivestockSaleDetail : AuditableEntity
 {
     /// <summary>
     /// Mã định danh chi tiết bán.

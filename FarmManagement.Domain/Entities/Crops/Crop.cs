@@ -63,27 +63,27 @@ public class Crop : AuditableEntity
     public string? Note { get; set; }
 
     /// <summary>
-    /// Loại cây trồng.
+    /// Đối tượng loại cây trồng liên kết.
     /// </summary>
     public CropType CropType { get; set; } = null!;
 
     /// <summary>
-    /// Trạng thái cây trồng.
+    /// Đối tượng trạng thái cây trồng liên kết.
     /// </summary>
     public CropStatus CropStatus { get; set; } = null!;
 
     /// <summary>
-    /// Địa điểm trồng cây.
+    /// Đối tượng địa điểm trồng cây liên kết.
     /// </summary>
     public Location Location { get; set; } = null!;
 
     /// <summary>
-    /// Nhật ký chăm sóc cây trồng.
+    /// Danh sách nhật ký chăm sóc cây trồng.
     /// </summary>
     public ICollection<CropCareLog> CropCareLogs { get; set; } = new List<CropCareLog>();
 
     /// <summary>
-    /// Danh sách thu hoạch cây trồng.
+    /// Danh sách các lần thu hoạch cây trồng.
     /// </summary>
     public ICollection<CropHarvest> CropHarvests { get; set; } = new List<CropHarvest>();
 

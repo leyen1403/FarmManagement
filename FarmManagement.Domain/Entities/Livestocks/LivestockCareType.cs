@@ -1,9 +1,11 @@
-﻿namespace FarmManagement.Domain.Entities.Livestocks;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Livestocks;
 
 /// <summary>
 /// Loại chăm sóc vật nuôi trong hệ thống.
 /// </summary>
-public class LivestockCareType
+public class LivestockCareType : AuditableEntity
 {
     /// <summary>
     /// Mã định danh của loại chăm sóc vật nuôi.

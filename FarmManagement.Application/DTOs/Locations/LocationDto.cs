@@ -1,11 +1,4 @@
-﻿// ***********************************************************************
-// File: LocationDto.cs
-// Project: FarmManagement.Application
-// Mô tả: Định nghĩa DTO cho Location, dùng để truyền dữ liệu Location 
-// giữa các tầng trong ứng dụng.
-// ***********************************************************************
-
-namespace FarmManagement.Application.DTOs.Locations
+﻿namespace FarmManagement.Application.DTOs.Locations
 {
     /// <summary>
     /// DTO đại diện cho thông tin Location.

@@ -1,9 +1,11 @@
-﻿namespace FarmManagement.Domain.Entities.Livestocks;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Livestocks;
 
 /// <summary>
 /// Bảng giá bán vật nuôi theo kg - theo giới tính và thời gian hiệu lực.
 /// </summary>
-public class LivestockPrice
+public class LivestockPrice : AuditableEntity
 {
     /// <summary>
     /// Mã định danh.

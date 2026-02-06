@@ -1,4 +1,6 @@
-﻿namespace FarmManagement.Domain.Entities.Livestocks;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Livestocks;
 
 /// <summary>
 /// Phương thức tính tiền bán vật nuôi.
@@ -29,7 +31,7 @@ public enum SaleMethod
 /// <summary>
 /// Loại bán vật nuôi trong hệ thống.
 /// </summary>
-public class SaleType
+public class SaleType : AuditableEntity
 {
     /// <summary>
     /// Mã định danh của loại bán vật nuôi.

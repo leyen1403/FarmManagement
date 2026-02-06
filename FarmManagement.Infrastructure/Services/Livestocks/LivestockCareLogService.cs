@@ -23,10 +23,10 @@ public class LivestockCareLogService : ILivestockCareLogService
     public async Task<List<LivestockCareLogDto>> GetByLivestockIdAsync(int livestockId)
     {
         var items = await _context.LivestockCareLogs
-     .Include(x => x.LivestockCareType)
-   .Where(x => x.LivestockId == livestockId)
-     .OrderByDescending(x => x.CareDate)
-              .ToListAsync();
+            .Include(x => x.LivestockCareType)
+            .Where(x => x.LivestockId == livestockId)
+            .OrderByDescending(x => x.CareDate)
+            .ToListAsync();
 
         return items.Select(x => new LivestockCareLogDto
         {
@@ -45,8 +45,8 @@ public class LivestockCareLogService : ILivestockCareLogService
     public async Task<LivestockCareLogDto?> GetByIdAsync(int id)
     {
         var entity = await _context.LivestockCareLogs
-          .Include(x => x.LivestockCareType)
-        .FirstOrDefaultAsync(x => x.Id == id);
+            .Include(x => x.LivestockCareType)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         if (entity == null)
             return null;
@@ -118,13 +118,13 @@ public class LivestockCareLogService : ILivestockCareLogService
         await _context.SaveChangesAsync();
 
         var livestock = await _context.Livestocks.FirstOrDefaultAsync(x => x.Id == entity.LivestockId);
-        _activityLogService.LogActivity(
-       ActivityActionTypes.Update,
-       nameof(LivestockCareLog),
-               entity.Id,
-      livestock?.TagCode ?? $"Livestock-{entity.LivestockId}",
-      $"Cập nhật nhật ký chăm sóc"
-           );
+            _activityLogService.LogActivity(
+        ActivityActionTypes.Update,
+        nameof(LivestockCareLog),
+        entity.Id,
+        livestock?.TagCode ?? $"Livestock-{entity.LivestockId}",
+        $"Cập nhật nhật ký chăm sóc"
+        );
     }
 
     public async Task DeleteAsync(int id)
@@ -138,15 +138,17 @@ public class LivestockCareLogService : ILivestockCareLogService
         var livestockId = entity.LivestockId;
         var livestock = await _context.Livestocks.FirstOrDefaultAsync(x => x.Id == livestockId);
 
-        _context.LivestockCareLogs.Remove(entity);
+        entity.IsDeleted = true;
+        entity.DeletedDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
         await _context.SaveChangesAsync();
 
         _activityLogService.LogActivity(
-     ActivityActionTypes.Delete,
-  nameof(LivestockCareLog),
-  id,
+            ActivityActionTypes.Delete,
+            nameof(LivestockCareLog),
+            id,
             livestock?.TagCode ?? $"Livestock-{livestockId}",
-   $"Xóa nhật ký chăm sóc"
+            $"Xóa nhật ký chăm sóc"
         );
     }
 }

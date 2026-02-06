@@ -28,7 +28,7 @@ public class CropCareType : AuditableEntity
     public string? Description { get; set; }
 
     /// <summary>
-    /// Trạng thái hoạt động.
+    /// Trạng thái hoạt động của loại chăm sóc cây trồng.
     /// </summary>
     public bool IsActive { get; set; } = true;
 

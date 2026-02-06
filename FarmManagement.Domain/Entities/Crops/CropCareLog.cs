@@ -50,5 +50,5 @@ public class CropCareLog : AuditableEntity
     /// <summary>
     /// Danh sách các nhật ký chăm sóc cây trồng liên quan.
     /// </summary>
-    public ICollection<CropCareLog> CropCareLogs { get; set; }
+    public ICollection<CropCareLog> CropCareLogs { get; set; } = null!;
 }

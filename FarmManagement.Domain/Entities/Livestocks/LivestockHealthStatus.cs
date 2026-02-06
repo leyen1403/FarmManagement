@@ -1,9 +1,11 @@
-﻿namespace FarmManagement.Domain.Entities.Livestocks;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Livestocks;
 
 /// <summary>
 /// Trạng thái sức khỏe của vật nuôi trong hệ thống.
 /// </summary>
-public class LivestockHealthStatus
+public class LivestockHealthStatus : AuditableEntity
 {
     /// <summary>
     /// Mã định danh của trạng thái sức khỏe vật nuôi.

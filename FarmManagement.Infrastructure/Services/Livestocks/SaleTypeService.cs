@@ -127,7 +127,9 @@ public class SaleTypeService : ISaleTypeService
 
         var name = entity.Name;
 
-        _context.SaleTypes.Remove(entity);
+        entity.IsDeleted = true;
+        entity.DeletedDate = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
         await _context.SaveChangesAsync();
 
         _activityLogService.LogActivity(

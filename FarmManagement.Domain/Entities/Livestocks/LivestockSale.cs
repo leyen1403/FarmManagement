@@ -1,9 +1,11 @@
-﻿namespace FarmManagement.Domain.Entities.Livestocks;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Livestocks;
 
 /// <summary>
 /// Đơn hàng bán vật nuôi (Order Header).
 /// </summary>
-public class LivestockSale
+public class LivestockSale : AuditableEntity
 {
     /// <summary>
     /// Mã định danh của đơn hàng.

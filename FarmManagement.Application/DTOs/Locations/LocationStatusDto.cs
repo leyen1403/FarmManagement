@@ -1,16 +1,9 @@
-﻿// ***********************************************************************
-// File: LocationStatusDto.cs
-// Project: FarmManagement.Application
-// Mô tả: Định nghĩa DTO cho trạng thái Location (Location Status), 
-// dùng để truyền dữ liệu giữa các tầng trong ứng dụng.
-// ***********************************************************************
-
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace FarmManagement.Application.DTOs.Locations
 {
     /// <summary>
-    /// DTO đại diện cho trạng thái Location.
+    /// DTO đại diện cho trạng thái của Location.
     /// </summary>
     public class LocationStatusDto
     {
@@ -20,14 +13,14 @@ namespace FarmManagement.Application.DTOs.Locations
         public int Id { get; set; }
 
         /// <summary>
-        /// Mã trạng thái Location. Bắt buộc, tối đa 50 ký tự.
+        /// Mã trạng thái Location.
         /// </summary>
         [Required(ErrorMessage = "Code không được để trống")]
         [StringLength(50)]
         public string Code { get; set; } = null!;
 
         /// <summary>
-        /// Tên trạng thái Location. Bắt buộc, tối đa 100 ký tự.
+        /// Tên trạng thái Location.
         /// </summary>
         [Required(ErrorMessage = "Name không được để trống")]
         [StringLength(100)]

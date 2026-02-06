@@ -1,9 +1,11 @@
-﻿namespace FarmManagement.Domain.Entities.Users;
+﻿using FarmManagement.Domain.Common;
+
+namespace FarmManagement.Domain.Entities.Users;
 
 /// <summary>
 /// Đại diện cho vai trò của người dùng trong hệ thống.
 /// </summary>
-public class Role
+public class Role : AuditableEntity
 {
     /// <summary>
     /// Mã định danh của vai trò.

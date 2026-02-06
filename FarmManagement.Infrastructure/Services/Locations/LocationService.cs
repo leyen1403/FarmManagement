@@ -10,12 +10,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FarmManagement.Infrastructure.Services.Locations
 {
+    /// <summary>
+    /// Service triển khai các chức năng quản lý thực thể Location.
+    /// </summary>
     public class LocationService : ILocationService
     {
         private readonly FarmManagementDbContext _context;
         private readonly IMapper _mapper;
         private readonly IActivityLogService _activityLogService;
 
+        /// <summary>
+        /// Khởi tạo một instance mới của <see cref="LocationService"/>.
+        /// </summary>
+        /// <param name="context">DbContext quản lý dữ liệu.</param>
+        /// <param name="mapper">AutoMapper để ánh xạ DTO và entity.</param>
+        /// <param name="activityLogService">Dịch vụ ghi log hoạt động.</param>
         public LocationService(FarmManagementDbContext context, IMapper mapper, IActivityLogService activityLogService)
         {
             _context = context;
@@ -23,6 +32,11 @@ namespace FarmManagement.Infrastructure.Services.Locations
             _activityLogService = activityLogService;
         }
 
+        /// <summary>
+        /// Lấy danh sách tất cả các Location, có thể lọc chỉ lấy các Location đang hoạt động.
+        /// </summary>
+        /// <param name="activeOnly">Nếu true, chỉ lấy các Location đang hoạt động (LocationStatusId = 1).</param>
+        /// <returns>Danh sách <see cref="LocationDto"/>.</returns>
         public async Task<IEnumerable<LocationDto>> GetAllAsync(bool activeOnly = false)
         {
             var query = _context.Locations
@@ -40,6 +54,12 @@ namespace FarmManagement.Infrastructure.Services.Locations
             return _mapper.Map<IEnumerable<LocationDto>>(locations);
         }
 
+        /// <summary>
+        /// Lấy thông tin Location theo Id.
+        /// </summary>
+        /// <param name="id">Id của Location.</param>
+        /// <returns><see cref="LocationDto"/> nếu tìm thấy.</returns>
+        /// <exception cref="NotFoundException">Nếu không tìm thấy Location.</exception>
         public async Task<LocationDto> GetByIdAsync(int id)
         {
             var location = await _context.Locations
@@ -53,9 +73,15 @@ namespace FarmManagement.Infrastructure.Services.Locations
             return _mapper.Map<LocationDto>(location);
         }
 
+        /// <summary>
+        /// Tạo mới một Location.
+        /// </summary>
+        /// <param name="dto">DTO chứa thông tin Location cần tạo.</param>
+        /// <returns>Location vừa được tạo dưới dạng <see cref="LocationDto"/>.</returns>
+        /// <exception cref="BusinessException">Nếu dữ liệu không hợp lệ.</exception>
         public async Task<LocationDto> CreateAsync(LocationDto dto)
         {
-            // Validate required fields
+            // Kiểm tra các trường bắt buộc
             if (string.IsNullOrWhiteSpace(dto.Name))
                 throw new BusinessException("Tên địa điểm không được để trống");
 
@@ -71,14 +97,14 @@ namespace FarmManagement.Infrastructure.Services.Locations
             if (string.IsNullOrWhiteSpace(dto.Address))
                 throw new BusinessException("Address không được để trống");
 
-            // Validate ParentLocationId if provided
+            // Kiểm tra ParentLocationId nếu có
             if (dto.ParentLocationId.HasValue)
             {
                 if (!await _context.Locations.AnyAsync(x => x.Id == dto.ParentLocationId.Value && !x.IsDeleted))
                     throw new BusinessException("Địa điểm cha không tồn tại");
             }
 
-            // Validate date range
+            // Kiểm tra ngày bắt đầu và kết thúc
             if (dto.StartDate.HasValue && dto.EndDate.HasValue && dto.StartDate > dto.EndDate)
                 throw new BusinessException("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
 
@@ -86,7 +112,7 @@ namespace FarmManagement.Infrastructure.Services.Locations
             _context.Locations.Add(location);
             await _context.SaveChangesAsync();
 
-            // Log activity
+            // Ghi log hoạt động
             _activityLogService.LogActivity(
                 ActivityActionTypes.Create,
                 ActivityEntityTypes.Location,
@@ -95,7 +121,7 @@ namespace FarmManagement.Infrastructure.Services.Locations
                 $"Thêm vị trí mới \"{location.Name}\""
             );
 
-            // Reload with includes for response
+            // Lấy lại dữ liệu vừa tạo kèm include
             var created = await _context.Locations
                 .Include(x => x.LocationType)
                 .Include(x => x.LocationStatus)
@@ -104,13 +130,20 @@ namespace FarmManagement.Infrastructure.Services.Locations
             return _mapper.Map<LocationDto>(created);
         }
 
+        /// <summary>
+        /// Cập nhật thông tin Location.
+        /// </summary>
+        /// <param name="dto">DTO chứa thông tin Location cần cập nhật.</param>
+        /// <returns>Task bất đồng bộ.</returns>
+        /// <exception cref="NotFoundException">Nếu không tìm thấy Location.</exception>
+        /// <exception cref="BusinessException">Nếu dữ liệu không hợp lệ.</exception>
         public async Task UpdateAsync(LocationDto dto)
         {
             var location = await _context.Locations.FirstOrDefaultAsync(x => x.Id == dto.Id && !x.IsDeleted);
             if (location == null)
                 throw new NotFoundException("Không tìm thấy địa điểm");
 
-            // Validate required fields
+            // Kiểm tra các trường bắt buộc
             if (string.IsNullOrWhiteSpace(dto.Name))
                 throw new BusinessException("Tên địa điểm không được để trống");
 
@@ -126,7 +159,7 @@ namespace FarmManagement.Infrastructure.Services.Locations
             if (string.IsNullOrWhiteSpace(dto.Address))
                 throw new BusinessException("Address không được để trống");
 
-            // Validate ParentLocationId if provided
+            // Kiểm tra ParentLocationId nếu có
             if (dto.ParentLocationId.HasValue)
             {
                 if (dto.ParentLocationId.Value == dto.Id)
@@ -136,11 +169,11 @@ namespace FarmManagement.Infrastructure.Services.Locations
                     throw new BusinessException("Địa điểm cha không tồn tại");
             }
 
-            // Validate date range
+            // Kiểm tra ngày bắt đầu và kết thúc
             if (dto.StartDate.HasValue && dto.EndDate.HasValue && dto.StartDate > dto.EndDate)
                 throw new BusinessException("Ngày bắt đầu không thể lớn hơn ngày kết thúc");
 
-            // Update all fields
+            // Cập nhật các trường
             location.Name = dto.Name;
             location.Description = dto.Description;
             location.Address = dto.Address;
@@ -156,7 +189,7 @@ namespace FarmManagement.Infrastructure.Services.Locations
 
             await _context.SaveChangesAsync();
 
-            // Log activity
+            // Ghi log hoạt động
             _activityLogService.LogActivity(
                 ActivityActionTypes.Update,
                 ActivityEntityTypes.Location,
@@ -166,13 +199,19 @@ namespace FarmManagement.Infrastructure.Services.Locations
             );
         }
 
+        /// <summary>
+        /// Xóa mềm một Location theo Id.
+        /// </summary>
+        /// <param name="id">Id của Location cần xóa.</param>
+        /// <returns>Task bất đồng bộ.</returns>
+        /// <exception cref="BusinessException">Nếu Location có địa điểm con.</exception>
         public async Task DeleteAsync(int id)
         {
             var location = await _context.Locations.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted);
             if (location == null)
                 return;
 
-            // Check if location has children
+            // Kiểm tra nếu Location có địa điểm con
             if (await _context.Locations.AnyAsync(x => x.ParentLocationId == id && !x.IsDeleted))
                 throw new BusinessException("Không thể xóa địa điểm có địa điểm con");
 
@@ -182,7 +221,7 @@ namespace FarmManagement.Infrastructure.Services.Locations
             location.DeletedDate = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            // Log activity
+            // Ghi log hoạt động
             _activityLogService.LogActivity(
                 ActivityActionTypes.Delete,
                 ActivityEntityTypes.Location,
