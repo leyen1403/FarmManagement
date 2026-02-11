@@ -4,6 +4,7 @@ using FarmManagement.Infrastructure.Persistence.DbContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FarmManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(FarmManagementDbContext))]
-    partial class FarmManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211072652_AddAuditColumnsToLivestockSaleDetailsAndSaleTypes")]
+    partial class AddAuditColumnsToLivestockSaleDetailsAndSaleTypes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

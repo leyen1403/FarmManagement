@@ -42,6 +42,10 @@ builder.Services.AddScoped<SaleTypeApiService>();
 builder.Services.AddScoped<LivestockSaleApiService>();
 builder.Services.AddScoped<LivestockPriceApiService>();
 
+// Register Export Services
+builder.Services.AddScoped<FarmManagement.Application.Interfaces.Services.ILivestockPdfExportService, FarmManagement.Infrastructure.Services.Reports.LivestockPdfExportService>();
+builder.Services.AddScoped<FarmManagement.Application.Interfaces.Services.ILivestockInvoiceExportService, FarmManagement.Infrastructure.Services.Reports.LivestockInvoiceExportService>();
+
 // Register API clients - Common
 builder.Services.AddScoped<ActivityLogApiService>();
 

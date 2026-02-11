@@ -145,10 +145,10 @@
                                 }
                             </td>
                             <td class="text-center">
-                                <div class="btn-group btn-group-sm">
+                                <div class="d-flex gap-1 justify-content-center">
                                     <a asp-action="Edit"
                                        asp-route-id="@item.Id"
-                                       class="btn btn-outline-primary"
+                                       class="btn btn-sm btn-outline-primary"
                                        title="Sửa">
                                         <i class="bi bi-pencil"></i>
                                     </a>
@@ -159,14 +159,14 @@
                                           class="d-inline">
                                         @Html.AntiForgeryToken()
                                         <button type="submit"
-                                                class="btn @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                                class="btn btn-sm @(item.IsActive ? "btn-outline-warning" : "btn-outline-success")"
                                                 title="@(item.IsActive ? "Tắt" : "Bật")">
                                             <i class="bi @(item.IsActive ? "bi-toggle-off" : "bi-toggle-on")"></i>
                                         </button>
                                     </form>
 
                                     <button type="button"
-                                            class="btn btn-outline-danger"
+                                            class="btn btn-sm btn-outline-danger"
                                             title="Xóa"
                                             onclick="FarmApp.UI.confirmDelete(@item.Id, '@item.Name')">
                                         <i class="bi bi-trash"></i>

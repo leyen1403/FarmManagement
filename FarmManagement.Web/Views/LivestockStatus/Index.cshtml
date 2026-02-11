@@ -77,11 +77,14 @@
                                 </span>
                             </td>
                             <td>
-                                <div class="action-buttons">
-                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Sửa">
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" 
+                                       class="btn btn-sm btn-outline-primary" title="Sửa">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Xóa" onclick="confirmDelete(@item.Id, '@item.Name')">
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            title="Xóa" 
+                                            onclick="confirmDelete(@item.Id, '@item.Name')">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>

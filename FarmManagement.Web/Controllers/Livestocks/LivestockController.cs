@@ -1,4 +1,5 @@
 ﻿using FarmManagement.Application.DTOs.Livestocks;
+using FarmManagement.Application.Interfaces.Services;
 using FarmManagement.Web.Services.Livestocks;
 using FarmManagement.Web.Services.Locations;
 using FarmManagement.Web.Models;
@@ -17,6 +18,8 @@ public class LivestockController : Controller
     private readonly LivestockHealthLogApiService _healthLogService;
     private readonly LivestockSaleApiService _saleService;
     private readonly LivestockPriceApiService _priceService;
+    private readonly ILivestockPdfExportService _pdfExportService;
+    private readonly ILivestockInvoiceExportService _invoiceExportService;
 
     public LivestockController(
         LivestockApiService livestockService,
@@ -26,7 +29,9 @@ public class LivestockController : Controller
         LivestockCareLogApiService careLogService,
         LivestockHealthLogApiService healthLogService,
         LivestockSaleApiService saleService,
-        LivestockPriceApiService priceService)
+        LivestockPriceApiService priceService,
+        ILivestockPdfExportService pdfExportService,
+        ILivestockInvoiceExportService invoiceExportService)
     {
         _livestockService = livestockService;
         _livestockTypeService = livestockTypeService;
@@ -36,6 +41,8 @@ public class LivestockController : Controller
         _healthLogService = healthLogService;
         _saleService = saleService;
         _priceService = priceService;
+        _pdfExportService = pdfExportService;
+        _invoiceExportService = invoiceExportService;
     }
 
     public async Task<IActionResult> Index(int? livestockTypeId = null, int? livestockStatusId = null, int? locationId = null)
@@ -429,6 +436,43 @@ public class LivestockController : Controller
     }
 
     #endregion
+
+    [HttpGet]
+    public async Task<IActionResult> ExportPdf(int id)
+    {
+        var livestock = await _livestockService.GetByIdAsync(id);
+        if (livestock == null)
+            return NotFound();
+
+        var careLogs = await _careLogService.GetByLivestockIdAsync(id);
+        var healthLogs = await _healthLogService.GetByLivestockIdAsync(id);
+        var sales = await _saleService.GetByLivestockIdAsync(id);
+
+        var pdfBytes = _pdfExportService.ExportLivestockDetails(livestock, careLogs, healthLogs, sales);
+        var fileName = $"BaoCaoVatNuoi_{livestock.Name ?? livestock.TagCode ?? $"VN-{id}"}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+
+        return File(pdfBytes, "application/pdf", fileName);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ExportInvoice(int saleId)
+    {
+        // Lấy thông tin đơn hàng
+        var sale = await _saleService.GetByIdAsync(saleId);
+        if (sale == null)
+            return NotFound("Không tìm thấy đơn hàng");
+
+        // Lấy thông tin vật nuôi
+        var livestock = await _livestockService.GetByIdAsync(sale.LivestockId);
+        if (livestock == null)
+            return NotFound("Không tìm thấy thông tin vật nuôi");
+
+        // Xuất hóa đơn PDF
+        var pdfBytes = _invoiceExportService.ExportSaleInvoice(sale, livestock);
+        var fileName = $"HoaDon_{sale.OrderCode ?? $"INV-{saleId:D6}"}_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+
+        return File(pdfBytes, "application/pdf", fileName);
+    }
 
     private async Task LoadDropdownsAsync()
     {

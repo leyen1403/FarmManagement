@@ -20,9 +20,9 @@ public class LivestockSaleDetailConfiguration : IEntityTypeConfiguration<Livesto
 
         // Relationship
         builder.HasOne(x => x.LivestockSale)
-      .WithMany(x => x.Details)
+            .WithMany(x => x.Details)
             .HasForeignKey(x => x.LivestockSaleId)
-     .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Index
         builder.HasIndex(x => new { x.LivestockSaleId, x.LineNumber });

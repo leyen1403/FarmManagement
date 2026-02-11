@@ -38,6 +38,12 @@
         {
             ActionButtonModel.Back("/Livestock", "Quay lại"),
             new ActionButtonModel(
+                "Xuất PDF",
+                $"/Livestock/ExportPdf/{Model.Id}",
+                "bi bi-file-earmark-pdf",
+                "btn-danger"
+            ) { Size = ButtonSize.Small },
+            new ActionButtonModel(
                 "Sửa",
                 $"/Livestock/Edit/{Model.Id}",
                 "bi bi-pencil",
@@ -337,8 +343,10 @@
                                                 <td class="text-success fw-medium">@log.Cost.ToString("N0") đ</td>
                                                 <td class="text-muted">@log.Note</td>
                                                 <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                    <div class="d-flex gap-1">
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-primary" 
+                                                                title="Sửa"
                                                                 onclick="openEditCareLogModal(@log.Id, @log.LivestockCareTypeId, '@log.CareDate.ToString("yyyy-MM-dd")', @log.Quantity, '@(log.Unit ?? "")', @log.Cost, '@(log.Note?.Replace("'", "\\'") ?? "")')">
                                                             <i class="bi bi-pencil"></i>
                                                         </button>
@@ -347,7 +355,10 @@
                                                             <input type="hidden" name="id" value="@log.Id" />
                                                             <input type="hidden" name="livestockId" value="@Model.Id" />
 
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-outline-danger" 
+                                                                    title="Xóa"
+                                                                    onclick="return confirm('Xóa nhật ký này?')">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
@@ -405,8 +416,10 @@
                                                 <td class="text-danger fw-medium">@log.MedicineCost.ToString("N0") đ</td>
                                                 <td>@log.VetName</td>
                                                 <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                    <div class="d-flex gap-1">
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-primary" 
+                                                                title="Sửa"
                                                                 onclick="openEditHealthLogModal(@log.Id, @log.HealthStatusId, '@log.CheckDate.ToString("yyyy-MM-dd")', '@(log.Symptom?.Replace("'", "\\'") ?? "")', '@(log.Treatment?.Replace("'", "\\'") ?? "")', @log.MedicineCost, '@(log.VetName?.Replace("'", "\\'") ?? "")')">
                                                             <i class="bi bi-pencil"></i>
                                                         </button>
@@ -414,7 +427,10 @@
                                                             @Html.AntiForgeryToken()
                                                             <input type="hidden" name="id" value="@log.Id" />
                                                             <input type="hidden" name="livestockId" value="@Model.Id" />
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa nhật ký này?')">
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-outline-danger" 
+                                                                    title="Xóa"
+                                                                    onclick="return confirm('Xóa nhật ký này?')">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
@@ -474,11 +490,23 @@
                                                 <td class="text-success fw-bold">@sale.TotalAmount.ToString("N0") đ</td>
                                                 <td>@sale.Buyer</td>
                                                 <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <button type="button" class="btn btn-outline-info btn-sm" title="Xem chi tiết" onclick="viewSaleDetails(@sale.Id)">
+                                                    @* Tab: Bán hàng - Update button group *@
+                                                    <div class="d-flex gap-1">
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-success" 
+                                                                title="In hóa đơn" 
+                                                                onclick="window.location.href='/Livestock/ExportInvoice?saleId=@sale.Id'">
+                                                            <i class="bi bi-printer"></i>
+                                                        </button>
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-info" 
+                                                                title="Xem chi tiết" 
+                                                                onclick="viewSaleDetails(@sale.Id)">
                                                             <i class="bi bi-eye"></i>
                                                         </button>
-                                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Sửa"
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-primary" 
+                                                                title="Sửa"
                                                                 onclick="openEditSaleModal(@sale.Id, '@sale.SaleDate.ToString("yyyy-MM-dd")', '@(sale.Buyer?.Replace("'", "\\'") ?? "")', '@(sale.BuyerPhone?.Replace("'", "\\'") ?? "")', '@(sale.Note?.Replace("'", "\\'") ?? "")')">
                                                             <i class="bi bi-pencil"></i>
                                                         </button>
@@ -486,7 +514,10 @@
                                                             @Html.AntiForgeryToken()
                                                             <input type="hidden" name="id" value="@sale.Id" />
                                                             <input type="hidden" name="livestockId" value="@Model.Id" />
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa đơn hàng này?')">
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-outline-danger" 
+                                                                    title="Xóa"
+                                                                    onclick="return confirm('Xóa đơn hàng này?')">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
@@ -614,8 +645,10 @@
                                                 </td>
                                                 <td class="text-muted">@price.Note</td>
                                                 <td>
-                                                    <div class="btn-group btn-group-sm">
-                                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                    <div class="d-flex gap-1">
+                                                        <button type="button" 
+                                                                class="btn btn-sm btn-outline-primary" 
+                                                                title="Sửa"
                                                                 onclick="openEditPriceModal(@price.Id, @((int)price.Gender), @price.UnitPrice, '@price.EffectiveFrom.ToString("yyyy-MM-dd")', '@(price.EffectiveTo?.ToString("yyyy-MM-dd") ?? "")', @price.IsActive.ToString().ToLower(), '@(price.Note?.Replace("'", "\\'") ?? "")')">
                                                             <i class="bi bi-pencil"></i>
                                                         </button>
@@ -623,7 +656,10 @@
                                                             @Html.AntiForgeryToken()
                                                             <input type="hidden" name="id" value="@price.Id" />
                                                             <input type="hidden" name="livestockId" value="@Model.Id" />
-                                                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('Xóa giá này?')">
+                                                            <button type="submit" 
+                                                                    class="btn btn-sm btn-outline-danger" 
+                                                                    title="Xóa"
+                                                                    onclick="return confirm('Xóa giá này?')">
                                                                 <i class="bi bi-trash"></i>
                                                             </button>
                                                         </form>
